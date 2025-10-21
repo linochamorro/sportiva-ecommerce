@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrito - Sportiva</title>
+    
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        .carrito-item {
+            display: grid;
+            grid-template-columns: 120px 1fr auto;
+            gap: 24px;
+            padding: 24px;
+            border: 1px solid var(--color-gray-border);
+            margin-bottom: 16px;
+            align-items: center;
+        }
+
+        .carrito-imagen {
+            width: 120px;
+            height: 120px;
+            background-color: var(--color-gray-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .carrito-imagen img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .cantidad-control {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .cantidad-control button {
+            width: 32px;
+            height: 32px;
+            border: 1px solid var(--color-gray-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .cantidad-control input {
+            width: 50px;
+            text-align: center;
+            border: 1px solid var(--color-gray-border);
+            padding: 4px;
+        }
+
+        .resumen-carrito {
+            position: sticky;
+            top: 100px;
+            background-color: var(--color-gray-light);
+            padding: 24px;
+        }
+
+        .resumen-linea {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .resumen-total {
+            display: flex;
+            justify-content: space-between;
+            font-size: 18px;
+            font-weight: 700;
+            padding-top: 16px;
+            border-top: 2px solid var(--color-black);
+            margin-top: 16px;
+        }
+
+        .carrito-vacio {
+            text-align: center;
+            padding: 80px 24px;
+        }
+
+        @media (max-width: 767px) {
+            .carrito-item {
+                grid-template-columns: 80px 1fr;
+                gap: 16px;
+            }
+
+            .carrito-item > div:last-child {
+                grid-column: 1 / -1;
+            }
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="index.html" class="navbar-logo">SPORTIVA</a>
+            
+            <ul class="navbar-menu">
+                <li><a href="catalogo.html?categoria=Ropa Deportiva" class="navbar-link">Ropa</a></li>
+                <li><a href="catalogo.html?categoria=Implementos de Entrenamiento" class="navbar-link">Implementos</a></li>
+                <li><a href="catalogo.html?categoria=Deportes de Equipo" class="navbar-link">Deportes</a></li>
+                <li><a href="catalogo.html?categoria=Calzado Deportivo" class="navbar-link">Calzado</a></li>
+                <li><a href="catalogo.html" class="navbar-link">Catálogo</a></li>
+            </ul>
+            
+            <div class="navbar-actions">
+                <button onclick="window.location.href='catalogo.html'" class="navbar-link">Buscar</button>
+                <button class="cart-button" onclick="window.location.href='carrito.html'">
+                    🛒
+                    <span class="cart-count">0</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- BREADCRUMB -->
+    <div class="breadcrumb" style="padding: 16px 0; border-bottom: 1px solid var(--color-gray-border);">
+        <div class="container">
+            <a href="index.html" style="color: var(--color-gray-medium); font-size: 14px;">Inicio</a>
+            <span style="color: var(--color-gray-medium); margin: 0 8px;">/</span>
+            <span style="color: var(--color-black); font-weight: 600;">Carrito</span>
+        </div>
+    </div>
+
+    <!-- CARRITO -->
+    <section class="section">
+        <div class="container">
+            <h1 style="margin-bottom: 32px;">MI CARRITO</h1>
+
+            <!-- CARRITO VACÍO -->
+            <div id="carritoVacio" class="carrito-vacio hidden">
+                <div style="font-size: 64px; margin-bottom: 24px;">🛒</div>
+                <h2 style="margin-bottom: 16px;">Tu carrito está vacío</h2>
+                <p class="text-secondary" style="margin-bottom: 32px;">Agrega productos para comenzar tu compra</p>
+                <button class="btn btn-primary" onclick="window.location.href='catalogo.html'">
+                    Explorar Productos
+                </button>
+            </div>
+
+            <!-- CARRITO CON PRODUCTOS -->
+            <div id="carritoConProductos" class="hidden">
+                <div style="display: grid; grid-template-columns: 1fr 400px; gap: 48px;">
+                    
+                    <!-- LISTA DE PRODUCTOS -->
+                    <div>
+                        <div id="listaProductosCarrito">
+                            <!-- Productos cargados dinámicamente -->
+                        </div>
+
+                        <div style="margin-top: 24px;">
+                            <button class="btn btn-outline" onclick="window.location.href='catalogo.html'">
+                                ← Seguir Comprando
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- RESUMEN -->
+                    <div class="resumen-carrito">
+                        <h3 class="text-uppercase" style="margin-bottom: 24px;">Resumen del Pedido</h3>
+
+                        <div class="resumen-linea">
+                            <span class="text-secondary">Subtotal (<span id="cantidadItems">0</span> items)</span>
+                            <span id="subtotalCarrito">S/ 0.00</span>
+                        </div>
+
+                        <div class="resumen-linea">
+                            <span class="text-secondary">IGV (18%)</span>
+                            <span id="igvCarrito">S/ 0.00</span>
+                        </div>
+
+                        <div class="resumen-linea">
+                            <span class="text-secondary">Envío estimado</span>
+                            <span id="envioCarrito">S/ 15.00</span>
+                        </div>
+
+                        <div class="resumen-total">
+                            <span>Total</span>
+                            <span id="totalCarrito">S/ 0.00</span>
+                        </div>
+
+                        <button class="btn btn-cta btn-full" style="margin-top: 24px;" onclick="irACheckout()">
+                            Proceder al Pago
+                        </button>
+
+                        <p class="text-small text-secondary" style="margin-top: 16px; text-align: center;">
+                            Envío gratis en compras mayores a S/ 150
+                        </p>
+
+                        <!-- CUPÓN DE DESCUENTO -->
+                        <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--color-gray-border);">
+                            <h3 class="text-uppercase" style="margin-bottom: 12px; font-size: 12px;">¿Tienes un cupón?</h3>
+                            <div style="display: flex; gap: 8px;">
+                                <input 
+                                    type="text" 
+                                    id="inputCupon" 
+                                    class="form-input" 
+                                    placeholder="Código de cupón"
+                                    style="flex: 1;">
+                                <button class="btn btn-primary" onclick="aplicarCuponCarrito()">Aplicar</button>
+                            </div>
+                            <div id="mensajeCupon" style="margin-top: 8px; font-size: 12px;"></div>
+                        </div>
+
+                        <!-- MÉTODOS DE PAGO -->
+                        <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--color-gray-border);">
+                            <p class="text-small text-secondary" style="margin-bottom: 12px;">Métodos de pago aceptados:</p>
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <span style="padding: 4px 8px; background-color: white; border: 1px solid var(--color-gray-border); font-size: 11px; font-weight: 700;">VISA</span>
+                                <span style="padding: 4px 8px; background-color: white; border: 1px solid var(--color-gray-border); font-size: 11px; font-weight: 700;">MASTERCARD</span>
+                                <span style="padding: 4px 8px; background-color: white; border: 1px solid var(--color-gray-border); font-size: 11px; font-weight: 700;">YAPE</span>
+                                <span style="padding: 4px 8px; background-color: white; border: 1px solid var(--color-gray-border); font-size: 11px; font-weight: 700;">PLIN</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div>
+                    <h4 class="footer-title">Productos</h4>
+                    <ul class="footer-links">
+                        <li><a href="catalogo.html?categoria=Calzado Deportivo" class="footer-link">Calzado</a></li>
+                        <li><a href="catalogo.html?categoria=Ropa Deportiva" class="footer-link">Ropa</a></li>
+                        <li><a href="catalogo.html?categoria=Accesorios" class="footer-link">Accesorios</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="footer-title">Deportes</h4>
+                    <ul class="footer-links">
+                        <li><a href="catalogo.html" class="footer-link">Running</a></li>
+                        <li><a href="catalogo.html" class="footer-link">Fútbol</a></li>
+                        <li><a href="catalogo.html" class="footer-link">Training</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="footer-title">Soporte</h4>
+                    <ul class="footer-links">
+                        <li><a href="#" class="footer-link">Ayuda</a></li>
+                        <li><a href="#" class="footer-link">Devoluciones</a></li>
+                        <li><a href="#" class="footer-link">Contacto</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="footer-title">Empresa</h4>
+                    <ul class="footer-links">
+                        <li><a href="#" class="footer-link">Nosotros</a></li>
+                        <li><a href="#" class="footer-link">Tiendas</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p class="footer-copyright">&copy; 2025 Sportiva Perú. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/carrito.js"></script>
+</body>
+</html>

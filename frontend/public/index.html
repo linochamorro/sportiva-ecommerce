@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sportiva - Implementos Deportivos de Calidad</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CDN (complemento) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <meta name="description" content="Sportiva - Tu tienda online de implementos deportivos. Ropa, calzado, accesorios y equipamiento para todos los deportes.">
+</head>
+<body>
+    
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="index.html" class="navbar-logo">SPORTIVA</a>
+            
+            <ul class="navbar-menu">
+                <li><a href="catalogo.html?categoria=Ropa Deportiva" class="navbar-link">Ropa</a></li>
+                <li><a href="catalogo.html?categoria=Implementos de Entrenamiento" class="navbar-link">Implementos</a></li>
+                <li><a href="catalogo.html?categoria=Deportes de Equipo" class="navbar-link">Deportes</a></li>
+                <li><a href="catalogo.html?categoria=Calzado Deportivo" class="navbar-link">Calzado</a></li>
+                <li><a href="catalogo.html" class="navbar-link">Catálogo</a></li>
+            </ul>
+            
+            <div class="navbar-actions">
+                <button onclick="window.location.href='catalogo.html'" class="navbar-link">Buscar</button>
+                <button class="cart-button" onclick="window.location.href='carrito.html'">
+                    🛒
+                    <span class="cart-count">0</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-grid">
+                <div class="hero-content">
+                    <p class="hero-badge">Nueva Colección</p>
+                    <h1>ENTRENA<br/>COMO UN<br/>PROFESIONAL</h1>
+                    <p>Descubre nuestra nueva línea de implementos deportivos diseñados para maximizar tu rendimiento y alcanzar tus objetivos.</p>
+                    <button class="btn btn-primary" onclick="irACatalogo()">Comprar Ahora</button>
+                </div>
+                
+                <div class="hero-image">
+                    <img src="../assets/images/hero-sportiva.jpg" 
+                          alt="Hero Image"
+                          style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;"
+                          onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=color:#CCC;>Imagen Hero</span>'">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CATEGORÍAS -->
+    <section class="section">
+        <div class="container">
+            <h2 class="text-center mb-lg">COMPRA POR CATEGORÍA</h2>
+            
+            <div class="grid grid-categories">
+                <div class="category-card" onclick="irACatalogo('Ropa Deportiva')">
+                    <div class="category-icon">👕</div>
+                    <h3 class="category-name">Ropa Deportiva</h3>
+                </div>
+                
+                <div class="category-card" onclick="irACatalogo('Implementos de Entrenamiento')">
+                    <div class="category-icon">🏋️</div>
+                    <h3 class="category-name">Implementos</h3>
+                </div>
+                
+                <div class="category-card" onclick="irACatalogo('Deportes de Equipo')">
+                    <div class="category-icon">⚽</div>
+                    <h3 class="category-name">Deportes</h3>
+                </div>
+                
+                <div class="category-card" onclick="irACatalogo('Calzado Deportivo')">
+                    <div class="category-icon">👟</div>
+                    <h3 class="category-name">Calzado</h3>
+                </div>
+                
+                <div class="category-card" onclick="irACatalogo('Accesorios')">
+                    <div class="category-icon">🎒</div>
+                    <h3 class="category-name">Accesorios</h3>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PRODUCTOS DESTACADOS -->
+    <section class="section section-alt">
+        <div class="container">
+            <h2 class="mb-lg">PRODUCTOS DESTACADOS</h2>
+            
+            <div id="productosDestacados" class="grid grid-products">
+                <!-- Productos cargados dinámicamente -->
+            </div>
+            
+            <div class="text-center mt-lg">
+                <button class="btn btn-outline" onclick="irACatalogo()">Ver Todos los Productos</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- BENEFICIOS -->
+    <section class="section">
+        <div class="container">
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 48px; text-align: center;">
+                <div>
+                    <div style="font-size: 48px; margin-bottom: 16px;">📦</div>
+                    <h3 class="text-uppercase" style="margin-bottom: 8px;">Envío Rápido</h3>
+                    <p class="text-secondary">Entrega en 24-48 horas en Lima</p>
+                </div>
+                
+                <div>
+                    <div style="font-size: 48px; margin-bottom: 16px;">🔄</div>
+                    <h3 class="text-uppercase" style="margin-bottom: 8px;">Devoluciones Fáciles</h3>
+                    <p class="text-secondary">30 días para cambios</p>
+                </div>
+                
+                <div>
+                    <div style="font-size: 48px; margin-bottom: 16px;">🏆</div>
+                    <h3 class="text-uppercase" style="margin-bottom: 8px;">Calidad Garantizada</h3>
+                    <p class="text-secondary">Productos 100% originales</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div>
+                    <h4 class="footer-title">Productos</h4>
+                    <ul class="footer-links">
+                        <li><a href="catalogo.html?categoria=Calzado Deportivo" class="footer-link">Calzado</a></li>
+                        <li><a href="catalogo.html?categoria=Ropa Deportiva" class="footer-link">Ropa</a></li>
+                        <li><a href="catalogo.html?categoria=Accesorios" class="footer-link">Accesorios</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="footer-title">Deportes</h4>
+                    <ul class="footer-links">
+                        <li><a href="catalogo.html" class="footer-link">Running</a></li>
+                        <li><a href="catalogo.html" class="footer-link">Fútbol</a></li>
+                        <li><a href="catalogo.html" class="footer-link">Training</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="footer-title">Soporte</h4>
+                    <ul class="footer-links">
+                        <li><a href="#" class="footer-link">Ayuda</a></li>
+                        <li><a href="#" class="footer-link">Devoluciones</a></li>
+                        <li><a href="#" class="footer-link">Contacto</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="footer-title">Empresa</h4>
+                    <ul class="footer-links">
+                        <li><a href="#" class="footer-link">Nosotros</a></li>
+                        <li><a href="#" class="footer-link">Tiendas</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p class="footer-copyright">&copy; 2025 Sportiva Perú. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="../assets/js/apiConfig.js"></script>
+    <script src="../assets/js/authService.js"></script>
+    <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/index.js"></script>
+</body>
+</html>

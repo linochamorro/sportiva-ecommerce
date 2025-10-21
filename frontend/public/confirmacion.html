@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedido Confirmado - Sportiva</title>
+    
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        .confirmacion-container {
+            max-width: 600px;
+            margin: 80px auto;
+            text-align: center;
+            padding: 48px 24px;
+        }
+
+        .icono-exito {
+            width: 80px;
+            height: 80px;
+            background-color: var(--color-success);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 40px;
+            color: white;
+        }
+
+        .tracking-box {
+            background-color: var(--color-gray-light);
+            padding: 24px;
+            border-radius: 8px;
+            margin: 32px 0;
+        }
+
+        .tracking-number {
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--color-black);
+            letter-spacing: 2px;
+            margin: 16px 0;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-top: 32px;
+            text-align: left;
+        }
+
+        .info-item {
+            padding: 16px;
+            background-color: var(--color-white);
+            border: 1px solid var(--color-gray-border);
+        }
+
+        @media (max-width: 767px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="index.html" class="navbar-logo">SPORTIVA</a>
+            
+            <ul class="navbar-menu">
+                <li><a href="catalogo.html?categoria=Ropa Deportiva" class="navbar-link">Ropa</a></li>
+                <li><a href="catalogo.html?categoria=Implementos de Entrenamiento" class="navbar-link">Implementos</a></li>
+                <li><a href="catalogo.html?categoria=Deportes de Equipo" class="navbar-link">Deportes</a></li>
+                <li><a href="catalogo.html?categoria=Calzado Deportivo" class="navbar-link">Calzado</a></li>
+                <li><a href="catalogo.html" class="navbar-link">Catálogo</a></li>
+            </ul>
+            
+            <div class="navbar-actions">
+                <button onclick="window.location.href='catalogo.html'" class="navbar-link">Buscar</button>
+                <button class="cart-button" onclick="window.location.href='carrito.html'">
+                    🛒
+                    <span class="cart-count">0</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- CONFIRMACIÓN -->
+    <section class="section">
+        <div class="confirmacion-container">
+            <div class="icono-exito">✓</div>
+            
+            <h1 style="margin-bottom: 16px;">¡PEDIDO CONFIRMADO!</h1>
+            
+            <p class="text-secondary" style="font-size: 18px; margin-bottom: 32px;">
+                Gracias por tu compra. Hemos recibido tu pedido correctamente.
+            </p>
+
+            <div class="tracking-box">
+                <p class="text-small text-uppercase" style="color: var(--color-gray-medium); margin-bottom: 8px;">
+                    Número de Pedido
+                </p>
+                <p class="tracking-number" id="numeroPedido">-</p>
+                
+                <hr style="margin: 16px 0; border: none; border-top: 1px solid var(--color-gray-border);">
+                
+                <p class="text-small text-uppercase" style="color: var(--color-gray-medium); margin-bottom: 8px;">
+                    Número de Seguimiento
+                </p>
+                <p class="tracking-number" id="numeroTracking">-</p>
+                
+                <p class="text-small text-secondary" style="margin-top: 16px;">
+                    Guarda estos números para hacer seguimiento de tu envío
+                </p>
+            </div>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <div style="font-size: 32px; margin-bottom: 8px;">📧</div>
+                    <h3 class="text-uppercase" style="font-size: 12px; margin-bottom: 8px;">Confirmación por Email</h3>
+                    <p class="text-small text-secondary">
+                        Te enviamos los detalles de tu pedido a tu correo electrónico
+                    </p>
+                </div>
+
+                <div class="info-item">
+                    <div style="font-size: 32px; margin-bottom: 8px;">📦</div>
+                    <h3 class="text-uppercase" style="font-size: 12px; margin-bottom: 8px;">Tiempo de Entrega</h3>
+                    <p class="text-small text-secondary" id="tiempoEntrega">
+                        Lima: 24-48 horas<br>
+                        Provincias: 3-5 días
+                    </p>
+                </div>
+
+                <div class="info-item">
+                    <div style="font-size: 32px; margin-bottom: 8px;">💳</div>
+                    <h3 class="text-uppercase" style="font-size: 12px; margin-bottom: 8px;">Estado de Pago</h3>
+                    <p class="text-small" style="color: var(--color-success); font-weight: 700;">
+                        ✓ Pago Confirmado
+                    </p>
+                </div>
+
+                <div class="info-item">
+                    <div style="font-size: 32px; margin-bottom: 8px;">📞</div>
+                    <h3 class="text-uppercase" style="font-size: 12px; margin-bottom: 8px;">¿Necesitas Ayuda?</h3>
+                    <p class="text-small text-secondary">
+                        Contacta con nuestro equipo de soporte
+                    </p>
+                </div>
+            </div>
+
+            <div style="margin-top: 48px; display: flex; gap: 16px; justify-content: center;">
+                <button class="btn btn-outline" onclick="window.location.href='index.html'">
+                    Volver al Inicio
+                </button>
+                <button class="btn btn-primary" onclick="window.location.href='catalogo.html'">
+                    Seguir Comprando
+                </button>
+            </div>
+
+            <div style="margin-top: 48px; padding: 24px; background-color: var(--color-gray-light); border-radius: 8px; text-align: left;">
+                <h3 class="text-uppercase" style="margin-bottom: 16px; font-size: 14px;">Próximos Pasos</h3>
+                <ol style="line-height: 2; padding-left: 20px;">
+                    <li>Recibirás un email de confirmación con los detalles de tu pedido</li>
+                    <li>Preparamos tu pedido en nuestro almacén (1-2 horas)</li>
+                    <li>Tu pedido será enviado con el operador logístico</li>
+                    <li>Recibirás notificaciones sobre el estado de tu envío</li>
+                    <li>¡Disfruta tus nuevos productos deportivos! 🎉</li>
+                </ol>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div>
+                    <h4 class="footer-title">Productos</h4>
+                    <ul class="footer-links">
+                        <li><a href="catalogo.html?categoria=Calzado Deportivo" class="footer-link">Calzado</a></li>
+                        <li><a href="catalogo.html?categoria=Ropa Deportiva" class="footer-link">Ropa</a></li>
+                        <li><a href="catalogo.html?categoria=Accesorios" class="footer-link">Accesorios</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="footer-title">Deportes</h4>
+                    <ul class="footer-links">
+                        <li><a href="catalogo.html" class="footer-link">Running</a></li>
+                        <li><a href="catalogo.html" class="footer-link">Fútbol</a></li>
+                        <li><a href="catalogo.html" class="footer-link">Training</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="footer-title">Soporte</h4>
+                    <ul class="footer-links">
+                        <li><a href="#" class="footer-link">Ayuda</a></li>
+                        <li><a href="#" class="footer-link">Devoluciones</a></li>
+                        <li><a href="#" class="footer-link">Contacto</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="footer-title">Empresa</h4>
+                    <ul class="footer-links">
+                        <li><a href="#" class="footer-link">Nosotros</a></li>
+                        <li><a href="#" class="footer-link">Tiendas</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p class="footer-copyright">&copy; 2025 Sportiva Perú. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="assets/js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const numeroPedido = urlParams.get('pedido');
+            const numeroTracking = urlParams.get('tracking');
+            
+            if (numeroPedido) {
+                document.getElementById('numeroPedido').textContent = numeroPedido;
+            }
+            
+            if (numeroTracking) {
+                document.getElementById('numeroTracking').textContent = numeroTracking;
+            }
+            
+            if (!numeroPedido || !numeroTracking) {
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 3000);
+            }
+        });
+    </script>
+</body>
+</html>

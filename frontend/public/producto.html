@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Producto - Sportiva</title>
+    
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        .talla-option {
+            padding: 12px 20px;
+            border: 2px solid var(--color-gray-border);
+            cursor: pointer;
+            transition: all 200ms;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .talla-option:hover:not(.disabled) {
+            border-color: var(--color-black);
+        }
+        
+        .talla-option.selected {
+            background-color: var(--color-black);
+            color: var(--color-white);
+            border-color: var(--color-black);
+        }
+        
+        .talla-option.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            text-decoration: line-through;
+        }
+        
+        .cantidad-selector {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .cantidad-btn {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--color-gray-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+        }
+        
+        .cantidad-input {
+            width: 60px;
+            text-align: center;
+            font-weight: 700;
+            border: 1px solid var(--color-gray-border);
+            padding: 8px;
+        }
+
+        .breadcrumb {
+            padding: 16px 0;
+            border-bottom: 1px solid var(--color-gray-border);
+        }
+
+        .breadcrumb a {
+            color: var(--color-gray-medium);
+            font-size: 14px;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--color-black);
+        }
+
+        .breadcrumb span {
+            color: var(--color-gray-medium);
+            margin: 0 8px;
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="index.html" class="navbar-logo">SPORTIVA</a>
+            
+            <ul class="navbar-menu">
+                <li><a href="catalogo.html?categoria=Ropa Deportiva" class="navbar-link">Ropa</a></li>
+                <li><a href="catalogo.html?categoria=Implementos de Entrenamiento" class="navbar-link">Implementos</a></li>
+                <li><a href="catalogo.html?categoria=Deportes de Equipo" class="navbar-link">Deportes</a></li>
+                <li><a href="catalogo.html?categoria=Calzado Deportivo" class="navbar-link">Calzado</a></li>
+                <li><a href="catalogo.html" class="navbar-link">Catálogo</a></li>
+            </ul>
+            
+            <div class="navbar-actions">
+                <button onclick="window.location.href='catalogo.html'" class="navbar-link">Buscar</button>
+                <button class="cart-button" onclick="window.location.href='carrito.html'">
+                    🛒
+                    <span class="cart-count">0</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- BREADCRUMB -->
+    <div class="breadcrumb">
+        <div class="container">
+            <a href="index.html">Inicio</a>
+            <span>/</span>
+            <a href="catalogo.html">Catálogo</a>
+            <span>/</span>
+            <a href="#" id="breadcrumbCategoria">Categoría</a>
+            <span>/</span>
+            <span id="breadcrumbProducto" style="color: var(--color-black); font-weight: 600;">Producto</span>
+        </div>
+    </div>
+
+    <!-- PRODUCTO -->
+    <section class="section">
+        <div class="container">
+            <div id="productoContenido">
+                <!-- Cargado dinámicamente -->
+            </div>
+        </div>
+    </section>
+
+    <!-- PRODUCTOS RELACIONADOS -->
+    <section class="section section-alt">
+        <div class="container">
+            <h2 class="mb-lg">PRODUCTOS RELACIONADOS</h2>
+            <div id="productosRelacionados" class="grid grid-products">
+                <!-- Cargado dinámicamente -->
+            </div>
+        </div>
+    </section>
+
+    <!-- MODAL GUÍA DE TALLAS -->
+    <div id="modalGuiaTallas" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+        <div style="background-color: white; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; padding: 32px; position: relative;">
+            <button onclick="cerrarModalTallas()" style="position: absolute; top: 16px; right: 16px; font-size: 24px; font-weight: 700; color: var(--color-gray-medium);">&times;</button>
+            
+            <h2 style="margin-bottom: 24px;">GUÍA DE TALLAS</h2>
+            
+            <div id="contenidoGuiaTallas">
+                <!-- Cargado dinámicamente según tipo de producto -->
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div>
+                    <h4 class="footer-title">Productos</h4>
+                    <ul class="footer-links">
+                        <li><a href="catalogo.html?categoria=Calzado Deportivo" class="footer-link">Calzado</a></li>
+                        <li><a href="catalogo.html?categoria=Ropa Deportiva" class="footer-link">Ropa</a></li>
+                        <li><a href="catalogo.html?categoria=Accesorios" class="footer-link">Accesorios</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="footer-title">Deportes</h4>
+                    <ul class="footer-links">
+                        <li><a href="catalogo.html" class="footer-link">Running</a></li>
+                        <li><a href="catalogo.html" class="footer-link">Fútbol</a></li>
+                        <li><a href="catalogo.html" class="footer-link">Training</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="footer-title">Soporte</h4>
+                    <ul class="footer-links">
+                        <li><a href="#" class="footer-link">Ayuda</a></li>
+                        <li><a href="#" class="footer-link">Devoluciones</a></li>
+                        <li><a href="#" class="footer-link">Contacto</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="footer-title">Empresa</h4>
+                    <ul class="footer-links">
+                        <li><a href="#" class="footer-link">Nosotros</a></li>
+                        <li><a href="#" class="footer-link">Tiendas</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p class="footer-copyright">&copy; 2025 Sportiva Perú. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/apiConfig.js"></script>
+    <script src="../assets/js/authService.js"></script>
+    <script src="../assets/js/producto.js"></script>
+</body>
+</html>

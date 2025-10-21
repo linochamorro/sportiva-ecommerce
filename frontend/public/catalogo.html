@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo - Sportiva</title>
+    
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="index.html" class="navbar-logo">SPORTIVA</a>
+            
+            <ul class="navbar-menu">
+                <li><a href="catalogo.html?categoria=Ropa Deportiva" class="navbar-link">Ropa</a></li>
+                <li><a href="catalogo.html?categoria=Implementos de Entrenamiento" class="navbar-link">Implementos</a></li>
+                <li><a href="catalogo.html?categoria=Deportes de Equipo" class="navbar-link">Deportes</a></li>
+                <li><a href="catalogo.html?categoria=Calzado Deportivo" class="navbar-link">Calzado</a></li>
+                <li><a href="catalogo.html" class="navbar-link">Catálogo</a></li>
+            </ul>
+            
+            <div class="navbar-actions">
+                <button onclick="toggleBusqueda()" class="navbar-link">Buscar</button>
+                <button class="cart-button" onclick="window.location.href='carrito.html'">
+                    🛒
+                    <span class="cart-count">0</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- BARRA DE BÚSQUEDA (OCULTA POR DEFECTO) -->
+    <div id="barraBusqueda" class="hidden" style="background-color: var(--color-gray-light); border-bottom: 1px solid var(--color-gray-border); padding: 16px 0;">
+        <div class="container">
+            <input 
+                type="text" 
+                id="inputBusqueda" 
+                class="form-input" 
+                placeholder="Buscar productos por nombre, marca o categoría..."
+                style="max-width: 600px; margin: 0 auto; display: block;">
+        </div>
+    </div>
+
+    <!-- CATÁLOGO -->
+    <section class="section">
+        <div class="container">
+            
+            <!-- HEADER -->
+            <div style="margin-bottom: 32px;">
+                <h1 id="tituloCatalogo">TODOS LOS PRODUCTOS</h1>
+                <p class="text-secondary" id="cantidadProductos">Cargando productos...</p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 250px 1fr; gap: 48px;">
+                
+                <!-- SIDEBAR FILTROS -->
+                <aside>
+                    <div style="position: sticky; top: 100px;">
+                        
+                        <!-- CATEGORÍAS -->
+                        <div style="margin-bottom: 32px;">
+                            <h3 class="text-uppercase" style="margin-bottom: 16px;">Categorías</h3>
+                            <div id="filtrosCategorias" style="display: flex; flex-direction: column; gap: 8px;">
+                                <!-- Cargado dinámicamente -->
+                            </div>
+                        </div>
+
+                        <!-- PRECIO -->
+                        <div style="margin-bottom: 32px;">
+                            <h3 class="text-uppercase" style="margin-bottom: 16px;">Precio</h3>
+                            <div style="display: flex; flex-direction: column; gap: 12px;">
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    <input 
+                                        type="number" 
+                                        id="precioMin" 
+                                        class="form-input" 
+                                        placeholder="Mín"
+                                        style="width: 100px;">
+                                    <span>-</span>
+                                    <input 
+                                        type="number" 
+                                        id="precioMax" 
+                                        class="form-input" 
+                                        placeholder="Máx"
+                                        style="width: 100px;">
+                                </div>
+                                <button class="btn btn-primary btn-full" onclick="aplicarFiltros()">Aplicar</button>
+                            </div>
+                        </div>
+
+                        <!-- DISPONIBILIDAD -->
+                        <div style="margin-bottom: 32px;">
+                            <h3 class="text-uppercase" style="margin-bottom: 16px;">Disponibilidad</h3>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" id="soloDisponibles" onchange="aplicarFiltros()">
+                                <span class="text-small">Solo productos en stock</span>
+                            </label>
+                        </div>
+
+                        <!-- LIMPIAR FILTROS -->
+                        <button class="btn btn-outline btn-full" onclick="limpiarFiltros()">Limpiar Filtros</button>
+                    </div>
+                </aside>
+
+                <!-- GRID DE PRODUCTOS -->
+                <div>
+                    <!-- BARRA DE ORDENAMIENTO -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                        <p class="text-secondary" id="resultadosFiltrados"></p>
+                        
+                        <select id="ordenamiento" class="form-select" style="width: 200px;" onchange="aplicarOrdenamiento()">
+                            <option value="">Ordenar por</option>
+                            <option value="precio_asc">Precio: Menor a Mayor</option>
+                            <option value="precio_desc">Precio: Mayor a Menor</option>
+                            <option value="nombre_asc">Nombre: A-Z</option>
+                            <option value="nombre_desc">Nombre: Z-A</option>
+                            <option value="nuevo">Novedades</option>
+                        </select>
+                    </div>
+
+                    <!-- PRODUCTOS -->
+                    <div id="gridProductos" class="grid grid-products">
+                        <!-- Cargado dinámicamente -->
+                    </div>
+
+                    <!-- MENSAJE VACÍO -->
+                    <div id="mensajeVacio" class="hidden" style="text-align: center; padding: 64px 0;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">🔍</div>
+                        <h3 style="margin-bottom: 8px;">No encontramos productos</h3>
+                        <p class="text-secondary">Intenta con otros filtros o búsqueda</p>
+                        <button class="btn btn-primary" style="margin-top: 24px;" onclick="limpiarFiltros()">Ver todos los productos</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div>
+                    <h4 class="footer-title">Productos</h4>
+                    <ul class="footer-links">
+                        <li><a href="catalogo.html?categoria=Calzado Deportivo" class="footer-link">Calzado</a></li>
+                        <li><a href="catalogo.html?categoria=Ropa Deportiva" class="footer-link">Ropa</a></li>
+                        <li><a href="catalogo.html?categoria=Accesorios" class="footer-link">Accesorios</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="footer-title">Deportes</h4>
+                    <ul class="footer-links">
+                        <li><a href="catalogo.html" class="footer-link">Running</a></li>
+                        <li><a href="catalogo.html" class="footer-link">Fútbol</a></li>
+                        <li><a href="catalogo.html" class="footer-link">Training</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="footer-title">Soporte</h4>
+                    <ul class="footer-links">
+                        <li><a href="#" class="footer-link">Ayuda</a></li>
+                        <li><a href="#" class="footer-link">Devoluciones</a></li>
+                        <li><a href="#" class="footer-link">Contacto</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="footer-title">Empresa</h4>
+                    <ul class="footer-links">
+                        <li><a href="#" class="footer-link">Nosotros</a></li>
+                        <li><a href="#" class="footer-link">Tiendas</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p class="footer-copyright">&copy; 2025 Sportiva Perú. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/apiConfig.js"></script>
+    <script src="../assets/js/authService.js"></script>
+    <script src="../assets/js/catalogo.js"></script>
+</body>
+</html>

@@ -1,0 +1,465 @@
+{
+  "productos": [
+    {
+      "id_producto": 1,
+      "nombre_producto": "Camiseta Nike Dri-FIT",
+      "descripcion": "Camiseta deportiva con tecnología de absorción de humedad Dri-FIT. Confeccionada en poliéster reciclado, proporciona máxima comodidad durante entrenamientos intensos. Diseño ergonómico con costuras planas que evitan rozaduras.",
+      "precio": 89.90,
+      "stock_minimo": 10,
+      "id_categoria": 1,
+      "marca": "Nike",
+      "sku": "NK-001",
+      "tiene_tallas": true,
+      "estado_producto": "Activo",
+      "imagen": "assets/images/productos/camiseta-nike-dri-fit.jpg",
+      "tallas": [
+        {
+          "id_talla": 1,
+          "talla": "S",
+          "stock_talla": 15,
+          "medidas": {
+            "pecho": "88-92cm",
+            "largo": "68cm"
+          }
+        },
+        {
+          "id_talla": 2,
+          "talla": "M",
+          "stock_talla": 30,
+          "medidas": {
+            "pecho": "92-96cm",
+            "largo": "70cm"
+          }
+        },
+        {
+          "id_talla": 3,
+          "talla": "L",
+          "stock_talla": 25,
+          "medidas": {
+            "pecho": "96-100cm",
+            "largo": "72cm"
+          }
+        },
+        {
+          "id_talla": 4,
+          "talla": "XL",
+          "stock_talla": 10,
+          "medidas": {
+            "pecho": "100-104cm",
+            "largo": "74cm"
+          }
+        }
+      ],
+      "destacado": true,
+      "nuevo": true,
+      "categoria_nombre": "Ropa Deportiva"
+    },
+    {
+      "id_producto": 2,
+      "nombre_producto": "Short Adidas Training",
+      "descripcion": "Short deportivo ligero con tecnología Climalite que elimina la transpiración. Cintura elástica con cordón ajustable. Bolsillos laterales con cierre. Ideal para running, gym y entrenamiento funcional.",
+      "precio": 69.90,
+      "stock_minimo": 10,
+      "id_categoria": 1,
+      "marca": "Adidas",
+      "sku": "AD-002",
+      "tiene_tallas": true,
+      "estado_producto": "Activo",
+      "imagen": "assets/images/productos/short-adidas-negro.jpg",
+      "tallas": [
+        {
+          "id_talla": 5,
+          "talla": "S",
+          "stock_talla": 12,
+          "medidas": {
+            "cintura": "70-74cm",
+            "largo": "38cm"
+          }
+        },
+        {
+          "id_talla": 6,
+          "talla": "M",
+          "stock_talla": 28,
+          "medidas": {
+            "cintura": "74-78cm",
+            "largo": "40cm"
+          }
+        },
+        {
+          "id_talla": 7,
+          "talla": "L",
+          "stock_talla": 22,
+          "medidas": {
+            "cintura": "78-82cm",
+            "largo": "42cm"
+          }
+        },
+        {
+          "id_talla": 8,
+          "talla": "XL",
+          "stock_talla": 18,
+          "medidas": {
+            "cintura": "82-86cm",
+            "largo": "44cm"
+          }
+        }
+      ],
+      "destacado": false,
+      "nuevo": false,
+      "categoria_nombre": "Ropa Deportiva"
+    },
+    {
+      "id_producto": 3,
+      "nombre_producto": "Mancuerna 5kg",
+      "descripcion": "Mancuerna de hierro fundido con recubrimiento de goma antideslizante. Diseño hexagonal que evita que ruede. Perfecta para entrenamiento en casa, ejercicios de tonificación y fortalecimiento muscular.",
+      "precio": 45.00,
+      "stock_minimo": 5,
+      "id_categoria": 2,
+      "marca": "Fitness Pro",
+      "sku": "FP-003",
+      "tiene_tallas": false,
+      "estado_producto": "Activo",
+      "imagen": "assets/images/productos/mancuerna-5kg.jpg",
+      "tallas": [
+        {
+          "id_talla": 9,
+          "talla": "ÚNICA",
+          "stock_talla": 50,
+          "medidas": null
+        }
+      ],
+      "destacado": true,
+      "nuevo": false,
+      "categoria_nombre": "Implementos de Entrenamiento"
+    },
+    {
+      "id_producto": 4,
+      "nombre_producto": "Banda de Resistencia Set",
+      "descripcion": "Kit de 3 bandas elásticas de diferentes resistencias (ligera, media, fuerte). Fabricadas en látex natural de alta calidad. Incluye bolsa de transporte y guía de ejercicios. Ideal para entrenamiento funcional, pilates y rehabilitación.",
+      "precio": 35.00,
+      "stock_minimo": 5,
+      "id_categoria": 2,
+      "marca": "Fitness Pro",
+      "sku": "FP-004",
+      "tiene_tallas": false,
+      "estado_producto": "Activo",
+      "imagen": "assets/images/productos/banda-resistencia.jpg",
+      "tallas": [
+        {
+          "id_talla": 10,
+          "talla": "ÚNICA",
+          "stock_talla": 40,
+          "medidas": null
+        }
+      ],
+      "destacado": false,
+      "nuevo": true,
+      "categoria_nombre": "Implementos de Entrenamiento"
+    },
+    {
+      "id_producto": 5,
+      "nombre_producto": "Balón Fútbol Adidas #5",
+      "descripcion": "Balón profesional tamaño #5 con costura térmica de alta precisión. Cubierta de TPU resistente al desgaste. Cámara de butilo que garantiza retención de aire. Certificado por FIFA Quality. Excelente para canchas de grass natural y sintético.",
+      "precio": 119.90,
+      "stock_minimo": 5,
+      "id_categoria": 3,
+      "marca": "Adidas",
+      "sku": "AD-005",
+      "tiene_tallas": false,
+      "estado_producto": "Activo",
+      "imagen": "assets/images/productos/balon-futbol-adidas.jpg",
+      "tallas": [
+        {
+          "id_talla": 11,
+          "talla": "ÚNICA",
+          "stock_talla": 25,
+          "medidas": null
+        }
+      ],
+      "destacado": true,
+      "nuevo": false,
+      "categoria_nombre": "Deportes de Equipo"
+    },
+    {
+      "id_producto": 6,
+      "nombre_producto": "Balón Vóley Mikasa",
+      "descripcion": "Balón oficial de competencia con cubierta de cuero sintético suave. Excelente agarre y control. Diseño de 18 paneles para trayectorias predecibles. Ideal para canchas indoor y outdoor.",
+      "precio": 99.90,
+      "stock_minimo": 5,
+      "id_categoria": 3,
+      "marca": "Mikasa",
+      "sku": "MK-006",
+      "tiene_tallas": false,
+      "estado_producto": "Activo",
+      "imagen": "assets/images/productos/balon-voley-mikasa.jpg",
+      "tallas": [
+        {
+          "id_talla": 12,
+          "talla": "ÚNICA",
+          "stock_talla": 20,
+          "medidas": null
+        }
+      ],
+      "destacado": false,
+      "nuevo": false,
+      "categoria_nombre": "Deportes de Equipo"
+    },
+    {
+      "id_producto": 7,
+      "nombre_producto": "Zapatillas Nike Air Zoom",
+      "descripcion": "Zapatillas de running con tecnología Air Zoom en antepié y talón. Amortiguación React Foam para máximo retorno de energía. Upper de malla transpirable Flyknit. Suela de goma con diseño de tracción multidireccional. Perfectas para largas distancias.",
+      "precio": 349.90,
+      "stock_minimo": 3,
+      "id_categoria": 4,
+      "marca": "Nike",
+      "sku": "NK-007",
+      "tiene_tallas": true,
+      "estado_producto": "Activo",
+      "imagen": "assets/images/productos/zapatillas-nike-running.jpg",
+      "tallas": [
+        {
+          "id_talla": 13,
+          "talla": "39",
+          "stock_talla": 8,
+          "medidas": {
+            "pie": "24.5cm"
+          }
+        },
+        {
+          "id_talla": 14,
+          "talla": "40",
+          "stock_talla": 12,
+          "medidas": {
+            "pie": "25.0cm"
+          }
+        },
+        {
+          "id_talla": 15,
+          "talla": "41",
+          "stock_talla": 15,
+          "medidas": {
+            "pie": "25.5cm"
+          }
+        },
+        {
+          "id_talla": 16,
+          "talla": "42",
+          "stock_talla": 18,
+          "medidas": {
+            "pie": "26.0cm"
+          }
+        },
+        {
+          "id_talla": 17,
+          "talla": "43",
+          "stock_talla": 10,
+          "medidas": {
+            "pie": "26.5cm"
+          }
+        }
+      ],
+      "destacado": true,
+      "nuevo": true,
+      "categoria_nombre": "Calzado Deportivo"
+    },
+    {
+      "id_producto": 8,
+      "nombre_producto": "Zapatillas Adidas Training",
+      "descripcion": "Zapatillas versátiles para entrenamiento en gym y funcional. Tecnología Bounce para amortiguación responsiva. Upper de malla reforzada con soporte lateral. Base ancha para mayor estabilidad en levantamientos. Suela de goma Adiwear de alta durabilidad.",
+      "precio": 299.90,
+      "stock_minimo": 3,
+      "id_categoria": 4,
+      "marca": "Adidas",
+      "sku": "AD-008",
+      "tiene_tallas": true,
+      "estado_producto": "Activo",
+      "imagen": "assets/images/productos/zapatillas-adidas-training.jpg",
+      "tallas": [
+        {
+          "id_talla": 18,
+          "talla": "39",
+          "stock_talla": 10,
+          "medidas": {
+            "pie": "24.5cm"
+          }
+        },
+        {
+          "id_talla": 19,
+          "talla": "40",
+          "stock_talla": 14,
+          "medidas": {
+            "pie": "25.0cm"
+          }
+        },
+        {
+          "id_talla": 20,
+          "talla": "41",
+          "stock_talla": 16,
+          "medidas": {
+            "pie": "25.5cm"
+          }
+        },
+        {
+          "id_talla": 21,
+          "talla": "42",
+          "stock_talla": 20,
+          "medidas": {
+            "pie": "26.0cm"
+          }
+        },
+        {
+          "id_talla": 22,
+          "talla": "43",
+          "stock_talla": 12,
+          "medidas": {
+            "pie": "26.5cm"
+          }
+        }
+      ],
+      "destacado": false,
+      "nuevo": false,
+      "categoria_nombre": "Calzado Deportivo"
+    },
+    {
+      "id_producto": 9,
+      "nombre_producto": "Botella Deportiva 500ml",
+      "descripcion": "Botella libre de BPA con tapa anti-derrame de rosca segura. Material Tritan ultraresistente a impactos. Boquilla con válvula push-pull de un solo click. Marcador de medición. Apta para lavavajillas. Perfecta para gym, ciclismo y running.",
+      "precio": 25.00,
+      "stock_minimo": 5,
+      "id_categoria": 5,
+      "marca": "Sport Gear",
+      "sku": "SG-009",
+      "tiene_tallas": false,
+      "estado_producto": "Activo",
+      "imagen": "assets/images/productos/botella-agua-500ml.jpg",
+      "tallas": [
+        {
+          "id_talla": 23,
+          "talla": "ÚNICA",
+          "stock_talla": 100,
+          "medidas": null
+        }
+      ],
+      "destacado": false,
+      "nuevo": false,
+      "categoria_nombre": "Accesorios"
+    },
+    {
+      "id_producto": 10,
+      "nombre_producto": "Guantes de Gimnasio",
+      "descripcion": "Guantes con acolchado en palma de 4mm. Material transpirable con malla en dorso. Muñequera ajustable con velcro de 5cm. Sistema de easy-off en dedos para fácil retiro. Protección y mejor agarre para levantamiento de pesas, dominadas y crossfit.",
+      "precio": 39.90,
+      "stock_minimo": 5,
+      "id_categoria": 5,
+      "marca": "Fitness Pro",
+      "sku": "FP-010",
+      "tiene_tallas": true,
+      "estado_producto": "Activo",
+      "imagen": "assets/images/productos/guantes-gym.jpg",
+      "tallas": [
+        {
+          "id_talla": 24,
+          "talla": "M",
+          "stock_talla": 20,
+          "medidas": {
+            "palma": "18-20cm"
+          }
+        },
+        {
+          "id_talla": 25,
+          "talla": "L",
+          "stock_talla": 25,
+          "medidas": {
+            "palma": "20-22cm"
+          }
+        },
+        {
+          "id_talla": 26,
+          "talla": "XL",
+          "stock_talla": 15,
+          "medidas": {
+            "palma": "22-24cm"
+          }
+        }
+      ],
+      "destacado": false,
+      "nuevo": true,
+      "categoria_nombre": "Accesorios"
+    },
+    {
+      "id_producto": 11,
+      "nombre_producto": "Cuerda para Saltar Profesional",
+      "descripcion": "Cuerda de velocidad con cable de acero recubierto en PVC. Rodamientos de alta velocidad en empuñaduras. Longitud ajustable de 2.5m a 3m. Mangos ergonómicos antideslizantes con espuma memory. Ideal para crossfit, boxeo y entrenamiento HIIT.",
+      "precio": 29.90,
+      "stock_minimo": 5,
+      "id_categoria": 5,
+      "marca": "Sport Gear",
+      "sku": "SG-011",
+      "tiene_tallas": false,
+      "estado_producto": "Activo",
+      "imagen": "assets/images/productos/cuerda-saltar.jpg",
+      "tallas": [
+        {
+          "id_talla": 27,
+          "talla": "ÚNICA",
+          "stock_talla": 60,
+          "medidas": null
+        }
+      ],
+      "destacado": false,
+      "nuevo": false,
+      "categoria_nombre": "Accesorios"
+    },
+    {
+      "id_producto": 12,
+      "nombre_producto": "Colchoneta Yoga Premium",
+      "descripcion": "Mat de yoga de 6mm de grosor con superficie antideslizante texturizada. Material TPE ecológico libre de látex y PVC. Doble capa para mayor amortiguación. Medidas: 183cm x 61cm. Incluye correa de transporte ajustable. Fácil de limpiar con paño húmedo.",
+      "precio": 79.90,
+      "stock_minimo": 5,
+      "id_categoria": 5,
+      "marca": "Zen Fitness",
+      "sku": "ZF-012",
+      "tiene_tallas": false,
+      "estado_producto": "Activo",
+      "imagen": "assets/images/productos/colchoneta-yoga.jpg",
+      "tallas": [
+        {
+          "id_talla": 28,
+          "talla": "ÚNICA",
+          "stock_talla": 35,
+          "medidas": null
+        }
+      ],
+      "destacado": false,
+      "nuevo": true,
+      "categoria_nombre": "Accesorios"
+    }
+  ],
+  "categorias": [
+    {
+      "id_categoria": 1,
+      "nombre_categoria": "Ropa Deportiva",
+      "descripcion": "Prendas deportivas para entrenamiento"
+    },
+    {
+      "id_categoria": 2,
+      "nombre_categoria": "Implementos de Entrenamiento",
+      "descripcion": "Equipamiento para ejercicio"
+    },
+    {
+      "id_categoria": 3,
+      "nombre_categoria": "Deportes de Equipo",
+      "descripcion": "Artículos para deportes colectivos"
+    },
+    {
+      "id_categoria": 4,
+      "nombre_categoria": "Calzado Deportivo",
+      "descripcion": "Zapatillas especializadas"
+    },
+    {
+      "id_categoria": 5,
+      "nombre_categoria": "Accesorios",
+      "descripcion": "Complementos deportivos"
+    }
+  ]
+}
