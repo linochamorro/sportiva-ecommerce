@@ -19,32 +19,32 @@ async function login(email, password) {
             email,
             password
         });
-        
+
         // Guardar token y usuario en localStorage
         if (response.token) {
             setToken(response.token);
-            
+
             // Guardar refresh token si existe
             if (response.refreshToken) {
                 localStorage.setItem(API_CONFIG.REFRESH_TOKEN_KEY, response.refreshToken);
             }
-            
+
             // Guardar datos del usuario
             if (response.usuario) {
                 localStorage.setItem(API_CONFIG.USER_KEY, JSON.stringify(response.usuario));
             }
-            
+
             // Actualizar contador del carrito
             if (typeof actualizarContadorCarrito === 'function') {
                 await actualizarContadorCarrito();
             }
-            
+
             console.log('✅ Login exitoso:', response.usuario.email);
             return response.usuario;
         }
-        
+
         throw new Error('Respuesta de login inválida');
-        
+
     } catch (error) {
         console.error('Error en login:', error);
         throw error;
@@ -59,25 +59,25 @@ async function login(email, password) {
 async function register(userData) {
     try {
         const response = await apiPost(ENDPOINTS.AUTH.REGISTER, userData);
-        
+
         // Guardar token y usuario automáticamente tras registro
         if (response.token) {
             setToken(response.token);
-            
+
             if (response.refreshToken) {
                 localStorage.setItem(API_CONFIG.REFRESH_TOKEN_KEY, response.refreshToken);
             }
-            
+
             if (response.usuario) {
                 localStorage.setItem(API_CONFIG.USER_KEY, JSON.stringify(response.usuario));
             }
-            
+
             console.log('✅ Registro exitoso:', response.usuario.email);
             return response.usuario;
         }
-        
+
         throw new Error('Respuesta de registro inválida');
-        
+
     } catch (error) {
         console.error('Error en registro:', error);
         throw error;
@@ -100,30 +100,28 @@ async function logout() {
                 console.warn('Error en logout backend:', error);
             }
         }
-        
+
         // Limpiar localStorage
         removeToken();
         localStorage.removeItem(API_CONFIG.USER_KEY);
         localStorage.removeItem(API_CONFIG.REFRESH_TOKEN_KEY);
-        
-        // Limpiar carrito local (se sincronizará con servidor en próximo login)
-        // localStorage.removeItem('sportiva_carrito'); // Opcional
-        
+
         console.log('✅ Logout exitoso');
-        
-        mostrarToast('Sesión cerrada correctamente', 'success');
-        
-        // Redirigir a home
+
+        if (typeof mostrarToast === 'function') mostrarToast('Sesión cerrada correctamente', 'success');
+
+        // Redirigir a home (ruta absoluta)
         setTimeout(() => {
-            window.location.href = 'index.html';
+            window.location.href = '/frontend/public/index.html'; // CORREGIDO
         }, 1000);
-        
+
     } catch (error) {
         console.error('Error en logout:', error);
         // Limpiar de todos modos
         removeToken();
         localStorage.removeItem(API_CONFIG.USER_KEY);
-        window.location.href = 'index.html';
+        // Redirigir a home (ruta absoluta)
+        window.location.href = '/frontend/public/index.html'; // CORREGIDO
     }
 }
 
@@ -135,12 +133,12 @@ async function verifyToken() {
     try {
         const token = getToken();
         if (!token) return false;
-        
+
         const response = await apiGet(ENDPOINTS.AUTH.VERIFY);
-        
+
         // Si la verificación es exitosa, el token es válido
         return response.valido === true || response.valid === true;
-        
+
     } catch (error) {
         console.error('Error verificando token:', error);
         return false;
@@ -154,23 +152,23 @@ async function verifyToken() {
 async function refreshToken() {
     try {
         const refreshToken = localStorage.getItem(API_CONFIG.REFRESH_TOKEN_KEY);
-        
+
         if (!refreshToken) {
             throw new Error('No hay refresh token disponible');
         }
-        
+
         const response = await apiPost(ENDPOINTS.AUTH.REFRESH, {
             refreshToken
         });
-        
+
         if (response.token) {
             setToken(response.token);
             console.log('✅ Token refrescado exitosamente');
             return response.token;
         }
-        
+
         return null;
-        
+
     } catch (error) {
         console.error('Error refrescando token:', error);
         // Si falla el refresh, cerrar sesión
@@ -186,14 +184,14 @@ async function refreshToken() {
 async function getProfile() {
     try {
         const response = await apiGet(ENDPOINTS.AUTH.PROFILE);
-        
+
         // Actualizar usuario en localStorage
         if (response.usuario) {
             localStorage.setItem(API_CONFIG.USER_KEY, JSON.stringify(response.usuario));
         }
-        
+
         return response.usuario || response;
-        
+
     } catch (error) {
         console.error('Error obteniendo perfil:', error);
         throw error;
@@ -208,16 +206,16 @@ async function getProfile() {
 async function updateProfile(userData) {
     try {
         const response = await apiPut(ENDPOINTS.AUTH.UPDATE_PROFILE, userData);
-        
+
         // Actualizar usuario en localStorage
         if (response.usuario) {
             localStorage.setItem(API_CONFIG.USER_KEY, JSON.stringify(response.usuario));
         }
-        
-        mostrarToast('Perfil actualizado correctamente', 'success');
-        
+
+        if (typeof mostrarToast === 'function') mostrarToast('Perfil actualizado correctamente', 'success');
+
         return response.usuario || response;
-        
+
     } catch (error) {
         console.error('Error actualizando perfil:', error);
         throw error;
@@ -236,11 +234,11 @@ async function changePassword(oldPassword, newPassword) {
             oldPassword,
             newPassword
         });
-        
-        mostrarToast('Contraseña actualizada correctamente', 'success');
-        
+
+        if (typeof mostrarToast === 'function') mostrarToast('Contraseña actualizada correctamente', 'success');
+
         return response;
-        
+
     } catch (error) {
         console.error('Error cambiando contraseña:', error);
         throw error;
@@ -272,8 +270,10 @@ function getCurrentUser() {
 function isLoggedIn() {
     const token = getToken();
     const user = getCurrentUser();
-    return token !== null && user !== null && isTokenValid();
+    // Verifica si hay token y usuario, Y si el token no ha expirado (usando la función de apiConfig.js)
+    return token !== null && user !== null && typeof isTokenValid === 'function' && isTokenValid();
 }
+
 
 /**
  * Obtener ID del cliente actual
@@ -323,16 +323,19 @@ function isAdmin() {
  */
 function requireAuthentication() {
     if (!isLoggedIn()) {
-        mostrarToast('Debes iniciar sesión para continuar', 'warning');
+        if (typeof mostrarToast === 'function') mostrarToast('Debes iniciar sesión para continuar', 'warning');
         // Guardar URL actual para redirigir después del login
-        localStorage.setItem('sportiva_redirect_after_login', window.location.pathname);
+        localStorage.setItem('sportiva_redirect_after_login', window.location.pathname + window.location.search); // Guardar query params también
+
         setTimeout(() => {
-            window.location.href = 'login.html';
+            // CORREGIDO: Usar ruta absoluta desde la raíz del servidor
+            window.location.href = '/frontend/public/login.html';
         }, 1500);
         return false;
     }
     return true;
 }
+
 
 /**
  * Requiere rol de administrador
@@ -341,15 +344,16 @@ function requireAuthentication() {
  */
 function requireAdmin() {
     if (!requireAuthentication()) return false;
-    
+
     if (!isAdmin()) {
-        mostrarToast('No tienes permisos de administrador', 'error');
+        if (typeof mostrarToast === 'function') mostrarToast('No tienes permisos de administrador', 'error');
         setTimeout(() => {
-            window.location.href = 'index.html';
+            // CORREGIDO: Usar ruta absoluta desde la raíz del servidor
+            window.location.href = '/frontend/public/index.html';
         }, 1500);
         return false;
     }
-    
+
     return true;
 }
 
@@ -363,9 +367,11 @@ function redirectIfAuthenticated() {
         const redirectUrl = localStorage.getItem('sportiva_redirect_after_login');
         if (redirectUrl) {
             localStorage.removeItem('sportiva_redirect_after_login');
+            // Nota: redirectUrl ya debería ser relativo o absoluto correcto
             window.location.href = redirectUrl;
         } else {
-            window.location.href = 'index.html';
+            // CORREGIDO: Usar ruta absoluta desde la raíz del servidor
+            window.location.href = '/frontend/public/index.html';
         }
         return true;
     }
@@ -382,11 +388,11 @@ function redirectIfAuthenticated() {
  */
 function initAuthState() {
     const user = getCurrentUser();
-    
+
     if (user && isLoggedIn()) {
         // Actualizar UI con datos del usuario
         updateNavbarUserInfo(user);
-        
+
         console.log('👤 Usuario autenticado:', user.email);
     } else {
         // Limpiar cualquier dato de sesión inválida
@@ -408,14 +414,14 @@ function updateNavbarUserInfo(user) {
     const loginButtons = document.querySelectorAll('.login-button');
     const logoutButtons = document.querySelectorAll('.logout-button');
     const userMenus = document.querySelectorAll('.user-menu');
-    
+
     if (userNameElements.length > 0) {
         const userName = `${user.nombre || ''} ${user.apellido || ''}`.trim() || user.email;
         userNameElements.forEach(el => {
             el.textContent = userName;
         });
     }
-    
+
     // Mostrar/ocultar botones según estado
     loginButtons.forEach(btn => btn.style.display = 'none');
     logoutButtons.forEach(btn => btn.style.display = 'inline-block');
