@@ -4,11 +4,6 @@
 
 const logger = require('../utils/logger');
 
-// ============================================
-// ALMACENAMIENTO EN MEMORIA (Simple para desarrollo)
-// Para producción, considerar Redis
-// ============================================
-
 const requestCounts = new Map();
 const blockList = new Map();
 

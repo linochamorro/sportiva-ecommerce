@@ -1,7 +1,6 @@
 // ========================================
 // SPORTIVA E-COMMERCE - CARRITO
 // Integración con API REST Backend
-// Fecha actualización: 16 Octubre 2025
 // ========================================
 
 // ===========================
@@ -64,12 +63,20 @@ async function cargarCarrito() {
     
     try {
         if (typeof apiConfig !== 'undefined') {
-            // Cargar desde API
-            const response = await apiConfig.apiGet('/carrito');
+            // Cargar desde API usando endpoint correcto
+            const response = await apiConfig.apiGet(ENDPOINTS.CARRITO.RESUMEN);
             
-            if (response.success && response.data) {
+            console.log('📦 Respuesta API carrito:', response);
+            
+            // El backend devuelve: { success: true, data: { items, subtotal, igv, total, empty } }
+            if (response.success && response.data && !response.data.empty) {
                 carritoActual = procesarDatosCarrito(response.data);
                 console.log('✅ Carrito cargado desde API:', carritoActual);
+            } else if (response.success && response.data && response.data.empty) {
+                // Carrito vacío
+                carritoActual.items = [];
+                calcularTotales();
+                console.log('📭 Carrito vacío');
             } else {
                 throw new Error('Error al cargar carrito desde API');
             }
@@ -98,11 +105,13 @@ async function cargarCarrito() {
  * Procesar datos del carrito desde API
  */
 function procesarDatosCarrito(data) {
+    // El backend devuelve: { items: [...], subtotal, igv, costoEnvio, total }
+    
     return {
         items: data.items || [],
         subtotal: parseFloat(data.subtotal || 0),
         descuento: parseFloat(data.descuento || 0),
-        envio: parseFloat(data.envio || 0),
+        envio: parseFloat(data.costoEnvio || 0),
         igv: parseFloat(data.igv || 0),
         total: parseFloat(data.total || 0),
         cupon_aplicado: data.cupon_aplicado || null
@@ -130,12 +139,21 @@ function cargarCarritoLocal() {
  */
 function renderizarCarrito() {
     const container = document.getElementById('carrito-items');
-    if (!container) return;
+    const carritoVacio = document.getElementById('carritoVacio');
+    const carritoConProductos = document.getElementById('carritoConProductos');
     
     if (carritoActual.items.length === 0) {
-        mostrarCarritoVacio();
+        // Mostrar mensaje de carrito vacío
+        if (carritoVacio) carritoVacio.classList.remove('hidden');
+        if (carritoConProductos) carritoConProductos.classList.add('hidden');
         return;
     }
+    
+    // Ocultar mensaje vacío y mostrar productos
+    if (carritoVacio) carritoVacio.classList.add('hidden');
+    if (carritoConProductos) carritoConProductos.classList.remove('hidden');
+    
+    if (!container) return;
     
     container.innerHTML = carritoActual.items.map((item, index) => 
         crearItemCarrito(item, index)
@@ -149,81 +167,49 @@ function renderizarCarrito() {
  * Crear HTML de item del carrito
  */
 function crearItemCarrito(item, index) {
-    const precio = parseFloat(item.precio || item.precio_venta || 0);
+    // Mapear propiedades del backend
+    const precio = parseFloat(item.precio_unitario || item.precio || 0);
     const cantidad = parseInt(item.cantidad || 1);
-    const subtotal = precio * cantidad;
-    const imagen = item.imagen || item.imagen_url || '/assets/images/placeholder.jpg';
-    const stockDisponible = item.stock_disponible || item.stock || 99;
+    const subtotal = parseFloat(item.subtotal || (precio * cantidad));
+    const imagen = item.imagen || '/assets/images/placeholder.jpg';
+    const stockDisponible = item.stock || 99;
+    const nombre = item.nombre_producto || item.nombre || 'Producto';
+    const idProducto = item.id_producto || 0;
     
     return `
-        <div class="carrito-item" data-index="${index}" data-item-id="${item.carrito_item_id || item.producto_id}">
-            <!-- Imagen del producto -->
-            <div class="item-imagen">
-                <img src="${imagen}" alt="${item.nombre}">
+        <div class="carrito-item" data-index="${index}" data-item-id="${item.id_detalle_carrito || item.id}">
+            <div class="carrito-imagen">
+                <img src="${imagen}" alt="${nombre}" style="width: 100%; height: 100%; object-fit: cover;">
             </div>
             
-            <!-- Información del producto -->
-            <div class="item-info">
-                <h3 class="item-nombre">
-                    <a href="/producto.html?id=${item.producto_id}">${item.nombre}</a>
+            <div style="flex: 1; padding: 0 16px;">
+                <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600;">
+                    <a href="producto.html?id=${idProducto}" style="color: var(--color-black); text-decoration: none;">
+                        ${nombre}
+                    </a>
                 </h3>
                 
-                <div class="item-detalles">
-                    ${item.marca ? `<span class="item-marca">${item.marca}</span>` : ''}
-                    ${item.talla ? `<span class="item-talla">Talla: ${item.talla}</span>` : ''}
-                    ${item.color ? `<span class="item-color">Color: ${item.color}</span>` : ''}
-                </div>
+                ${item.marca ? `<p style="color: var(--color-gray-medium); font-size: 14px; margin: 4px 0;">Marca: ${item.marca}</p>` : ''}
+                ${item.talla ? `<p style="color: var(--color-gray-medium); font-size: 14px; margin: 4px 0;">Talla: ${item.talla}</p>` : ''}
                 
-                <div class="item-stock">
-                    ${stockDisponible < 5 ? 
-                        `<span class="stock-bajo">¡Solo ${stockDisponible} disponibles!</span>` : 
-                        `<span class="stock-ok">Stock disponible: ${stockDisponible}</span>`
-                    }
+                <p style="color: var(--color-gray-medium); font-size: 14px; margin: 8px 0 0 0;">
+                    Precio unitario: <strong style="color: var(--color-black);">S/ ${precio.toFixed(2)}</strong>
+                </p>
+                
+                <div class="cantidad-control" style="margin-top: 12px;">
+                    <button onclick="cambiarCantidad(${index}, -1)" ${cantidad <= 1 ? 'disabled' : ''}>-</button>
+                    <input type="number" value="${cantidad}" min="1" max="${stockDisponible}" 
+                          data-index="${index}" onchange="actualizarCantidadInput(${index}, this.value)">
+                    <button onclick="cambiarCantidad(${index}, 1)" ${cantidad >= stockDisponible ? 'disabled' : ''}>+</button>
                 </div>
             </div>
             
-            <!-- Precio unitario -->
-            <div class="item-precio">
-                <span class="precio-label">Precio:</span>
-                <span class="precio-valor">S/ ${precio.toFixed(2)}</span>
-            </div>
-            
-            <!-- Cantidad -->
-            <div class="item-cantidad">
-                <label>Cantidad:</label>
-                <div class="cantidad-controls">
-                    <button class="btn-cantidad" 
-                            onclick="cambiarCantidad(${index}, -1)"
-                            ${cantidad <= 1 ? 'disabled' : ''}>
-                        <i class="fas fa-minus"></i>
-                    </button>
-                    <input type="number" 
-                            class="cantidad-input" 
-                            value="${cantidad}" 
-                            min="1" 
-                            max="${stockDisponible}"
-                            data-index="${index}"
-                            onchange="actualizarCantidadInput(${index}, this.value)">
-                    <button class="btn-cantidad" 
-                            onclick="cambiarCantidad(${index}, 1)"
-                            ${cantidad >= stockDisponible ? 'disabled' : ''}>
-                        <i class="fas fa-plus"></i>
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Subtotal -->
-            <div class="item-subtotal">
-                <span class="subtotal-label">Subtotal:</span>
-                <span class="subtotal-valor">S/ ${subtotal.toFixed(2)}</span>
-            </div>
-            
-            <!-- Botón eliminar -->
-            <div class="item-acciones">
-                <button class="btn-eliminar" 
-                        onclick="eliminarItem(${index})"
-                        title="Eliminar producto">
-                    <i class="fas fa-trash-alt"></i>
+            <div style="text-align: right;">
+                <p style="font-size: 18px; font-weight: 700; margin: 0 0 16px 0;">
+                    S/ ${subtotal.toFixed(2)}
+                </p>
+                <button class="btn btn-outline" onclick="eliminarItem(${index})" style="padding: 8px 16px; font-size: 12px;">
+                    Eliminar
                 </button>
             </div>
         </div>

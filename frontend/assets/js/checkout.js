@@ -1,7 +1,6 @@
 // ========================================
 // SPORTIVA E-COMMERCE - CHECKOUT
 // Integración con API REST Backend
-// Fecha actualización: 16 Octubre 2025
 // ========================================
 
 // ===========================

@@ -1,6 +1,5 @@
 // ============================================
-// PRODUCTO CONTROLLER - CORREGIDO FINAL
-// Compatible con productoService.js existente
+// PRODUCTO CONTROLLER
 // ============================================
 
 const productoService = require('../services/productoService');
@@ -36,10 +35,8 @@ exports.obtenerTodos = async (req, res) => {
             marca: req.query.marca
         };
 
-        // ✅ CORREGIDO: usar getCatalogo() que SÍ existe en el servicio
         const resultado = await productoService.getCatalogo(filtros, { page, limit });
 
-        // ✅ CORREGIDO: manejar respuesta del servicio correctamente
         if (resultado.success) {
             res.json(resultado);
         } else {
@@ -74,7 +71,6 @@ exports.obtenerPorId = async (req, res) => {
 
         const productoId = req.params.id;
 
-        // ✅ CORREGIDO: usar getProductoById() que SÍ existe en el servicio
         const resultado = await productoService.getProductoById(productoId);
 
         if (resultado.success) {
@@ -112,7 +108,6 @@ exports.buscarProductos = async (req, res) => {
         const terminoBusqueda = req.query.q || '';
         const limit = parseInt(req.query.limit) || 20;
 
-        // ✅ CORREGIDO: usar searchProductos() que SÍ existe en el servicio
         const resultado = await productoService.searchProductos(terminoBusqueda, limit);
 
         if (resultado.success) {
@@ -151,7 +146,6 @@ exports.obtenerPorCategoria = async (req, res) => {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 12;
 
-        // ✅ CORREGIDO: usar getCatalogo() con filtro de categoría
         const resultado = await productoService.getCatalogo(
             { categoria: categoriaId },
             { page, limit }
@@ -182,7 +176,6 @@ exports.obtenerDestacados = async (req, res) => {
     try {
         const limit = parseInt(req.query.limit) || 8;
 
-        // ✅ CORREGIDO: usar getFeaturedProducts() que SÍ existe en el servicio
         const resultado = await productoService.getFeaturedProducts(limit);
 
         if (resultado.success) {
@@ -306,7 +299,6 @@ exports.verificarStock = async (req, res) => {
                 res.status(400).json(resultado);
             }
         } else {
-            // ✅ CORREGIDO: usar getStockByTallas() que SÍ existe en el servicio
             const resultado = await productoService.getStockByTallas(productoId);
             
             if (resultado.success) {
@@ -386,7 +378,6 @@ exports.obtenerImagenes = async (req, res) => {
 
         const productoId = req.params.id;
 
-        // ✅ CORREGIDO: usar getProductoImages() que SÍ existe en el servicio
         const resultado = await productoService.getProductoImages(productoId);
 
         if (resultado.success) {
@@ -510,7 +501,6 @@ exports.obtenerRangoPrecios = async (req, res) => {
 
 exports.obtenerFiltros = async (req, res) => {
     try {
-        // ✅ CORREGIDO: usar getAvailableFilters() que SÍ existe en el servicio
         const resultado = await productoService.getAvailableFilters();
 
         if (resultado.success) {
@@ -536,7 +526,6 @@ exports.obtenerFiltros = async (req, res) => {
 
 exports.obtenerEstadisticas = async (req, res) => {
     try {
-        // ✅ CORREGIDO: usar getStats() que SÍ existe en el servicio
         const resultado = await productoService.getStats();
 
         if (resultado.success) {

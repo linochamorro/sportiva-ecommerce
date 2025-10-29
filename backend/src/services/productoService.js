@@ -59,7 +59,6 @@ class ProductoService {
             // Procesar productos (normalizar rutas de imágenes)
             const productosProcessed = productos.map(producto => ({
                 ...producto,
-                // Usar imagen_principal que ya viene del query SQL
                 imagen_principal: this.normalizarRutaImagen(producto.imagen_principal),
                 precio_formateado: this.formatPrice(producto.precio),
                 en_stock: this.checkProductStock(producto)

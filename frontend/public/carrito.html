@@ -112,13 +112,17 @@
                 <li><a href="catalogo.html?categoria=Implementos de Entrenamiento" class="navbar-link">Implementos</a></li>
                 <li><a href="catalogo.html?categoria=Deportes de Equipo" class="navbar-link">Deportes</a></li>
                 <li><a href="catalogo.html?categoria=Calzado Deportivo" class="navbar-link">Calzado</a></li>
-                <li><a href="catalogo.html" class="navbar-link">Catálogo</a></li>
+                <li><a href="catalogo.html" class="navbar-link">CatÃ¡logo</a></li>
             </ul>
             
             <div class="navbar-actions">
                 <button onclick="window.location.href='catalogo.html'" class="navbar-link">Buscar</button>
                 <button class="cart-button" onclick="window.location.href='carrito.html'">
-                    🛒
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="9" cy="21" r="1"></circle>
+                        <circle cx="20" cy="21" r="1"></circle>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                    </svg>
                     <span class="cart-count">0</span>
                 </button>
             </div>
@@ -139,10 +143,10 @@
         <div class="container">
             <h1 style="margin-bottom: 32px;">MI CARRITO</h1>
 
-            <!-- CARRITO VACÍO -->
+            <!-- CARRITO VACíO -->
             <div id="carritoVacio" class="carrito-vacio hidden">
-                <div style="font-size: 64px; margin-bottom: 24px;">🛒</div>
-                <h2 style="margin-bottom: 16px;">Tu carrito está vacío</h2>
+                <div style="font-size: 64px; margin-bottom: 24px;">ðŸ›’</div>
+                <h2 style="margin-bottom: 16px;">Tu carrito estÃ¡ vacÃ­o</h2>
                 <p class="text-secondary" style="margin-bottom: 32px;">Agrega productos para comenzar tu compra</p>
                 <button class="btn btn-primary" onclick="window.location.href='catalogo.html'">
                     Explorar Productos
@@ -155,13 +159,13 @@
                     
                     <!-- LISTA DE PRODUCTOS -->
                     <div>
-                        <div id="listaProductosCarrito">
+                        <div id="carrito-items">
                             <!-- Productos cargados dinámicamente -->
                         </div>
 
                         <div style="margin-top: 24px;">
                             <button class="btn btn-outline" onclick="window.location.href='catalogo.html'">
-                                ← Seguir Comprando
+                                â† Seguir Comprando
                             </button>
                         </div>
                     </div>
@@ -200,13 +204,13 @@
 
                         <!-- CUPÓN DE DESCUENTO -->
                         <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--color-gray-border);">
-                            <h3 class="text-uppercase" style="margin-bottom: 12px; font-size: 12px;">¿Tienes un cupón?</h3>
+                            <h3 class="text-uppercase" style="margin-bottom: 12px; font-size: 12px;">Â¿Tienes un cupÃ³n?</h3>
                             <div style="display: flex; gap: 8px;">
                                 <input 
                                     type="text" 
                                     id="inputCupon" 
                                     class="form-input" 
-                                    placeholder="Código de cupón"
+                                    placeholder="CÃ³digo de cupÃ³n"
                                     style="flex: 1;">
                                 <button class="btn btn-primary" onclick="aplicarCuponCarrito()">Aplicar</button>
                             </div>
@@ -215,7 +219,7 @@
 
                         <!-- MÉTODOS DE PAGO -->
                         <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--color-gray-border);">
-                            <p class="text-small text-secondary" style="margin-bottom: 12px;">Métodos de pago aceptados:</p>
+                            <p class="text-small text-secondary" style="margin-bottom: 12px;">MÃ©todos de pago aceptados:</p>
                             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                                 <span style="padding: 4px 8px; background-color: white; border: 1px solid var(--color-gray-border); font-size: 11px; font-weight: 700;">VISA</span>
                                 <span style="padding: 4px 8px; background-color: white; border: 1px solid var(--color-gray-border); font-size: 11px; font-weight: 700;">MASTERCARD</span>
@@ -276,6 +280,8 @@
     </footer>
 
     <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/apiConfig.js"></script>
+    <script src="../assets/js/authService.js"></script>
     <script src="../assets/js/carrito.js"></script>
 </body>
 </html>

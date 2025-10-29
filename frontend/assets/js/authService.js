@@ -110,9 +110,9 @@ async function logout() {
 
         if (typeof mostrarToast === 'function') mostrarToast('Sesión cerrada correctamente', 'success');
 
-        // Redirigir a home (ruta absoluta)
+        // Redirigir a Home
         setTimeout(() => {
-            window.location.href = '/frontend/public/index.html'; // CORREGIDO
+            window.location.href = '/frontend/public/index.html';
         }, 1000);
 
     } catch (error) {
@@ -121,7 +121,7 @@ async function logout() {
         removeToken();
         localStorage.removeItem(API_CONFIG.USER_KEY);
         // Redirigir a home (ruta absoluta)
-        window.location.href = '/frontend/public/index.html'; // CORREGIDO
+        window.location.href = '/frontend/public/index.html';
     }
 }
 

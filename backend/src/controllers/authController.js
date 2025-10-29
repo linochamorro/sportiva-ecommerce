@@ -3,7 +3,6 @@
 // ============================================
 
 const authService = require('../services/authService');
-const { Cliente } = require('../models');
 const logger = require('../utils/logger');
 const { validationResult } = require('express-validator');
 
@@ -25,17 +24,8 @@ exports.register = async (req, res) => {
 
         const { nombre, apellido, email, password, telefono } = req.body;
 
-        // Verificar si el email ya existe
-        const clienteExistente = await Cliente.findByEmail(email);
-        if (clienteExistente) {
-            return res.status(409).json({
-                success: false,
-                message: 'El email ya está registrado'
-            });
-        }
-
         // Registrar cliente usando el servicio
-        const resultado = await authService.registrarCliente({
+        const resultado = await authService.register({
             nombre,
             apellido,
             email,
@@ -43,15 +33,22 @@ exports.register = async (req, res) => {
             telefono
         });
 
+        // Si el registro falló (email duplicado, etc)
+        if (!resultado.success) {
+            return res.status(409).json({
+                success: false,
+                message: resultado.message
+            });
+        }
+
         logger.info(`Nuevo cliente registrado: ${email}`);
 
+        // Respuesta exitosa con estructura que espera el frontend
         res.status(201).json({
             success: true,
             message: 'Cliente registrado exitosamente',
-            data: {
-                cliente: resultado.cliente,
-                token: resultado.token
-            }
+            token: resultado.data.token,
+            usuario: resultado.data.cliente
         });
 
     } catch (error) {
@@ -83,7 +80,7 @@ exports.login = async (req, res) => {
         const { email, password } = req.body;
 
         // Autenticar usando el servicio
-        const resultado = await authService.autenticarCliente(email, password);
+        const resultado = await authService.login(email, password);
 
         if (!resultado.success) {
             return res.status(401).json({
@@ -94,13 +91,12 @@ exports.login = async (req, res) => {
 
         logger.info(`Cliente autenticado: ${email}`);
 
+        // Respuesta exitosa con estructura que espera el frontend
         res.json({
             success: true,
             message: 'Autenticación exitosa',
-            data: {
-                cliente: resultado.cliente,
-                token: resultado.token
-            }
+            token: resultado.data.token,
+            usuario: resultado.data.cliente
         });
 
     } catch (error) {
@@ -122,7 +118,7 @@ exports.logout = async (req, res) => {
         const clienteId = req.cliente.id;
 
         // Cerrar sesión usando el servicio
-        await authService.cerrarSesion(clienteId);
+        await authService.logout(clienteId);
 
         logger.info(`Cliente cerró sesión: ${clienteId}`);
 
@@ -150,13 +146,13 @@ exports.verifyToken = async (req, res) => {
         // El middleware ya verificó el token y añadió req.cliente
         const clienteId = req.cliente.id;
 
-        // Obtener datos actualizados del cliente
-        const cliente = await Cliente.findById(clienteId);
+        // Verificar autenticación usando el servicio
+        const resultado = await authService.verifyAuthentication(clienteId);
 
-        if (!cliente) {
+        if (!resultado.authenticated) {
             return res.status(404).json({
                 success: false,
-                message: 'Cliente no encontrado'
+                message: resultado.message
             });
         }
 
@@ -164,13 +160,7 @@ exports.verifyToken = async (req, res) => {
             success: true,
             message: 'Token válido',
             data: {
-                cliente: {
-                    id: cliente.id,
-                    nombre: cliente.nombre,
-                    apellido: cliente.apellido,
-                    email: cliente.email,
-                    telefono: cliente.telefono
-                }
+                cliente: resultado.cliente
             }
         });
 
@@ -190,18 +180,32 @@ exports.verifyToken = async (req, res) => {
 
 exports.refreshToken = async (req, res) => {
     try {
-        const clienteId = req.cliente.id;
+        const oldToken = req.headers.authorization?.replace('Bearer ', '');
 
-        // Generar nuevo token
-        const nuevoToken = await authService.renovarToken(clienteId);
+        if (!oldToken) {
+            return res.status(400).json({
+                success: false,
+                message: 'Token no proporcionado'
+            });
+        }
 
-        logger.info(`Token renovado para cliente: ${clienteId}`);
+        // Refrescar token usando el servicio
+        const resultado = await authService.refreshToken(oldToken);
+
+        if (!resultado.success) {
+            return res.status(401).json({
+                success: false,
+                message: resultado.message
+            });
+        }
+
+        logger.info(`Token renovado`);
 
         res.json({
             success: true,
             message: 'Token renovado exitosamente',
             data: {
-                token: nuevoToken
+                token: resultado.data.token
             }
         });
 
@@ -223,26 +227,20 @@ exports.getProfile = async (req, res) => {
     try {
         const clienteId = req.cliente.id;
 
-        const cliente = await Cliente.findById(clienteId);
+        // Obtener perfil usando el servicio
+        const resultado = await authService.getProfile(clienteId);
 
-        if (!cliente) {
+        if (!resultado.success) {
             return res.status(404).json({
                 success: false,
-                message: 'Cliente no encontrado'
+                message: resultado.message
             });
         }
 
         res.json({
             success: true,
             data: {
-                cliente: {
-                    id: cliente.id,
-                    nombre: cliente.nombre,
-                    apellido: cliente.apellido,
-                    email: cliente.email,
-                    telefono: cliente.telefono,
-                    fecha_registro: cliente.fecha_registro
-                }
+                cliente: resultado.data
             }
         });
 
@@ -275,16 +273,13 @@ exports.updateProfile = async (req, res) => {
         const clienteId = req.cliente.id;
         const datosActualizar = req.body;
 
-        // No permitir actualizar email o password por esta ruta
-        delete datosActualizar.email;
-        delete datosActualizar.password;
+        // Actualizar perfil usando el servicio
+        const resultado = await authService.updateProfile(clienteId, datosActualizar);
 
-        const clienteActualizado = await Cliente.update(clienteId, datosActualizar);
-
-        if (!clienteActualizado) {
+        if (!resultado.success) {
             return res.status(404).json({
                 success: false,
-                message: 'Cliente no encontrado'
+                message: resultado.message
             });
         }
 
@@ -294,7 +289,7 @@ exports.updateProfile = async (req, res) => {
             success: true,
             message: 'Perfil actualizado exitosamente',
             data: {
-                cliente: clienteActualizado
+                cliente: resultado.data
             }
         });
 
@@ -328,7 +323,7 @@ exports.changePassword = async (req, res) => {
         const { currentPassword, newPassword } = req.body;
 
         // Cambiar contraseña usando el servicio
-        const resultado = await authService.cambiarPassword(clienteId, currentPassword, newPassword);
+        const resultado = await authService.changePassword(clienteId, currentPassword, newPassword);
 
         if (!resultado.success) {
             return res.status(400).json({

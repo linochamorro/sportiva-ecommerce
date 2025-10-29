@@ -452,7 +452,7 @@ exports.agregarResena = async (req, res) => {
             });
         }
 
-        // Crear reseña (por ahora retornamos mensaje de funcionalidad en desarrollo)
+        // Crear reseña
         logger.info(`Intento de agregar reseña - Pedido: ${pedidoId}, Producto: ${productoId}, Cliente: ${clienteId}`);
 
         res.status(501).json({

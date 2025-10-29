@@ -15,13 +15,11 @@ exports.obtenerCarrito = async (req, res) => {
     try {
         const clienteId = req.cliente.id;
 
-        const carrito = await carritoService.obtenerCarritoCompleto(clienteId);
+        const carrito = await carritoService.getCarrito(clienteId);
 
         res.json({
             success: true,
-            data: {
-                carrito
-            }
+            data: carrito.data
         });
 
     } catch (error) {
@@ -50,25 +48,45 @@ exports.agregarItem = async (req, res) => {
         }
 
         const clienteId = req.cliente.id;
-        const { productoId, cantidad, tallaId } = req.body;
+        
+        // El frontend envía { id_producto, id_talla, cantidad }
+        const { id_producto, cantidad, id_talla } = req.body;
 
-        const resultado = await carritoService.agregarProducto(clienteId, productoId, cantidad, tallaId);
+        console.log('📥 Controller recibió:', { id_producto, cantidad, id_talla });
+
+        // Transformar a números
+        const itemData = {
+            id_producto: parseInt(id_producto),
+            id_talla: id_talla ? parseInt(id_talla) : null,
+            cantidad: parseInt(cantidad)
+        };
+
+        console.log('📦 Controller transformó a:', itemData);
+
+        // Validar que no sean NaN
+        if (isNaN(itemData.id_producto) || !itemData.id_producto) {
+            console.error('❌ id_producto es NaN o inválido:', itemData.id_producto);
+            return res.status(400).json({
+                success: false,
+                message: 'ID de producto inválido.'
+            });
+        }
+
+        const resultado = await carritoService.addItem(clienteId, itemData);
 
         if (!resultado.success) {
-            return res.status(400).json({
+            return res.status(resultado.statusCode || 400).json({
                 success: false,
                 message: resultado.message
             });
         }
 
-        logger.info(`Item agregado al carrito - Cliente: ${clienteId}, Producto: ${productoId}`);
+        logger.info(`Item agregado al carrito - Cliente: ${clienteId}, Producto: ${id_producto}`);
 
         res.status(201).json({
             success: true,
             message: 'Producto agregado al carrito',
-            data: {
-                carrito: resultado.carrito
-            }
+            data: resultado.data || {}
         });
 
     } catch (error) {
@@ -102,9 +120,9 @@ exports.actualizarItem = async (req, res) => {
 
         // Si cantidad es 0, eliminar el item
         if (cantidad === 0) {
-            const eliminado = await Carrito.removeItem(clienteId, itemId);
+            const eliminado = await Carrito.removeItem(parseInt(itemId));
             
-            if (!eliminado) {
+            if (!eliminado.success) {
                 return res.status(404).json({
                     success: false,
                     message: 'Item no encontrado en el carrito'
@@ -119,10 +137,15 @@ exports.actualizarItem = async (req, res) => {
             });
         }
 
-        const resultado = await carritoService.actualizarCantidad(clienteId, itemId, cantidad);
+        // Actualizar cantidad
+        const resultado = await carritoService.updateItem(
+            clienteId, 
+            parseInt(itemId), 
+            parseInt(cantidad)
+        );
 
         if (!resultado.success) {
-            return res.status(400).json({
+            return res.status(resultado.statusCode || 400).json({
                 success: false,
                 message: resultado.message
             });
@@ -133,9 +156,7 @@ exports.actualizarItem = async (req, res) => {
         res.json({
             success: true,
             message: 'Cantidad actualizada',
-            data: {
-                carrito: resultado.carrito
-            }
+            data: resultado.data
         });
 
     } catch (error) {
@@ -166,9 +187,9 @@ exports.eliminarItem = async (req, res) => {
         const clienteId = req.cliente.id;
         const itemId = req.params.itemId;
 
-        const eliminado = await Carrito.removeItem(clienteId, itemId);
+        const eliminado = await Carrito.removeItem(parseInt(itemId));
 
-        if (!eliminado) {
+        if (!eliminado.success) {
             return res.status(404).json({
                 success: false,
                 message: 'Item no encontrado en el carrito'
@@ -200,12 +221,22 @@ exports.vaciarCarrito = async (req, res) => {
     try {
         const clienteId = req.cliente.id;
 
-        const vaciado = await Carrito.clear(clienteId);
-
-        if (!vaciado) {
+        // Obtener el carrito del cliente
+        const carritoResult = await Carrito.getOrCreateCarrito(clienteId);
+        
+        if (!carritoResult) {
             return res.status(404).json({
                 success: false,
                 message: 'No se encontró carrito para vaciar'
+            });
+        }
+
+        const vaciado = await Carrito.clearCarrito(carritoResult.id_carrito);
+
+        if (!vaciado.success) {
+            return res.status(404).json({
+                success: false,
+                message: 'No se pudo vaciar el carrito'
             });
         }
 
@@ -234,13 +265,11 @@ exports.obtenerResumen = async (req, res) => {
     try {
         const clienteId = req.cliente.id;
 
-        const resumen = await carritoService.calcularTotales(clienteId);
+        const resumen = await carritoService.getQuickSummary(clienteId);
 
         res.json({
             success: true,
-            data: {
-                resumen
-            }
+            data: resumen.data
         });
 
     } catch (error) {
@@ -261,14 +290,15 @@ exports.validarDisponibilidad = async (req, res) => {
     try {
         const clienteId = req.cliente.id;
 
-        const resultado = await carritoService.validarStock(clienteId);
+        const carrito = await Carrito.getOrCreateCarrito(clienteId);
+        const resultado = await Carrito.validateStock(carrito.id_carrito);
 
-        if (!resultado.disponible) {
+        if (!resultado.valid) {
             return res.status(400).json({
                 success: false,
                 message: 'Algunos productos no tienen stock disponible',
                 data: {
-                    productosNoDisponibles: resultado.productosNoDisponibles
+                    productosNoDisponibles: resultado.unavailableItems
                 }
             });
         }
@@ -309,8 +339,6 @@ exports.aplicarCupon = async (req, res) => {
         const clienteId = req.cliente.id;
         const { codigoCupon } = req.body;
 
-        // Por ahora retornamos mensaje que la funcionalidad está en desarrollo
-        // En producción se implementaría tabla de cupones y validación
         logger.info(`Intento de aplicar cupón - Cliente: ${clienteId}, Código: ${codigoCupon}`);
 
         res.status(501).json({
@@ -361,17 +389,13 @@ exports.obtenerCantidadItems = async (req, res) => {
     try {
         const clienteId = req.cliente.id;
 
-        const carrito = await Carrito.findByClienteId(clienteId);
-
-        let cantidadTotal = 0;
-        if (carrito && carrito.items) {
-            cantidadTotal = carrito.items.reduce((total, item) => total + item.cantidad, 0);
-        }
+        const resumen = await carritoService.getQuickSummary(clienteId);
 
         res.json({
             success: true,
             data: {
-                cantidadItems: cantidadTotal
+                cantidadItems: resumen.data.total_items || 0,
+                totalProductos: resumen.data.total_productos || 0
             }
         });
 

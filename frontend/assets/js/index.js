@@ -1,5 +1,6 @@
 // ============================================
-// INDEX.JS - Lógica de página principal
+// SPORTIVA - INDEX
+// Lógica de página principal
 // ============================================
 
 async function inicializarHome() {

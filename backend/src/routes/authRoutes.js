@@ -7,7 +7,7 @@ const router = express.Router();
 const authController = require('../controllers/authController');
 const authMiddleware = require('../middlewares/authMiddleware');
 
-// ✅ IMPORTAR VALIDATORS PROFESIONALES
+// IMPORTAR VALIDATORS PROFESIONALES
 const { 
     validateRegister,
     validateLogin,
@@ -21,13 +21,13 @@ const {
 
 // POST /api/auth/register - Registro de nuevo cliente
 router.post('/register', 
-    validateRegister,           // ✅ Validator profesional
+    validateRegister,
     authController.register
 );
 
 // POST /api/auth/login - Login de cliente
 router.post('/login', 
-    validateLogin,              // ✅ Validator profesional
+    validateLogin,
     authController.login
 );
 
@@ -62,14 +62,14 @@ router.get('/profile',
 // PUT /api/auth/profile - Actualizar perfil del usuario
 router.put('/profile', 
     authMiddleware.verifyToken,
-    validateUpdateProfile,      // ✅ Validator profesional
+    validateUpdateProfile,
     authController.updateProfile
 );
 
 // PUT /api/auth/change-password - Cambiar contraseña
 router.put('/change-password',
     authMiddleware.verifyToken,
-    validateChangePassword,     // ✅ Validator profesional
+    validateChangePassword,
     authController.changePassword
 );
 

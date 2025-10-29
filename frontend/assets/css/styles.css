@@ -1,6 +1,6 @@
 /* ============================================
-    SPORTIVA - SISTEMA DE DISEÑO
-    E-commerce Implementos Deportivos
+    SPORTIVA - ESTILOS CSS
+    Configuración de Estilos
    ============================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap');
@@ -368,7 +368,7 @@ h3 {
 }
 
 /* ============================================
-    COMPONENTES - FOOTER (ÚNICO ELEMENTO NEGRO)
+    COMPONENTES - FOOTER
    ============================================ */
 
 .footer {

@@ -93,6 +93,61 @@
             color: var(--color-black);
             border-bottom-color: var(--color-cta);
         }
+
+        /* Password requirements indicator */
+        .password-requirements {
+            margin-top: 8px;
+            padding: 12px;
+            background-color: #F3F4F6;
+            border-radius: 4px;
+            font-size: 13px;
+            display: none;
+        }
+
+        .password-requirements.active {
+            display: block;
+        }
+
+        .password-requirements h4 {
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #374151;
+        }
+
+        .requirement {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 0;
+            color: #6B7280;
+        }
+
+        .requirement-icon {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid #D1D5DB;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .requirement.valid {
+            color: #059669;
+        }
+
+        .requirement.valid .requirement-icon {
+            background-color: #10B981;
+            border-color: #10B981;
+            color: white;
+        }
+
+        .requirement.valid .requirement-icon::before {
+            content: '✓';
+        }
     </style>
 </head>
 <body>
@@ -185,13 +240,38 @@
 
                     <div class="form-group">
                         <label class="form-label">Contraseña</label>
-                        <input type="password" name="password" id="regPassword" class="form-input" placeholder="••••••••" required minlength="6">
-                        <span class="form-error" id="errorRegPassword">La contraseña debe tener al menos 6 caracteres</span>
+                        <input type="password" name="password" id="regPassword" class="form-input" placeholder="••••••••" required minlength="8">
+                        <span class="form-error" id="errorRegPassword">La contraseña no cumple los requisitos</span>
+                        
+                        <!-- Indicador de requisitos de contraseña -->
+                        <div class="password-requirements" id="passwordRequirements">
+                            <h4>Requisitos de contraseña:</h4>
+                            <div class="requirement" id="req-length">
+                                <span class="requirement-icon"></span>
+                                <span>Mínimo 8 caracteres</span>
+                            </div>
+                            <div class="requirement" id="req-uppercase">
+                                <span class="requirement-icon"></span>
+                                <span>Al menos 1 mayúscula (A-Z)</span>
+                            </div>
+                            <div class="requirement" id="req-lowercase">
+                                <span class="requirement-icon"></span>
+                                <span>Al menos 1 minúscula (a-z)</span>
+                            </div>
+                            <div class="requirement" id="req-number">
+                                <span class="requirement-icon"></span>
+                                <span>Al menos 1 número (0-9)</span>
+                            </div>
+                            <div class="requirement" id="req-special">
+                                <span class="requirement-icon"></span>
+                                <span>Al menos 1 carácter especial (@$!%*?&)</span>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Confirmar Contraseña</label>
-                        <input type="password" name="confirmPassword" id="regConfirmPassword" class="form-input" placeholder="••••••••" required minlength="6">
+                        <input type="password" name="confirmPassword" id="regConfirmPassword" class="form-input" placeholder="••••••••" required minlength="8">
                         <span class="form-error" id="errorRegConfirmPassword">Las contraseñas no coinciden</span>
                     </div>
 
@@ -204,84 +284,129 @@
                     </p>
                 </form>
             </div>
-
         </div>
     </section>
 
     <!-- FOOTER -->
     <footer class="footer">
-        <div class="container">
-            <div class="footer-grid">
-                <div>
-                    <h4 class="footer-title">SPORTIVA</h4>
-                    <p class="text-small text-secondary">Tu tienda de implementos deportivos de confianza.</p>
-                </div>
-                
-                <div>
-                    <h4 class="footer-title">ENLACES RÃPIDOS</h4>
-                    <ul class="footer-links">
-                        <li><a href="index.html">Inicio</a></li>
-                        <li><a href="catalogo.html">Catálogo</a></li>
-                        <li><a href="#">Nosotros</a></li>
-                        <li><a href="#">Contacto</a></li>
-                    </ul>
-                </div>
-                
-                <div>
-                    <h4 class="footer-title">AYUDA</h4>
-                    <ul class="footer-links">
-                        <li><a href="#">Preguntas Frecuentes</a></li>
-                        <li><a href="#">Guía de Tallas</a></li>
-                        <li><a href="#">Políticas de Envío</a></li>
-                        <li><a href="#">Devoluciones</a></li>
-                    </ul>
-                </div>
-                
-                <div>
-                    <h4 class="footer-title">CONTACTO</h4>
-                    <p class="text-small text-secondary">Email: contacto@sportiva.pe</p>
-                    <p class="text-small text-secondary">Teléfono: (01) 234-5678</p>
-                </div>
+        <div class="footer-container">
+            <div class="footer-section">
+                <h3 class="footer-title">SPORTIVA</h3>
+                <p class="footer-text">Tu tienda deportiva de confianza</p>
             </div>
             
-            <div style="border-top: 1px solid var(--color-gray-footer-border); margin-top: 48px; padding-top: 24px; text-align: center;">
-                <p class="text-small text-secondary">© 2025 Sportiva. Todos los derechos reservados.</p>
+            <div class="footer-section">
+                <h4 class="footer-subtitle">Información</h4>
+                <ul class="footer-links">
+                    <li><a href="#">Sobre Nosotros</a></li>
+                    <li><a href="#">Envíos</a></li>
+                    <li><a href="#">Devoluciones</a></li>
+                </ul>
             </div>
+            
+            <div class="footer-section">
+                <h4 class="footer-subtitle">Ayuda</h4>
+                <ul class="footer-links">
+                    <li><a href="#">Preguntas Frecuentes</a></li>
+                    <li><a href="#">Contacto</a></li>
+                    <li><a href="#">Términos y Condiciones</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>&copy; 2024 Sportiva. Todos los derechos reservados.</p>
         </div>
     </footer>
 
     <!-- SCRIPTS -->
-    <script src="../assets/js/main.js"></script>
     <script src="../assets/js/apiConfig.js"></script>
     <script src="../assets/js/authService.js"></script>
+    <script src="../assets/js/main.js"></script>
     
     <script>
         // ============================================
-        // GESTIÓN DE TABS
+        // CAMBIAR TABS
         // ============================================
         
         function cambiarTab(tab) {
-            const tabs = document.querySelectorAll('.tab');
-            const contents = document.querySelectorAll('.tab-content');
+            // Ocultar todos los tabs
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
             
-            tabs.forEach(t => t.classList.remove('active'));
-            contents.forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(button => {
+                button.classList.remove('active');
+            });
             
+            // Mostrar tab seleccionado
             if (tab === 'login') {
-                tabs[0].classList.add('active');
                 document.getElementById('tabLogin').classList.add('active');
+                document.querySelector('.tab:first-child').classList.add('active');
             } else {
-                tabs[1].classList.add('active');
                 document.getElementById('tabRegistro').classList.add('active');
+                document.querySelector('.tab:last-child').classList.add('active');
             }
         }
         
         // ============================================
-        // VALIDACIONES EN TIEMPO REAL
+        // VALIDACIONES
+        // ============================================
+        
+        function validarEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+        
+        function validarTelefono(telefono) {
+            // Validar que sea exactamente 9 dígitos y comience con 9
+            const re = /^9\d{8}$/;
+            return re.test(telefono);
+        }
+
+        /**
+         * Validar requisitos de contraseña según backend
+         */
+        function validarPasswordCompleta(password) {
+            const requisitos = {
+                length: password.length >= 8,
+                uppercase: /[A-Z]/.test(password),
+                lowercase: /[a-z]/.test(password),
+                number: /\d/.test(password),
+                special: /[@$!%*?&]/.test(password)
+            };
+
+            const todosValidos = Object.values(requisitos).every(val => val === true);
+
+            return {
+                valido: todosValidos,
+                requisitos: requisitos
+            };
+        }
+
+        /**
+         * Actualizar indicador visual de requisitos
+         */
+        function actualizarIndicadorPassword(password) {
+            const validacion = validarPasswordCompleta(password);
+            const req = validacion.requisitos;
+
+            // Actualizar cada requisito
+            document.getElementById('req-length').classList.toggle('valid', req.length);
+            document.getElementById('req-uppercase').classList.toggle('valid', req.uppercase);
+            document.getElementById('req-lowercase').classList.toggle('valid', req.lowercase);
+            document.getElementById('req-number').classList.toggle('valid', req.number);
+            document.getElementById('req-special').classList.toggle('valid', req.special);
+
+            return validacion.valido;
+        }
+        
+        // ============================================
+        // VALIDACIÓN EN TIEMPO REAL
         // ============================================
         
         function setupRealtimeValidation() {
-            // Login Email
+            // Login - Email
             document.getElementById('loginEmail')?.addEventListener('blur', function() {
                 const error = document.getElementById('errorLoginEmail');
                 if (!validarEmail(this.value)) {
@@ -291,21 +416,30 @@
                 }
             });
             
-            // Login Password
-            document.getElementById('loginPassword')?.addEventListener('blur', function() {
-                const error = document.getElementById('errorLoginPassword');
-                if (this.value.length < 6) {
+            // Registro - Nombre
+            document.getElementById('regNombre')?.addEventListener('blur', function() {
+                const error = document.getElementById('errorRegNombre');
+                if (this.value.trim().length < 2) {
                     error.classList.add('active');
                 } else {
                     error.classList.remove('active');
                 }
             });
             
-            // Registro - Confirm Password
-            document.getElementById('regConfirmPassword')?.addEventListener('input', function() {
-                const password = document.getElementById('regPassword').value;
-                const error = document.getElementById('errorRegConfirmPassword');
-                if (this.value !== password) {
+            // Registro - Apellido
+            document.getElementById('regApellido')?.addEventListener('blur', function() {
+                const error = document.getElementById('errorRegApellido');
+                if (this.value.trim().length < 2) {
+                    error.classList.add('active');
+                } else {
+                    error.classList.remove('active');
+                }
+            });
+            
+            // Registro - Email
+            document.getElementById('regEmail')?.addEventListener('blur', function() {
+                const error = document.getElementById('errorRegEmail');
+                if (!validarEmail(this.value)) {
                     error.classList.add('active');
                 } else {
                     error.classList.remove('active');
@@ -316,6 +450,41 @@
             document.getElementById('regTelefono')?.addEventListener('blur', function() {
                 const error = document.getElementById('errorRegTelefono');
                 if (this.value && !validarTelefono(this.value)) {
+                    error.classList.add('active');
+                } else {
+                    error.classList.remove('active');
+                }
+            });
+
+            // Registro - Password con indicador visual
+            const passwordInput = document.getElementById('regPassword');
+            const passwordRequirements = document.getElementById('passwordRequirements');
+
+            passwordInput?.addEventListener('focus', function() {
+                passwordRequirements.classList.add('active');
+            });
+
+            passwordInput?.addEventListener('input', function() {
+                actualizarIndicadorPassword(this.value);
+            });
+
+            passwordInput?.addEventListener('blur', function() {
+                const esValido = actualizarIndicadorPassword(this.value);
+                const error = document.getElementById('errorRegPassword');
+                
+                if (this.value && !esValido) {
+                    error.classList.add('active');
+                } else {
+                    error.classList.remove('active');
+                }
+            });
+
+            // Confirmar contraseña
+            document.getElementById('regConfirmPassword')?.addEventListener('blur', function() {
+                const password = document.getElementById('regPassword').value;
+                const error = document.getElementById('errorRegConfirmPassword');
+                
+                if (this.value && this.value !== password) {
                     error.classList.add('active');
                 } else {
                     error.classList.remove('active');
@@ -405,7 +574,7 @@
             const password = form.querySelector('[name="password"]').value;
             const confirmPassword = form.querySelector('[name="confirmPassword"]').value;
             
-            // Validaciones
+            // Validaciones básicas
             if (!nombre || !apellido || !email || !password) {
                 mostrarToast('Por favor completa todos los campos obligatorios', 'error');
                 return false;
@@ -421,8 +590,15 @@
                 return false;
             }
             
-            if (password.length < 6) {
-                mostrarToast('La contraseña debe tener al menos 6 caracteres', 'error');
+            // Validación de contraseña completa
+            const validacionPassword = validarPasswordCompleta(password);
+            if (!validacionPassword.valido) {
+                mostrarToast('La contraseña no cumple con todos los requisitos de seguridad', 'error');
+                
+                // Mostrar indicador si está oculto
+                document.getElementById('passwordRequirements').classList.add('active');
+                actualizarIndicadorPassword(password);
+                
                 return false;
             }
             
@@ -455,9 +631,22 @@
                 if (usuario) {
                     mostrarToast(`¡Cuenta creada exitosamente! Bienvenido ${usuario.nombre}`, 'success');
                     
+                    // Limpiar el formulario
+                    form.reset();
+                    
+                    // Obtener la URL de redirect si existe
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const redirectUrl = urlParams.get('redirect');
+                    
                     // Redirigir después de 1.5 segundos
                     setTimeout(() => {
-                        window.location.href = 'index.html';
+                        if (redirectUrl) {
+                            // Regresar a la página donde estaba
+                            window.location.href = redirectUrl;
+                        } else {
+                            // Si no hay redirect, ir a index
+                            window.location.href = 'index.html';
+                        }
                     }, 1500);
                 }
                 
@@ -469,15 +658,16 @@
                 
                 if (error.message.includes('email')) {
                     errorMsg = 'Este email ya está registrado';
-                } else if (error.message.includes('password')) {
-                    errorMsg = 'La contraseña no cumple los requisitos';
+                } else if (error.message.includes('password') || error.message.includes('contraseña')) {
+                    errorMsg = 'La contraseña no cumple los requisitos de seguridad';
                 } else if (error.message) {
                     errorMsg = error.message;
                 }
                 
                 mostrarToast(errorMsg, 'error');
                 
-                // Restaurar botón
+            } finally {
+                // IMPORTANTE: Siempre restaurar botón en el bloque finally
                 btn.classList.remove('btn-loading');
                 btn.textContent = 'Crear Cuenta';
             }

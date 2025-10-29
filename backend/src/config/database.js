@@ -32,7 +32,7 @@ const verificarConexion = async () => {
     }
 };
 
-// Exportar directamente el pool para que this.db.execute() funcione
+// Exportar directamente el pool para this.db.execute()
 module.exports = pool;
 
 // Mantener función de verificación disponible

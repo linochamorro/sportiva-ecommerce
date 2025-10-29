@@ -70,9 +70,6 @@ async function cargarProducto(productoId) {
             await cargarProductoLocal(productoId);
         }
 
-        // Ya NO se asigna talla por defecto aquí
-        // tallaSeleccionada = null; // Asegurar que inicie como null
-
         renderizarProducto();
 
         // Cargar datos adicionales
@@ -125,15 +122,13 @@ async function cargarProductoLocal(productoId) {
 function normalizarProducto(producto) {
     if (!producto) return null;
 
-    // 1. Obtener imagen y aplicar CORRECCIÓN DE RUTA
     let imagenPath = producto.imagen_principal || producto.imagen || producto.imagen_url || producto.url_imagen || 'assets/images/placeholder.jpg';
 
-    // Corregir ruta: de 'assets/...' a '../assets/...'
     if (imagenPath.includes('assets/images/productos/') && !imagenPath.startsWith('../') && !imagenPath.startsWith('/')) {
         imagenPath = '../' + imagenPath.replace('frontend/', '');
     }
 
-    // 2. Normalizar la estructura de datos
+    // Normalizar la estructura de datos
     return {
         ...producto,
         id: producto.id_producto || producto.producto_id || producto.id,
@@ -162,7 +157,7 @@ function renderizarProducto() {
 
     document.title = `${productoActual.nombre} - Sportiva`;
 
-    // FIX: Actualizar el breadcrumb externo en producto.html
+    // Actualizar el breadcrumb externo en producto.html
     actualizarBreadcrumbExterno();
 
     // Crear estructura HTML base (contenedor principal y secciones)
@@ -180,7 +175,7 @@ function renderizarProducto() {
 }
 
 /**
- * FIX: Actualiza el breadcrumb principal en el DOM de producto.html
+ * Actualiza el breadcrumb principal en el DOM de producto.html
  */
 function actualizarBreadcrumbExterno() {
     const breadcrumbCategoria = document.getElementById('breadcrumbCategoria');
@@ -268,7 +263,7 @@ function renderizarGaleria() {
 }
 
 /**
- * Obtener imágenes del producto (Rutas ya corregidas en normalizarProducto)
+ * Obtener imágenes del producto
  */
 function obtenerImagenesProducto() {
     const imagenes = [];
@@ -514,7 +509,7 @@ async function cargarProductosRelacionados(productoId) {
 
             if (response.success && response.data) {
                 productosRelacionados = (response.data.productos || response.data)
-                    .filter(p => p.id_producto != productoActual.id)
+                    .filter(p => p.id_producto != productoActual.id_producto)
                     .slice(0, 4);
                 renderizarProductosRelacionados();
             }
@@ -592,8 +587,6 @@ function seleccionarTalla(tallaNombre, stock) {
     // Volver a renderizar los botones de talla para actualizar estilos
     renderizarSelectorTallas();
 
-    // Notificación opcional
-    // if (typeof mostrarToast === 'function') mostrarToast(`Talla ${tallaNombre} seleccionada`, 'success');
 }
 
 
@@ -685,7 +678,6 @@ function actualizarCantidadDesdeInput(nuevoValor) {
     cantidadSeleccionada = cantidad;
     input.value = cantidadSeleccionada; 
 
-    // Opcional: Llamar a actualizarCantidadInput si realiza otras acciones
     // actualizarCantidadInput(); 
 }
 
@@ -699,7 +691,6 @@ async function agregarAlCarritoClick() {
         return;
     }
 
-    // Deshabilitar botón y mostrar loading
     const btnAgregar = document.querySelector('.btn-agregar-carrito');
     if (btnAgregar) {
         btnAgregar.disabled = true;
@@ -707,74 +698,123 @@ async function agregarAlCarritoClick() {
     }
 
     try {
-        // Obtener el ID de talla real basado en el nombre de talla seleccionado
         const tallaInfo = productoActual.variantes.find(v => v.talla === tallaSeleccionada);
-        // Usar id_talla si existe, si no, null (para productos sin tallas específicas o 'UNICA')
         const idTallaAPI = tallaInfo ? tallaInfo.id_talla : null;
 
+        // Usar nombres que espera el backend
         const itemData = {
-            productoId: productoActual.id, // Cambiado de producto_id a productoId
-            cantidad: cantidadSeleccionada,
-            tallaId: idTallaAPI // Cambiado de talla a tallaId
+            id_producto: parseInt(productoActual.id_producto),
+            id_talla: idTallaAPI ? parseInt(idTallaAPI) : null,
+            cantidad: parseInt(cantidadSeleccionada)
         };
 
         if (typeof apiConfig !== 'undefined') {
-            // Verificar autenticación
             if (typeof authService !== 'undefined' && !authService.isLoggedIn()) {
+                // Guardar la talla y cantidad para restaurar UI
+                const productoParaGuardar = {
+                    itemData: itemData,
+                    uiData: {
+                        productoId: productoActual.id_producto,
+                        tallaNombre: tallaSeleccionada,
+                        cantidad: cantidadSeleccionada
+                    }
+                };
+                
+                localStorage.setItem('sportiva_producto_pendiente', JSON.stringify(productoParaGuardar));
+                localStorage.setItem('sportiva_redirect_after_login', window.location.pathname + window.location.search);
+                
                 if (typeof mostrarToast === 'function') mostrarToast('Inicia sesión para agregar productos', 'warning');
+                
                 setTimeout(() => {
                     window.location.href = '/frontend/public/login.html?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
                 }, 1500);
-                 // Importante: rehabilitar el botón si la autenticación falla antes de redirigir
+                
                 if (btnAgregar) {
                     btnAgregar.disabled = false;
                     btnAgregar.innerHTML = 'AGREGAR AL CARRITO';
                 }
-                 return; // Detener ejecución si no está logueado
+                return;
             }
 
-            // Llamada a la API
+            console.log('📦 Enviando al carrito:', itemData);
+            
+            mostrarModalPostCompra();
+            
             const response = await apiConfig.apiPost('/carrito/items', itemData);
 
             if (response.success) {
                 if (typeof mostrarToast === 'function') mostrarToast('Producto agregado al carrito', 'success');
-                // Actualizar contador del carrito en el navbar (si la función existe globalmente)
+                
                 if (typeof actualizarContadorCarrito === 'function') {
-                    actualizarContadorCarrito(); // Asumiendo que esta función global actualiza el badge
+                    actualizarContadorCarrito();
                 }
-                // Resetear cantidad a 1
-                cantidadSeleccionada = 1;
-                actualizarCantidadInput();
+                
+                limpiarEstadoProducto();
             } else {
-                 // Si la API devuelve success: false, lanzar error con el mensaje
+                cerrarModalPostCompra();
                 throw new Error(response.message || 'Error al agregar al carrito desde API');
             }
         } else {
-            // Fallback: Lógica de carrito local (si aplica)
             console.warn("apiConfig no definido, usando fallback local (si existe)");
-            if (typeof agregarAlCarrito === 'function') { // Asumiendo que existe una función global en main.js
-                // Adaptar los datos para la función local si es necesario
+            if (typeof agregarAlCarrito === 'function') {
+                mostrarModalPostCompra();
+                
                 const productoParaLocal = { ...productoActual, id_talla: idTallaAPI, talla_nombre: tallaSeleccionada };
                 const agregado = agregarAlCarrito(productoParaLocal, idTallaAPI, tallaSeleccionada, cantidadSeleccionada);
-                if (agregado && typeof actualizarContadorCarrito === 'function') {
-                    actualizarContadorCarrito();
+                if (agregado) {
+                    if (typeof actualizarContadorCarrito === 'function') {
+                        actualizarContadorCarrito();
+                    }
+                    limpiarEstadoProducto();
+                } else {
+                    cerrarModalPostCompra();
                 }
-                cantidadSeleccionada = 1;
-                actualizarCantidadInput();
             } else {
                 throw new Error("Función 'agregarAlCarrito' local no encontrada.");
             }
         }
     } catch (error) {
         console.error('❌ Error al agregar al carrito:', error);
+        cerrarModalPostCompra();
         if (typeof mostrarToast === 'function') mostrarToast(error.message || 'Error al agregar producto al carrito', 'error');
     } finally {
-        // Rehabilitar botón independientemente del resultado
         if (btnAgregar) {
             btnAgregar.disabled = false;
             btnAgregar.innerHTML = 'AGREGAR AL CARRITO';
         }
     }
+}
+
+
+function limpiarEstadoProducto() {
+    tallaSeleccionada = null;
+    cantidadSeleccionada = 1;
+    actualizarCantidadInput();
+    
+    document.querySelectorAll('.talla-option').forEach(opt => {
+        opt.classList.remove('selected');
+    });
+    
+    console.log('✅ Estado del producto limpiado');
+}
+
+function mostrarModalPostCompra() {
+    const modal = document.getElementById('modalPostCompra');
+    if (modal) {
+        modal.style.display = 'flex';
+        modal.offsetHeight;
+    }
+}
+
+function cerrarModalPostCompra() {
+    const modal = document.getElementById('modalPostCompra');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+function irAlCarrito() {
+    window.location.href = 'carrito.html';
 }
 
 
@@ -841,12 +881,10 @@ function cerrarGuiaTallas() {
     }
 }
 
-
 /**
  * Mostrar/ocultar loader
  */
 function mostrarLoader(mostrar) {
-    // Implementación simple, asume que tienes un div con id="loader"
     const loader = document.getElementById('loader');
     if (!loader) {
         // Crear loader si no existe
@@ -882,17 +920,18 @@ function mostrarError(mensaje) {
 // ===========================
 
 function inicializarEventListeners() {
-    // Hacer funciones globales para que los `onclick` en el HTML funcionen
     window.seleccionarTalla = seleccionarTalla;
     window.cambiarCantidad = cambiarCantidad;
     window.agregarAlCarritoClick = agregarAlCarritoClick;
     window.abrirGuiaTallas = abrirGuiaTallas;
     window.cerrarGuiaTallas = cerrarGuiaTallas;
+    window.cerrarModalPostCompra = cerrarModalPostCompra;
+    window.irAlCarrito = irAlCarrito;
 
-     // Escuchar tecla Escape para cerrar modal
-      document.addEventListener('keydown', (e) => {
+    document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             cerrarGuiaTallas();
+            cerrarModalPostCompra();
         }
     });
 }
@@ -910,7 +949,72 @@ async function cargarResenas(productoId) {
 
 // Llamada final para asegurar la inicialización si el DOM ya está listo
 if (document.readyState !== 'loading') {
-    // Si necesitas alguna función que se ejecute DE NUEVO después de cargar todo,
-    // puedes llamarla aquí, pero `DOMContentLoaded` ya debería haber corrido.
-    // inicializarEventListeners(); // Ya se llama en DOMContentLoaded
+    // Si se desea alguna función adicional
 }
+
+document.addEventListener('DOMContentLoaded', async () => {
+    const productoPendienteStr = localStorage.getItem('sportiva_producto_pendiente');
+    
+    if (productoPendienteStr && typeof authService !== 'undefined' && authService.isLoggedIn()) {
+        console.log('🔄 Restaurando selección anterior...');
+        
+        try {
+            const productoPendiente = JSON.parse(productoPendienteStr);
+            
+            // SOLO RESTAURAR UI (talla y cantidad seleccionadas)
+            if (productoPendiente.uiData) {
+                const { tallaNombre, cantidad } = productoPendiente.uiData;
+                
+                // Esperar a que el producto se haya cargado
+                await new Promise(resolve => {
+                    const checkProducto = setInterval(() => {
+                        if (productoActual && (productoActual.id_producto || productoActual.id)) {
+                            clearInterval(checkProducto);
+                            resolve();
+                        }
+                    }, 100);
+                    
+                    // Timeout de seguridad
+                    setTimeout(() => {
+                        clearInterval(checkProducto);
+                        resolve();
+                    }, 3000);
+                });
+                
+                // Restaurar talla seleccionada
+                if (tallaNombre) {
+                    tallaSeleccionada = tallaNombre;
+                    // Marcar visualmente la talla en la UI
+                    setTimeout(() => {
+                        document.querySelectorAll('.talla-btn').forEach(btn => {
+                            if (btn.textContent.trim() === tallaNombre) {
+                                btn.classList.add('active');
+                            }
+                        });
+                    }, 300);
+                }
+                
+                // Restaurar cantidad
+                if (cantidad) {
+                    cantidadSeleccionada = cantidad;
+                    actualizarCantidadInput();
+                }
+                
+                console.log('✅ UI restaurada - Talla:', tallaNombre, 'Cantidad:', cantidad);
+                
+                // Mostrar notificación al usuario
+                if (typeof mostrarToast === 'function') {
+                    mostrarToast('Selección restaurada. Haz clic en "AGREGAR AL CARRITO" para continuar.', 'info');
+                }
+            }
+            
+            // Limpiar localStorage DESPUÉS de restaurar UI
+            // NO agregar automáticamente al carrito
+            localStorage.removeItem('sportiva_producto_pendiente');
+            
+        } catch (error) {
+            console.error('❌ Error restaurando producto pendiente:', error);
+            localStorage.removeItem('sportiva_producto_pendiente');
+        }
+    }
+});

@@ -61,8 +61,7 @@ exports.verifyToken = async (req, res, next) => {
             throw jwtError;
         }
 
-        // Verificar que el cliente existe y está activo
-        const cliente = await Cliente.findById(decoded.id);
+        const cliente = await Cliente.findById(decoded.id_cliente);
 
         if (!cliente) {
             return res.status(401).json({
@@ -80,16 +79,13 @@ exports.verifyToken = async (req, res, next) => {
             });
         }
 
-        // Agregar información del cliente al request
         req.cliente = {
-            id: cliente.id,
+            id: cliente.id_cliente,
             email: cliente.email,
             nombre: cliente.nombre,
             apellido: cliente.apellido
         };
-
         next();
-
     } catch (error) {
         logger.error('Error en middleware de autenticación:', error);
         res.status(500).json({
@@ -125,14 +121,14 @@ exports.optionalAuth = async (req, res, next) => {
 
         try {
             const decoded = jwt.verify(token, JWT_SECRET);
-            const cliente = await Cliente.findById(decoded.id);
+            const cliente = await Cliente.findById(decoded.id_cliente);
 
             if (cliente && cliente.activo) {
                 req.cliente = {
-                    id: cliente.id,
-                    email: cliente.email,
-                    nombre: cliente.nombre,
-                    apellido: cliente.apellido
+                  id: cliente.id_cliente,
+                  email: cliente.email,
+                  nombre: cliente.nombre,
+                  apellido: cliente.apellido
                 };
             } else {
                 req.cliente = null;

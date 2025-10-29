@@ -2,7 +2,7 @@
 // AUTH SERVICE - SOLID Principles
 // ============================================
 const jwt = require('jsonwebtoken');
-const { Cliente } = require('../models');
+const Cliente = require('../models/Cliente');
 const { JWT_SECRET, JWT_EXPIRES_IN } = require('../config/constants');
 
 /**
@@ -11,7 +11,8 @@ const { JWT_SECRET, JWT_EXPIRES_IN } = require('../config/constants');
  */
 class AuthService {
     constructor() {
-        this.clienteModel = Cliente;
+        // Crear instancia del modelo Cliente
+        this.clienteModel = new Cliente();
     }
 
     // ============================================
@@ -414,7 +415,7 @@ class AuthService {
     // ============================================
 
     /**
-     * Sanitizar datos del cliente (remover información sensible)
+     * Remover información del Cliente
      */
     sanitizeClienteData(cliente) {
         const { password_hash, ...safeData } = cliente;
@@ -456,7 +457,8 @@ class AuthService {
      */
     async logout(id_cliente) {
         try {
-
+            // Aquí podrías agregar lógica para invalidar tokens en una blacklist
+            // Por ahora solo retornamos éxito
 
             return {
                 success: true,

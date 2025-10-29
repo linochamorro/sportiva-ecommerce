@@ -4,6 +4,12 @@
 
 require('dotenv').config();
 
+// ============================================
+// CONFIGURACIÓN JWT (NUEVO)
+// ============================================
+const JWT_SECRET = process.env.JWT_SECRET || 'sportiva-secret-key-development-2024';
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
+
 // Estados de pedido
 const ESTADOS_PEDIDO = {
     PENDIENTE: 'PENDIENTE',
@@ -90,6 +96,11 @@ const MENSAJES_EXITO = {
 };
 
 module.exports = {
+    // Exportar JWT_SECRET y JWT_EXPIRES_IN
+    JWT_SECRET,
+    JWT_EXPIRES_IN,
+    
+    // Exportaciones existentes
     ESTADOS_PEDIDO,
     ESTADOS_PAGO,
     METODOS_PAGO,

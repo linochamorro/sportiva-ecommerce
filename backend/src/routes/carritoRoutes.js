@@ -18,13 +18,13 @@ router.use(authMiddleware.verifyToken);
 // ============================================
 
 const agregarItemValidation = [
-    body('productoId')
+    body('id_producto')
         .isInt({ min: 1 }).withMessage('ID de producto inválido')
         .toInt(),
     body('cantidad')
         .isInt({ min: 1, max: 99 }).withMessage('La cantidad debe estar entre 1 y 99')
         .toInt(),
-    body('tallaId')
+    body('id_talla')
         .optional()
         .isInt({ min: 1 }).withMessage('ID de talla inválido')
         .toInt()

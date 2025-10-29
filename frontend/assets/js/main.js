@@ -231,6 +231,53 @@ function obtenerCantidadTotalCarrito() {
 }
 
 // ============================================
+// ACTUALIZAR CONTADOR DEL CARRITO
+// ============================================
+
+async function actualizarContadorCarrito() {
+    const contadores = document.querySelectorAll('.cart-count');
+    let cantidad = 0;
+    
+    // Si el usuario está logueado Y hay API disponible, obtener del servidor
+    if (typeof authService !== 'undefined' && typeof apiConfig !== 'undefined') {
+        const usuario = obtenerUsuarioActual();
+        
+        if (usuario) {
+            try {
+                // Intentar obtener del servidor
+                const response = await apiConfig.apiGet('/carrito/resumen');
+                if (response.success && response.data) {
+                    cantidad = response.data.total_items || 0;
+                }
+            } catch (error) {
+                // Si falla, usar localStorage como fallback
+                console.warn('Error obteniendo carrito del servidor, usando local:', error);
+                cantidad = obtenerCantidadTotalCarrito();
+            }
+        } else {
+            // Usuario no logueado, usar localStorage
+            cantidad = obtenerCantidadTotalCarrito();
+        }
+    } else {
+        // Sin API, usar localStorage
+        cantidad = obtenerCantidadTotalCarrito();
+    }
+    
+    // Actualizar todos los contadores en la página
+    contadores.forEach(contador => {
+        contador.textContent = cantidad;
+        
+        if (cantidad > 0) {
+            contador.style.display = 'flex';
+        } else {
+            contador.style.display = 'none';
+        }
+    });
+    
+    return cantidad;
+}
+
+// ============================================
 // CÁLCULOS FINANCIEROS
 // ============================================
 
@@ -332,21 +379,6 @@ function generarID() {
 // COMPONENTES DE UI
 // ============================================
 
-function actualizarContadorCarrito() {
-    const contadores = document.querySelectorAll('.cart-count');
-    const cantidad = obtenerCantidadTotalCarrito();
-    
-    contadores.forEach(contador => {
-        contador.textContent = cantidad;
-        
-        if (cantidad > 0) {
-            contador.style.display = 'flex';
-        } else {
-            contador.style.display = 'none';
-        }
-    });
-}
-
 function mostrarToast(mensaje, tipo = 'success') {
     const existente = document.querySelector('.toast');
     if (existente) {
@@ -394,14 +426,35 @@ function crearCardProducto(producto) {
 }
 
 function irAProducto(idProducto) {
-    window.location.href = `producto.html?id=${idProducto}`;
+    // Detectar la ubicación actual para construir la ruta correcta
+    const currentPath = window.location.pathname;
+    
+    // Si ya estamos en /frontend/public/, usar ruta relativa
+    if (currentPath.includes('/frontend/public/')) {
+        window.location.href = `producto.html?id=${idProducto}`;
+    } else {
+        // Si estamos en otra ubicación, usar ruta absoluta
+        window.location.href = `/frontend/public/producto.html?id=${idProducto}`;
+    }
 }
 
 function irACatalogo(categoria = '') {
-    if (categoria) {
-        window.location.href = `catalogo.html?categoria=${encodeURIComponent(categoria)}`;
+    const currentPath = window.location.pathname;
+    
+    if (currentPath.includes('/frontend/public/')) {
+        // Ya estamos en la carpeta correcta
+        if (categoria) {
+            window.location.href = `catalogo.html?categoria=${encodeURIComponent(categoria)}`;
+        } else {
+            window.location.href = 'catalogo.html';
+        }
     } else {
-        window.location.href = 'catalogo.html';
+        // Estamos en otra ubicación
+        if (categoria) {
+            window.location.href = `/frontend/public/catalogo.html?categoria=${encodeURIComponent(categoria)}`;
+        } else {
+            window.location.href = '/frontend/public/catalogo.html';
+        }
     }
 }
 
@@ -544,7 +597,12 @@ function cerrarSesion() {
         authService.logout();
     } else {
         localStorage.removeItem('sportiva_usuario');
+        localStorage.removeItem('sportiva_token');
         mostrarToast('Sesión cerrada', 'success');
+        
+        // Actualizar navbar para remover usuario
+        actualizarNavbarUsuario();
+        
         setTimeout(() => window.location.href = 'index.html', 1000);
     }
 }
@@ -564,11 +622,119 @@ function verificarSesion() {
 }
 
 // ============================================
+// NAVBAR - USUARIO AUTENTICADO
+// ============================================
+
+function actualizarNavbarUsuario() {
+    const usuario = obtenerUsuarioActual();
+    const navbarActions = document.querySelector('.navbar-actions');
+    
+    if (!navbarActions) return;
+    
+    // Buscar si ya existe el dropdown de usuario
+    let userDropdown = document.querySelector('.user-dropdown');
+    
+    if (usuario) {
+        // Usuario logueado - Mostrar dropdown
+        if (!userDropdown) {
+            // Crear dropdown por primera vez
+            const searchButton = navbarActions.querySelector('button[onclick*="catalogo"]');
+            
+            userDropdown = document.createElement('div');
+            userDropdown.className = 'user-dropdown';
+            userDropdown.style.cssText = 'position: relative; display: inline-block;';
+            
+            userDropdown.innerHTML = `
+                <button class="user-button navbar-link" onclick="toggleUserMenu()" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span class="user-name">${usuario.nombre}</span>
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 4.5L6 7.5L9 4.5"></path>
+                    </svg>
+                </button>
+                <div class="user-menu" style="display: none; position: absolute; right: 0; top: 100%; margin-top: 8px; background: white; border: 1px solid var(--color-gray-border); border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); min-width: 180px; z-index: 1000;">
+                    <div style="padding: 12px 16px; border-bottom: 1px solid var(--color-gray-border);">
+                        <div style="font-weight: 600; font-size: 14px;">${usuario.nombre} ${usuario.apellido || ''}</div>
+                        <div style="font-size: 12px; color: var(--color-gray-medium); margin-top: 4px;">${usuario.email}</div>
+                    </div>
+                    <a href="perfil.html" class="user-menu-item" style="display: block; padding: 12px 16px; text-decoration: none; color: var(--color-black); font-size: 14px; transition: background 150ms;" onmouseover="this.style.backgroundColor='var(--color-gray-light)'" onmouseout="this.style.backgroundColor='transparent'">
+                        Mi Cuenta
+                    </a>
+                    <a href="pedidos.html" class="user-menu-item" style="display: block; padding: 12px 16px; text-decoration: none; color: var(--color-black); font-size: 14px; transition: background 150ms;" onmouseover="this.style.backgroundColor='var(--color-gray-light)'" onmouseout="this.style.backgroundColor='transparent'">
+                        Mis Pedidos
+                    </a>
+                    <button onclick="cerrarSesion()" class="user-menu-item" style="width: 100%; text-align: left; padding: 12px 16px; background: none; border: none; border-top: 1px solid var(--color-gray-border); color: var(--color-error); font-size: 14px; cursor: pointer; transition: background 150ms;" onmouseover="this.style.backgroundColor='var(--color-gray-light)'" onmouseout="this.style.backgroundColor='transparent'">
+                        Cerrar Sesión
+                    </button>
+                </div>
+            `;
+            
+            // Insertar antes del botón de búsqueda
+            if (searchButton) {
+                navbarActions.insertBefore(userDropdown, searchButton);
+            } else {
+                navbarActions.insertBefore(userDropdown, navbarActions.firstChild);
+            }
+        } else {
+            // Actualizar nombre si ya existe (SOLO EL NOMBRE, NO EL APELLIDO)
+            const userName = userDropdown.querySelector('.user-name');
+            if (userName) {
+                userName.textContent = usuario.nombre; // Solo nombre
+            }
+            // Actualizar info completa en el menú desplegable
+            const userInfo = userDropdown.querySelector('.user-menu > div:first-child');
+            if (userInfo) {
+                userInfo.innerHTML = `
+                    <div style="font-weight: 600; font-size: 14px;">${usuario.nombre} ${usuario.apellido || ''}</div>
+                    <div style="font-size: 12px; color: var(--color-gray-medium); margin-top: 4px;">${usuario.email}</div>
+                `;
+            }
+        }
+    } else {
+        // Usuario NO logueado - Remover dropdown si existe
+        if (userDropdown) {
+            userDropdown.remove();
+        }
+    }
+}
+
+function toggleUserMenu() {
+    const menu = document.querySelector('.user-menu');
+    if (menu) {
+        menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+    }
+}
+
+// Cerrar menú al hacer clic fuera
+document.addEventListener('click', (e) => {
+    const userDropdown = document.querySelector('.user-dropdown');
+    if (userDropdown && !userDropdown.contains(e.target)) {
+        const menu = document.querySelector('.user-menu');
+        if (menu) {
+            menu.style.display = 'none';
+        }
+    }
+});
+
+// ============================================
 // INICIALIZACIÓN
 // ============================================
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Actualizar contador del carrito
     actualizarContadorCarrito();
+    
+    // Actualizar navbar con usuario
+    actualizarNavbarUsuario();
+    
+    // Si venimos de un registro/login, forzar actualización después de un momento
+    setTimeout(() => {
+        actualizarContadorCarrito();
+        actualizarNavbarUsuario();
+    }, 500);
 });
 
 // ============================================

@@ -6,7 +6,7 @@ const express = require('express');
 const router = express.Router();
 const productoController = require('../controllers/productoController');
 
-// ✅ IMPORTAR VALIDATORS PROFESIONALES
+// IMPORTAR VALIDATORS
 const {
     validateProductoId,
     validateListadoProductos,
@@ -23,13 +23,13 @@ const {
 
 // GET /api/productos - Listar todos los productos con filtros y paginación
 router.get('/', 
-    validateListadoProductos,       // ✅ Validator profesional
+    validateListadoProductos,
     productoController.obtenerTodos
 );
 
 // GET /api/productos/buscar - Búsqueda avanzada de productos
 router.get('/buscar', 
-    validateBusquedaProductos,      // ✅ Validator profesional
+    validateBusquedaProductos,
     productoController.buscarProductos
 );
 
@@ -40,13 +40,13 @@ router.get('/destacados',
 
 // GET /api/productos/ofertas - Productos en oferta
 router.get('/ofertas', 
-    validateListadoProductos,       // ✅ Reutiliza validator con paginación
+    validateListadoProductos,
     productoController.obtenerOfertas
 );
 
 // GET /api/productos/nuevos - Productos nuevos/recientes
 router.get('/nuevos', 
-    validateListadoProductos,       // ✅ Reutiliza validator con paginación
+    validateListadoProductos,
     productoController.obtenerNuevos
 );
 
@@ -62,31 +62,31 @@ router.get('/stats/precios',
 
 // GET /api/productos/categoria/:id - Filtrar por categoría
 router.get('/categoria/:id', 
-    validateCategoria,              // ✅ Validator profesional
+    validateCategoria,
     productoController.obtenerPorCategoria
 );
 
 // GET /api/productos/:id - Obtener detalle de un producto
 router.get('/:id', 
-    validateProductoId,             // ✅ Validator profesional
+    validateProductoId,
     productoController.obtenerPorId
 );
 
 // GET /api/productos/:id/stock - Verificar stock por talla
 router.get('/:id/stock', 
-    validateVerificarStock,         // ✅ Validator profesional
+    validateVerificarStock,
     productoController.verificarStock
 );
 
 // GET /api/productos/:id/relacionados - Productos relacionados
 router.get('/:id/relacionados', 
-    validateProductosRelacionados,  // ✅ Validator profesional
+    validateProductosRelacionados,
     productoController.obtenerRelacionados
 );
 
 // GET /api/productos/:id/resenas - Obtener reseñas de un producto
 router.get('/:id/resenas', 
-    validateObtenerResenas,         // ✅ Validator profesional
+    validateObtenerResenas,
     productoController.obtenerResenas
 );
 
