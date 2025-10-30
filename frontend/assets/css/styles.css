@@ -493,6 +493,9 @@ h3 {
 
 .hero h1 {
     margin-bottom: var(--spacing-lg);
+    font-size: 72px;
+    line-height: 1.0;
+    font-weight: 900;
 }
 
 .hero p {
@@ -503,11 +506,12 @@ h3 {
 
 .hero-image {
     background-color: var(--color-gray-light);
-    height: 400px;
+    height: 600px;
     border-radius: var(--border-radius);
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
 }
 
 /* ============================================

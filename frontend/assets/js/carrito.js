@@ -56,13 +56,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ===========================
 
 /**
- * Cargar carrito desde API
+ * Cargar carrito desde API o localStorage
  */
 async function cargarCarrito() {
     mostrarLoader(true);
     
     try {
-        if (typeof apiConfig !== 'undefined') {
+        if (typeof apiConfig !== 'undefined' && typeof ENDPOINTS !== 'undefined') {
             // Cargar desde API usando endpoint correcto
             const response = await apiConfig.apiGet(ENDPOINTS.CARRITO.RESUMEN);
             
@@ -87,6 +87,8 @@ async function cargarCarrito() {
         
         // Renderizar carrito
         renderizarCarrito();
+        
+        // Actualizar resumen - CRÍTICO
         actualizarResumen();
         
     } catch (error) {
@@ -111,7 +113,7 @@ function procesarDatosCarrito(data) {
         items: data.items || [],
         subtotal: parseFloat(data.subtotal || 0),
         descuento: parseFloat(data.descuento || 0),
-        envio: parseFloat(data.costoEnvio || 0),
+        envio: parseFloat(data.costoEnvio || data.envio || 0),
         igv: parseFloat(data.igv || 0),
         total: parseFloat(data.total || 0),
         cupon_aplicado: data.cupon_aplicado || null
@@ -125,9 +127,15 @@ function cargarCarritoLocal() {
     const carritoLocal = JSON.parse(localStorage.getItem('carrito')) || [];
     
     carritoActual.items = carritoLocal;
+    
+    // CRÍTICO: Calcular totales después de cargar items
     calcularTotales();
     
-    console.log('✅ Carrito cargado desde localStorage');
+    console.log('✅ Carrito cargado desde localStorage:', {
+        items: carritoActual.items.length,
+        subtotal: carritoActual.subtotal,
+        total: carritoActual.total
+    });
 }
 
 // ===========================
@@ -138,7 +146,8 @@ function cargarCarritoLocal() {
  * Renderizar carrito completo
  */
 function renderizarCarrito() {
-    const container = document.getElementById('carrito-items');
+    // Buscar elementos en múltiples IDs (compatibilidad con ambos HTMLs)
+    const container = document.getElementById('carrito-items') || document.getElementById('listaProductosCarrito');
     const carritoVacio = document.getElementById('carritoVacio');
     const carritoConProductos = document.getElementById('carritoConProductos');
     
@@ -153,7 +162,10 @@ function renderizarCarrito() {
     if (carritoVacio) carritoVacio.classList.add('hidden');
     if (carritoConProductos) carritoConProductos.classList.remove('hidden');
     
-    if (!container) return;
+    if (!container) {
+        console.error('❌ Contenedor del carrito no encontrado');
+        return;
+    }
     
     container.innerHTML = carritoActual.items.map((item, index) => 
         crearItemCarrito(item, index)
@@ -167,19 +179,21 @@ function renderizarCarrito() {
  * Crear HTML de item del carrito
  */
 function crearItemCarrito(item, index) {
-    // Mapear propiedades del backend
-    const precio = parseFloat(item.precio_unitario || item.precio || 0);
+    // Mapear propiedades del backend (soporte múltiples formatos)
+    const precio = parseFloat(item.precio_unitario || item.precio || item.precio_venta || 0);
     const cantidad = parseInt(item.cantidad || 1);
     const subtotal = parseFloat(item.subtotal || (precio * cantidad));
-    const imagen = item.imagen || '/assets/images/placeholder.jpg';
-    const stockDisponible = item.stock || 99;
+    const imagen = item.imagen || item.imagen_url || '/assets/images/placeholder.jpg';
+    const stockDisponible = item.stock_disponible || item.stock || 99;
     const nombre = item.nombre_producto || item.nombre || 'Producto';
-    const idProducto = item.id_producto || 0;
+    const idProducto = item.id_producto || item.producto_id || 0;
     
     return `
-        <div class="carrito-item" data-index="${index}" data-item-id="${item.id_detalle_carrito || item.id}">
+        <div class="carrito-item" data-index="${index}" data-item-id="${item.id_detalle_carrito || item.carrito_item_id || item.id}">
             <div class="carrito-imagen">
-                <img src="${imagen}" alt="${nombre}" style="width: 100%; height: 100%; object-fit: cover;">
+                <img src="${imagen}" alt="${nombre}" 
+                    style="width: 100%; height: 100%; object-fit: cover;"
+                    onerror="if(this.src!=='http://127.0.0.1:5500/assets/images/placeholder.jpg' && this.src!=='http://localhost:5500/assets/images/placeholder.jpg'){this.src='/assets/images/placeholder.jpg';this.onerror=null;}">
             </div>
             
             <div style="flex: 1; padding: 0 16px;">
@@ -217,44 +231,24 @@ function crearItemCarrito(item, index) {
 }
 
 /**
- * Mostrar carrito vacío
- */
-function mostrarCarritoVacio() {
-    const container = document.getElementById('carrito-items');
-    if (!container) return;
-    
-    container.innerHTML = `
-        <div class="carrito-vacio">
-            <i class="fas fa-shopping-cart"></i>
-            <h2>Tu carrito está vacío</h2>
-            <p>¡Descubre nuestros productos y comienza a comprar!</p>
-            <a href="/catalogo.html" class="btn-primary">
-                <i class="fas fa-shopping-bag"></i>
-                Ir a comprar
-            </a>
-        </div>
-    `;
-    
-    // Ocultar resumen
-    const resumen = document.getElementById('carrito-resumen');
-    if (resumen) resumen.style.display = 'none';
-}
-
-/**
  * Mostrar mensaje de login
  */
 function mostrarMensajeLogin() {
-    const main = document.querySelector('main') || document.body;
-    main.innerHTML = `
-        <div class="mensaje-login">
-            <i class="fas fa-sign-in-alt"></i>
-            <h2>Inicia sesión para ver tu carrito</h2>
-            <p>Guarda tus productos favoritos y finaliza tu compra</p>
-            <a href="/login.html?redirect=${encodeURIComponent(window.location.pathname)}" class="btn-primary">
+    const carritoVacio = document.getElementById('carritoVacio');
+    const carritoConProductos = document.getElementById('carritoConProductos');
+    
+    if (carritoVacio && carritoConProductos) {
+        carritoConProductos.classList.add('hidden');
+        carritoVacio.classList.remove('hidden');
+        
+        carritoVacio.innerHTML = `
+            <h2 style="margin-bottom: 16px;">Inicia sesión para ver tu carrito</h2>
+            <p class="text-secondary" style="margin-bottom: 32px;">Guarda tus productos favoritos y finaliza tu compra</p>
+            <button class="btn btn-primary" onclick="window.location.href='login.html'">
                 Iniciar sesión
-            </a>
-        </div>
-    `;
+            </button>
+        `;
+    }
 }
 
 // ===========================
@@ -320,7 +314,7 @@ async function actualizarCantidadItem(index, nuevaCantidad) {
     try {
         if (typeof apiConfig !== 'undefined') {
             // Actualizar en API
-            const itemId = item.carrito_item_id || item.id;
+            const itemId = item.id_detalle_carrito || item.carrito_item_id || item.id;
             
             const response = await apiConfig.apiPut(`/carrito/items/${itemId}`, {
                 cantidad: nuevaCantidad
@@ -364,52 +358,52 @@ async function eliminarItem(index) {
     const item = carritoActual.items[index];
     if (!item) return;
     
-    // Confirmación
-    if (!confirm(`¿Eliminar "${item.nombre}" del carrito?`)) {
-        return;
-    }
+    const nombreProducto = item.nombre_producto || item.nombre || 'este producto';
     
-    mostrarLoader(true);
-    
-    try {
-        if (typeof apiConfig !== 'undefined') {
-            // Eliminar en API
-            const itemId = item.carrito_item_id || item.id;
+    mostrarModalConfirmacion(
+        `¿Estás seguro de eliminar "${nombreProducto}" del carrito?`,
+        async () => {
+            mostrarLoader(true);
             
-            const response = await apiConfig.apiDelete(`/carrito/items/${itemId}`);
-            
-            if (response.success) {
-                mostrarNotificacion('Producto eliminado del carrito', 'success');
-                
-                // Recargar carrito
-                await cargarCarrito();
-                
-                // Actualizar contador del navbar
-                if (typeof actualizarCantidadCarrito === 'function') {
-                    actualizarCantidadCarrito();
+            try {
+                if (typeof apiConfig !== 'undefined' && typeof ENDPOINTS !== 'undefined') {
+                    const itemId = item.id_detalle_carrito || item.carrito_item_id || item.id;
+                    
+                    const response = await apiConfig.apiDelete(ENDPOINTS.CARRITO.ELIMINAR_ITEM(itemId));
+                    
+                    if (response.success) {
+                        mostrarNotificacion('Producto eliminado del carrito', 'success');
+                        await cargarCarrito();
+                        
+                        if (typeof actualizarContadorCarrito === 'function') {
+                            await actualizarContadorCarrito();
+                        }
+                    } else {
+                        throw new Error(response.message || 'Error al eliminar producto');
+                    }
+                } else {
+                    // Modo fallback
+                    carritoActual.items.splice(index, 1);
+                    guardarCarritoLocal();
+                    calcularTotales();
+                    renderizarCarrito();
+                    actualizarResumen();
+                    
+                    if (typeof actualizarContadorCarrito === 'function') {
+                        actualizarContadorCarrito();
+                    }
+                    
+                    mostrarNotificacion('Producto eliminado del carrito', 'success');
                 }
-            } else {
-                throw new Error(response.message || 'Error al eliminar producto');
-            }
-        } else {
-            // Eliminar localmente
-            carritoActual.items.splice(index, 1);
-            guardarCarritoLocal();
-            calcularTotales();
-            renderizarCarrito();
-            actualizarResumen();
-            
-            if (typeof actualizarCantidadCarrito === 'function') {
-                actualizarCantidadCarrito();
+                
+            } catch (error) {
+                console.error('❌ Error al eliminar item:', error);
+                mostrarNotificacion('Error al eliminar producto', 'error');
+            } finally {
+                mostrarLoader(false);
             }
         }
-        
-    } catch (error) {
-        console.error('❌ Error al eliminar item:', error);
-        mostrarNotificacion('Error al eliminar producto', 'error');
-    } finally {
-        mostrarLoader(false);
-    }
+    );
 }
 
 /**
@@ -418,41 +412,45 @@ async function eliminarItem(index) {
 async function vaciarCarrito() {
     if (carritoActual.items.length === 0) return;
     
-    if (!confirm('¿Estás seguro de vaciar todo el carrito?')) {
-        return;
-    }
-    
-    mostrarLoader(true);
-    
-    try {
-        if (typeof apiConfig !== 'undefined') {
-            const response = await apiConfig.apiDelete('/carrito');
+    mostrarModalConfirmacion(
+        '¿Estás seguro de vaciar todo el carrito? Esta acción no se puede deshacer.',
+        async () => {
+            mostrarLoader(true);
             
-            if (response.success) {
-                mostrarNotificacion('Carrito vaciado', 'success');
-                await cargarCarrito();
-                
-                if (typeof actualizarCantidadCarrito === 'function') {
-                    actualizarCantidadCarrito();
+            try {
+                if (typeof apiConfig !== 'undefined') {
+                    const response = await apiConfig.apiDelete('/carrito');
+                    
+                    if (response.success) {
+                        mostrarNotificacion('Carrito vaciado', 'success');
+                        await cargarCarrito();
+                        
+                        if (typeof actualizarContadorCarrito === 'function') {
+                            await actualizarContadorCarrito();
+                        }
+                    } else {
+                        throw new Error('Error al vaciar carrito');
+                    }
+                } else {
+                    carritoActual.items = [];
+                    localStorage.removeItem('carrito');
+                    calcularTotales();
+                    renderizarCarrito();
+                    actualizarResumen();
+                    
+                    if (typeof actualizarContadorCarrito === 'function') {
+                        actualizarContadorCarrito();
+                    }
                 }
-            } else {
-                throw new Error('Error al vaciar carrito');
+                
+            } catch (error) {
+                console.error('❌ Error al vaciar carrito:', error);
+                mostrarNotificacion('Error al vaciar carrito', 'error');
+            } finally {
+                mostrarLoader(false);
             }
-        } else {
-            // Vaciar localmente
-            carritoActual.items = [];
-            localStorage.removeItem('carrito');
-            calcularTotales();
-            renderizarCarrito();
-            actualizarResumen();
         }
-        
-    } catch (error) {
-        console.error('❌ Error al vaciar carrito:', error);
-        mostrarNotificacion('Error al vaciar carrito', 'error');
-    } finally {
-        mostrarLoader(false);
-    }
+    );
 }
 
 // ===========================
@@ -463,7 +461,7 @@ async function vaciarCarrito() {
  * Aplicar cupón de descuento
  */
 async function aplicarCupon() {
-    const input = document.getElementById('cupon-input');
+    const input = document.getElementById('cupon-input') || document.getElementById('inputCupon');
     if (!input) return;
     
     const codigoCupon = input.value.trim().toUpperCase();
@@ -499,25 +497,19 @@ async function aplicarCupon() {
                 throw new Error(response.message || 'Cupón inválido o expirado');
             }
         } else {
-            // Validación local de cupones de ejemplo
-            const cuponesValidos = {
-                'WELCOME10': { descuento: 10, descripcion: 'Bienvenida 10%' },
-                'DEPORTE15': { descuento: 15, descripcion: 'Deportes 15%' },
-                'VERANO20': { descuento: 20, descripcion: 'Verano 20%' }
-            };
-            
-            if (cuponesValidos[codigoCupon]) {
+            // Simulación para testing
+            if (codigoCupon === 'DESCUENTO10') {
                 cuponActual = {
                     codigo: codigoCupon,
-                    ...cuponesValidos[codigoCupon]
+                    descuento: 10
                 };
                 
-                mostrarNotificacion(`Cupón aplicado: ${cuponActual.descuento}% de descuento`, 'success');
                 calcularTotales();
                 actualizarResumen();
-                mostrarCuponAplicado();
+                
+                mostrarNotificacion('Cupón aplicado: 10% de descuento', 'success');
             } else {
-                throw new Error('Cupón inválido o expirado');
+                throw new Error('Cupón inválido');
             }
         }
         
@@ -527,7 +519,6 @@ async function aplicarCupon() {
         console.error('❌ Error al aplicar cupón:', error);
         mostrarNotificacion(error.message || 'Error al aplicar cupón', 'error');
     } finally {
-        // Rehabilitar botón
         if (btnAplicar) {
             btnAplicar.disabled = false;
             btnAplicar.innerHTML = 'Aplicar';
@@ -539,7 +530,7 @@ async function aplicarCupon() {
  * Eliminar cupón aplicado
  */
 async function eliminarCupon() {
-    if (!cuponActual && !carritoActual.cupon_aplicado) return;
+    mostrarLoader(true);
     
     try {
         if (typeof apiConfig !== 'undefined') {
@@ -547,13 +538,11 @@ async function eliminarCupon() {
             
             if (response.success) {
                 cuponActual = null;
-                mostrarNotificacion('Cupón eliminado', 'info');
-                
-                // Recargar carrito
+                mostrarNotificacion('Cupón eliminado', 'success');
                 await cargarCarrito();
-                
-                // Ocultar cupón aplicado
                 ocultarCuponAplicado();
+            } else {
+                throw new Error('Error al eliminar cupón');
             }
         } else {
             cuponActual = null;
@@ -565,6 +554,8 @@ async function eliminarCupon() {
     } catch (error) {
         console.error('❌ Error al eliminar cupón:', error);
         mostrarNotificacion('Error al eliminar cupón', 'error');
+    } finally {
+        mostrarLoader(false);
     }
 }
 
@@ -620,7 +611,7 @@ function ocultarCuponAplicado() {
 function calcularTotales() {
     // Subtotal
     carritoActual.subtotal = carritoActual.items.reduce((sum, item) => {
-        const precio = parseFloat(item.precio || item.precio_venta || 0);
+        const precio = parseFloat(item.precio_unitario || item.precio || item.precio_venta || 0);
         const cantidad = parseInt(item.cantidad || 1);
         return sum + (precio * cantidad);
     }, 0);
@@ -644,12 +635,79 @@ function calcularTotales() {
     
     // Total
     carritoActual.total = baseImponible + carritoActual.igv;
+    
+    console.log('💰 Totales calculados:', {
+        subtotal: carritoActual.subtotal,
+        descuento: carritoActual.descuento,
+        envio: carritoActual.envio,
+        igv: carritoActual.igv,
+        total: carritoActual.total
+    });
 }
 
 /**
  * Actualizar resumen del carrito
+ * SOPORTA MÚLTIPLES FORMATOS DE HTML
  */
 function actualizarResumen() {
+    // Formato 1: HTML con IDs individuales (carrito.html nuevo)
+    actualizarResumenFormato1();
+    
+    // Formato 2: HTML con contenedor dinámico (carrito.html original)
+    actualizarResumenFormato2();
+}
+
+/**
+ * Actualizar resumen - Formato 1 (IDs individuales)
+ */
+function actualizarResumenFormato1() {
+    const cantidadItems = document.getElementById('cantidadItems');
+    const subtotalCarrito = document.getElementById('subtotalCarrito');
+    const igvCarrito = document.getElementById('igvCarrito');
+    const envioCarrito = document.getElementById('envioCarrito');
+    const totalCarrito = document.getElementById('totalCarrito');
+    
+    // Si no existen estos elementos, este formato no aplica
+    if (!subtotalCarrito && !igvCarrito && !envioCarrito && !totalCarrito) {
+        return;
+    }
+    
+    // Actualizar valores
+    if (cantidadItems) {
+        cantidadItems.textContent = carritoActual.items.length;
+    }
+    
+    if (subtotalCarrito) {
+        subtotalCarrito.textContent = `S/ ${carritoActual.subtotal.toFixed(2)}`;
+    }
+    
+    if (igvCarrito) {
+        igvCarrito.textContent = `S/ ${carritoActual.igv.toFixed(2)}`;
+    }
+    
+    if (envioCarrito) {
+        if (carritoActual.envio === 0) {
+            envioCarrito.textContent = 'GRATIS';
+            envioCarrito.style.color = '#10b981';
+            envioCarrito.style.fontWeight = '700';
+        } else {
+            envioCarrito.textContent = `S/ ${carritoActual.envio.toFixed(2)}`;
+            envioCarrito.style.color = '';
+            envioCarrito.style.fontWeight = '';
+        }
+    }
+    
+    if (totalCarrito) {
+        totalCarrito.textContent = `S/ ${carritoActual.total.toFixed(2)}`;
+    }
+    
+    console.log('✅ Resumen actualizado (Formato 1)');
+}
+
+/**
+ * Actualizar resumen - Formato 2 (HTML dinámico)
+ */
+function actualizarResumenFormato2() {
     const resumen = document.getElementById('carrito-resumen');
     if (!resumen) return;
     
@@ -773,6 +831,8 @@ function actualizarResumen() {
     if (cuponActual || carritoActual.cupon_aplicado) {
         mostrarCuponAplicado();
     }
+    
+    console.log('✅ Resumen actualizado (Formato 2)');
 }
 
 // ===========================
@@ -834,15 +894,19 @@ function guardarCarritoLocal() {
  * Inicializar event listeners
  */
 function inicializarEventListeners() {
-    // Enter en input de cupón
-    const cuponInput = document.getElementById('cupon-input');
-    if (cuponInput) {
-        cuponInput.addEventListener('keypress', (e) => {
+    // Enter en input de cupón (ambos IDs)
+    const cuponInputs = [
+        document.getElementById('cupon-input'),
+        document.getElementById('inputCupon')
+    ].filter(el => el !== null);
+    
+    cuponInputs.forEach(input => {
+        input.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 aplicarCupon();
             }
         });
-    }
+    });
 }
 
 /**
@@ -897,7 +961,114 @@ function mostrarNotificacion(mensaje, tipo = 'info') {
 }
 
 // ===========================
-// 12. EXPORTAR FUNCIONES
+// 12. MODAL DE CONFIRMACIÓN
+// CON COLORES DE MARCA SPORTIVA
+// ===========================
+
+/**
+ * Mostrar modal de confirmación con colores Sportiva
+ * @param {string} mensaje - Mensaje a mostrar
+ * @param {function} onConfirm - Callback al confirmar
+ */
+function mostrarModalConfirmacion(mensaje, onConfirm) {
+    const modal = document.createElement('div');
+    modal.id = 'modalConfirmacionSportiva';
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+    `;
+    
+    modal.innerHTML = `
+        <div style="
+            background: white;
+            padding: 32px;
+            border-radius: 8px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+        ">
+            <h3 style="
+                margin: 0 0 16px 0;
+                font-size: 20px;
+                font-weight: 700;
+                color: #000;
+            ">Confirmar eliminación</h3>
+            
+            <p style="
+                margin: 0 0 24px 0;
+                font-size: 14px;
+                color: #6b7280;
+                line-height: 1.5;
+            ">${mensaje}</p>
+            
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button id="btnConfirmar" style="
+                    padding: 10px 20px;
+                    border: none;
+                    background: #ff6b35;
+                    color: #fff;
+                    border-radius: 4px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    font-size: 14px;
+                    transition: background-color 0.2s;
+                "
+                onmouseover="this.style.backgroundColor='#ff8555'"
+                onmouseout="this.style.backgroundColor='#ff6b35'">
+                    Aceptar
+                </button>
+                
+                <button id="btnCancelar" style="
+                    padding: 10px 20px;
+                    border: none;
+                    background: #000;
+                    color: #fff;
+                    border-radius: 4px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    font-size: 14px;
+                    transition: background-color 0.2s;
+                " 
+                onmouseover="this.style.backgroundColor='#333'"
+                onmouseout="this.style.backgroundColor='#000'">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    const btnCancelar = modal.querySelector('#btnCancelar');
+    const btnConfirmar = modal.querySelector('#btnConfirmar');
+    
+    const cerrarModal = () => {
+        document.body.removeChild(modal);
+    };
+    
+    btnCancelar.addEventListener('click', cerrarModal);
+    
+    btnConfirmar.addEventListener('click', () => {
+        cerrarModal();
+        if (onConfirm) onConfirm();
+    });
+    
+    // Cerrar al hacer clic fuera del modal
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) cerrarModal();
+    });
+}
+
+// ===========================
+// 13. EXPORTAR FUNCIONES
 // ===========================
 
 window.cambiarCantidad = cambiarCantidad;
@@ -908,4 +1079,4 @@ window.aplicarCupon = aplicarCupon;
 window.eliminarCupon = eliminarCupon;
 window.irACheckout = irACheckout;
 
-console.log('✅ carrito.js cargado correctamente');
+console.log('✅ carrito.js v1.0 cargado correctamente - Sportiva E-Commerce');

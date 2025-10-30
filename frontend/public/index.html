@@ -28,7 +28,7 @@
                 <li><a href="catalogo.html?categoria=Implementos de Entrenamiento" class="navbar-link">Implementos</a></li>
                 <li><a href="catalogo.html?categoria=Deportes de Equipo" class="navbar-link">Deportes</a></li>
                 <li><a href="catalogo.html?categoria=Calzado Deportivo" class="navbar-link">Calzado</a></li>
-                <li><a href="catalogo.html" class="navbar-link">Catálogo</a></li>
+                <li><a href="catalogo.html?categoria=Accesorios" class="navbar-link">Accesorios</a></li>
             </ul>
             
             <div class="navbar-actions">
@@ -53,7 +53,7 @@
                 </div>
                 
                 <div class="hero-image">
-                    <img src="../assets/images/hero-sportiva.jpg" 
+                    <img src="../assets/images/hero-sportiva.jpeg" 
                           alt="Hero Image"
                           style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;"
                           onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=color:#CCC;>Imagen Hero</span>'">
@@ -65,32 +65,57 @@
     <!-- CATEGORÍAS -->
     <section class="section">
         <div class="container">
-            <h2 class="text-center mb-lg">COMPRA POR CATEGORÍA</h2>
+            <h2 class="text-center mb-lg" style="font-weight: 900; font-size: 36px;">COMPRA POR CATEGORÍA</h2>
             
             <div class="grid grid-categories">
                 <div class="category-card" onclick="irACatalogo('Ropa Deportiva')">
-                    <div class="category-icon">👕</div>
-                    <h3 class="category-name">Ropa Deportiva</h3>
+                    <div class="category-image" style="width: 100%; height: 200px; margin-bottom: 16px; overflow: hidden; border-radius: 8px;">
+                        <img src="../assets/images/categorias/ropa-deportiva.jpeg" 
+                            alt="Ropa Deportiva" 
+                            style="width: 100%; height: 100%; object-fit: cover;"
+                            onerror="this.style.display='none';">
+                    </div>
+                    <h3 class="category-name">ROPA DEPORTIVA</h3>
                 </div>
                 
                 <div class="category-card" onclick="irACatalogo('Implementos de Entrenamiento')">
-                    <div class="category-icon">🏋️</div>
-                    <h3 class="category-name">Implementos</h3>
+                    <div class="category-image" style="width: 100%; height: 200px; margin-bottom: 16px; overflow: hidden; border-radius: 8px;">
+                        <img src="../assets/images/categorias/implementos.jpeg" 
+                            alt="Implementos" 
+                            style="width: 100%; height: 100%; object-fit: cover;"
+                            onerror="this.style.display='none';">
+                    </div>
+                    <h3 class="category-name">IMPLEMENTOS</h3>
                 </div>
                 
                 <div class="category-card" onclick="irACatalogo('Deportes de Equipo')">
-                    <div class="category-icon">⚽</div>
-                    <h3 class="category-name">Deportes</h3>
+                    <div class="category-image" style="width: 100%; height: 200px; margin-bottom: 16px; overflow: hidden; border-radius: 8px;">
+                        <img src="../assets/images/categorias/deportes.jpeg" 
+                            alt="Deportes" 
+                            style="width: 100%; height: 100%; object-fit: cover;"
+                            onerror="this.style.display='none';">
+                    </div>
+                    <h3 class="category-name">DEPORTES</h3>
                 </div>
                 
                 <div class="category-card" onclick="irACatalogo('Calzado Deportivo')">
-                    <div class="category-icon">👟</div>
-                    <h3 class="category-name">Calzado</h3>
+                    <div class="category-image" style="width: 100%; height: 200px; margin-bottom: 16px; overflow: hidden; border-radius: 8px;">
+                        <img src="../assets/images/categorias/calzado.jpeg" 
+                            alt="Calzado" 
+                            style="width: 100%; height: 100%; object-fit: cover;"
+                            onerror="this.style.display='none';">
+                    </div>
+                    <h3 class="category-name">CALZADO</h3>
                 </div>
                 
                 <div class="category-card" onclick="irACatalogo('Accesorios')">
-                    <div class="category-icon">🎒</div>
-                    <h3 class="category-name">Accesorios</h3>
+                    <div class="category-image" style="width: 100%; height: 200px; margin-bottom: 16px; overflow: hidden; border-radius: 8px;">
+                        <img src="../assets/images/categorias/accesorios.jpeg" 
+                            alt="Accesorios" 
+                            style="width: 100%; height: 100%; object-fit: cover;"
+                            onerror="this.style.display='none';">
+                    </div>
+                    <h3 class="category-name">ACCESORIOS</h3>
                 </div>
             </div>
         </div>
@@ -99,7 +124,7 @@
     <!-- PRODUCTOS DESTACADOS -->
     <section class="section section-alt">
         <div class="container">
-            <h2 class="mb-lg">PRODUCTOS DESTACADOS</h2>
+            <h2 class="mb-lg" style="font-weight: 900; font-size: 36px;">PRODUCTOS DESTACADOS</h2>
             
             <div id="productosDestacados" class="grid grid-products">
                 <!-- Productos cargados dinámicamente -->

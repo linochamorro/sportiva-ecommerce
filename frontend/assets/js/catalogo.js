@@ -593,7 +593,7 @@ function crearCardProducto(producto) {
                     </div>
                 ` : ''}
                 
-                <button class="btn-primary btn-block ${!enStock ? 'disabled' : ''}" 
+                <button class="btn btn-primary" style="width: 100%; margin-top: 16px; padding: 14px 24px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;" ${!enStock ? 'disabled' : ''}" 
                         onclick="irAProducto(${idProducto})"
                         ${!enStock ? 'disabled' : ''}>
                     ${enStock ? 'Ver producto' : 'Agotado'}
@@ -975,6 +975,9 @@ function inicializarFiltros() {
         filtrosActivos.categoria = urlParams.get('categoria');
         const radioCategoria = document.querySelector(`input[value="${filtrosActivos.categoria}"]`);
         if (radioCategoria) radioCategoria.checked = true;
+        
+        // Aplicar el filtro
+        aplicarFiltrosYOrden();
     }
     
     if (urlParams.has('busqueda')) {

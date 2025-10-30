@@ -504,12 +504,19 @@ function obtenerTallasDisponibles() {
  */
 async function cargarProductosRelacionados(productoId) {
     try {
-        if (typeof apiConfig !== 'undefined' && productoActual.id_categoria) {
-            const response = await apiConfig.apiGet(`/productos?categoria_id=${productoActual.id_categoria}&limit=5`);
+        if (typeof apiConfig !== 'undefined' && productoActual.categoria) {
+            // Filtrar por nombre de categoría en lugar de id
+            const response = await apiConfig.apiGet(`/productos?limit=20`);
 
             if (response.success && response.data) {
                 productosRelacionados = (response.data.productos || response.data)
-                    .filter(p => p.id_producto != productoActual.id_producto)
+                    .filter(p => {
+                        // Filtrar productos de la misma categoría y excluir el producto actual
+                        const mismaCategoria = p.categoria === productoActual.categoria || 
+                                               p.categoria_nombre === productoActual.categoria ||
+                                               p.categoria_nombre === productoActual.categoria_nombre;
+                        return mismaCategoria && p.id_producto != productoActual.id_producto;
+                    })
                     .slice(0, 4);
                 renderizarProductosRelacionados();
             }

@@ -108,7 +108,8 @@ async function verificarStockDisponible(idProducto, idTalla, cantidadSolicitada)
                 }
             }
         } catch (error) {
-            console.warn('Error verificando stock desde API:', error);
+            console.warn('Error verificando stock desde API:', error.message || error);
+            return true;
         }
     }
     
@@ -679,7 +680,7 @@ function actualizarNavbarUsuario() {
                 navbarActions.insertBefore(userDropdown, navbarActions.firstChild);
             }
         } else {
-            // Actualizar nombre si ya existe (SOLO EL NOMBRE, NO EL APELLIDO)
+            // Actualizar nombre si ya existe
             const userName = userDropdown.querySelector('.user-name');
             if (userName) {
                 userName.textContent = usuario.nombre; // Solo nombre
