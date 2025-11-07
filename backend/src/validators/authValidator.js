@@ -1,7 +1,7 @@
 /**
  * AUTH VALIDATOR
  * Validaciones para endpoints de autenticación
- * Usa express-validator (equiv Apache Commons Validator)
+ * Usa express-validator
  */
 
 const { body, validationResult } = require('express-validator');
@@ -25,7 +25,7 @@ const handleValidationErrors = (req, res, next) => {
 };
 
 /**
- * Validación para registro de usuario
+ * Validación para registro de CLIENTE (bloquea @sportiva.com)
  */
 const validateRegister = [
   body('nombre')
@@ -45,7 +45,14 @@ const validateRegister = [
     .notEmpty().withMessage('El email es obligatorio')
     .isEmail().withMessage('Debe ser un email válido')
     .normalizeEmail()
-    .isLength({ max: 100 }).withMessage('El email no puede exceder 100 caracteres'),
+    .isLength({ max: 100 }).withMessage('El email no puede exceder 100 caracteres')
+    .custom((value) => {
+      // BLOQUEAR emails @sportiva.com en registro de clientes
+      if (value.toLowerCase().endsWith('@sportiva.com')) {
+        throw new Error('No puedes registrarte como cliente con un email @sportiva.com. Si eres trabajador, contacta a un administrador.');
+      }
+      return true;
+    }),
 
   body('password')
     .notEmpty().withMessage('La contraseña es obligatoria')
@@ -78,7 +85,7 @@ const validateLogin = [
 
   body('password')
     .notEmpty().withMessage('La contraseña es obligatoria')
-    .isLength({ min: 8 }).withMessage('Contraseña inválida'),
+    .isLength({ min: 6 }).withMessage('Contraseña inválida'),
 
   handleValidationErrors
 ];

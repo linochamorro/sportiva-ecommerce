@@ -25,7 +25,7 @@ const agregarItemValidation = [
         .isInt({ min: 1, max: 99 }).withMessage('La cantidad debe estar entre 1 y 99')
         .toInt(),
     body('id_talla')
-        .optional()
+        .optional({ nullable: true }) // Permite que el campo sea nulo
         .isInt({ min: 1 }).withMessage('ID de talla inválido')
         .toInt()
 ];

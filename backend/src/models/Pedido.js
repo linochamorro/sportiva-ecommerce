@@ -47,7 +47,7 @@ class Pedido extends BaseModel {
                 for (const item of carritoItems) {
                     const detalleInsert = `
                         INSERT INTO DETALLE_PEDIDO 
-                        (id_pedido, id_producto, id_talla_producto, cantidad, precio_unitario, subtotal)
+                        (id_pedido, id_producto, id_talla, cantidad, precio_unitario, subtotal)
                         VALUES (?, ?, ?, ?, ?, ?)
                     `;
 
@@ -60,11 +60,11 @@ class Pedido extends BaseModel {
                         item.subtotal
                     ]);
 
-                    // 4. Actualizar stock
+                    // 4. Actualizar stock (CORREGIDO: stock_talla e id_talla)
                     const stockUpdate = `
                         UPDATE TALLA_PRODUCTO
-                        SET stock = stock - ?
-                        WHERE id_talla_producto = ? AND stock >= ?
+                        SET stock_talla = stock_talla - ?
+                        WHERE id_talla = ? AND stock_talla >= ?
                     `;
 
                     const [stockResult] = await connection.execute(stockUpdate, [
@@ -74,7 +74,7 @@ class Pedido extends BaseModel {
                     ]);
 
                     if (stockResult.affectedRows === 0) {
-                        throw new Error(`Stock insuficiente para el producto ${item.nombre_producto}`);
+                        throw new Error(`Stock insuficiente para el producto ${item.nombre_producto || 'ID: ' + item.id_producto}`);
                     }
                 }
 
@@ -96,12 +96,13 @@ class Pedido extends BaseModel {
     async generateNumeroPedido(connection = null) {
         try {
             const dbConn = connection || this.db;
-            const prefix = 'SP'; // Sportiva Pedido
+            const prefix = 'SPT';
             const date = new Date();
             const year = date.getFullYear().toString().slice(-2);
             const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
             
-            // Obtener último número del mes
+            // Obtener último número del día
             const query = `
                 SELECT numero_pedido 
                 FROM PEDIDO 
@@ -110,18 +111,18 @@ class Pedido extends BaseModel {
                 LIMIT 1
             `;
 
-            const pattern = `${prefix}${year}${month}%`;
+            const pattern = `${prefix}${year}${month}${day}%`;
             const [rows] = await dbConn.execute(query, [pattern]);
 
             let sequence = 1;
             if (rows.length > 0) {
                 const lastNumber = rows[0].numero_pedido;
-                const lastSequence = parseInt(lastNumber.slice(-4));
+                const lastSequence = parseInt(lastNumber.slice(-5));
                 sequence = lastSequence + 1;
             }
 
-            const sequenceStr = String(sequence).padStart(4, '0');
-            return `${prefix}${year}${month}${sequenceStr}`;
+            const sequenceStr = String(sequence).padStart(5, '0');
+            return `${prefix}${year}${month}${day}${sequenceStr}`;
         } catch (error) {
             throw new Error(`Error generando número de pedido: ${error.message}`);
         }
@@ -204,7 +205,7 @@ class Pedido extends BaseModel {
                       LIMIT 1) as imagen
                 FROM DETALLE_PEDIDO dp
                 INNER JOIN PRODUCTO p ON dp.id_producto = p.id_producto
-                INNER JOIN TALLA_PRODUCTO tp ON dp.id_talla_producto = tp.id_talla_producto
+                LEFT JOIN TALLA_PRODUCTO tp ON dp.id_talla = tp.id_talla
                 WHERE dp.id_pedido = ?
                 ORDER BY dp.id_detalle
             `;
@@ -217,7 +218,32 @@ class Pedido extends BaseModel {
     }
 
     /**
-     * Obtener pedidos del cliente
+     * Obtener pagos del pedido
+     */
+    async getPagos(id_pedido) {
+        try {
+            const query = `
+                SELECT 
+                    id_pago,
+                    monto,
+                    metodo_pago,
+                    estado_pago,
+                    referencia_transaccion,
+                    fecha_pago
+                FROM PAGO
+                WHERE id_pedido = ?
+                ORDER BY fecha_pago DESC
+            `;
+
+            const [rows] = await this.db.execute(query, [id_pedido]);
+            return rows;
+        } catch (error) {
+            throw new Error(`Error obteniendo pagos: ${error.message}`);
+        }
+    }
+
+    /**
+     * Obtener pedidos del cliente con filtros
      */
     async findByCliente(id_cliente, filters = {}) {
         try {
@@ -229,8 +255,7 @@ class Pedido extends BaseModel {
                     p.estado,
                     p.total,
                     p.metodo_pago,
-                    COUNT(dp.id_detalle) as total_items,
-                    SUM(dp.cantidad) as total_productos
+                    COUNT(dp.id_detalle) as total_items
                 FROM PEDIDO p
                 LEFT JOIN DETALLE_PEDIDO dp ON p.id_pedido = dp.id_pedido
                 WHERE p.id_cliente = ?
@@ -238,13 +263,12 @@ class Pedido extends BaseModel {
 
             const params = [id_cliente];
 
-            // Filtro por estado
+            // Aplicar filtros opcionales
             if (filters.estado) {
                 query += ` AND p.estado = ?`;
                 params.push(filters.estado);
             }
 
-            // Filtro por rango de fechas
             if (filters.fecha_desde) {
                 query += ` AND p.fecha_pedido >= ?`;
                 params.push(filters.fecha_desde);
@@ -255,15 +279,20 @@ class Pedido extends BaseModel {
                 params.push(filters.fecha_hasta);
             }
 
-            query += ` GROUP BY p.id_pedido ORDER BY p.fecha_pedido DESC`;
+            query += `
+                GROUP BY p.id_pedido
+                ORDER BY p.fecha_pedido DESC
+            `;
 
-            // Paginación
+            // Paginación opcional
             if (filters.limit) {
-                query += ` LIMIT ? OFFSET ?`;
-                params.push(
-                    parseInt(filters.limit),
-                    parseInt(filters.offset || 0)
-                );
+                query += ` LIMIT ?`;
+                params.push(parseInt(filters.limit));
+
+                if (filters.offset) {
+                    query += ` OFFSET ?`;
+                    params.push(parseInt(filters.offset));
+                }
             }
 
             const [rows] = await this.db.execute(query, params);
@@ -354,9 +383,9 @@ class Pedido extends BaseModel {
                     throw new Error('El pedido no puede ser cancelado en su estado actual');
                 }
 
-                // 2. Devolver stock
+                // 2. Devolver stock (CORREGIDO: usar stock_talla e id_talla)
                 const itemsQuery = `
-                    SELECT id_talla_producto, cantidad
+                    SELECT id_talla, cantidad
                     FROM DETALLE_PEDIDO
                     WHERE id_pedido = ?
                 `;
@@ -366,13 +395,13 @@ class Pedido extends BaseModel {
                 for (const item of items) {
                     const stockQuery = `
                         UPDATE TALLA_PRODUCTO
-                        SET stock = stock + ?
-                        WHERE id_talla_producto = ?
+                        SET stock_talla = stock_talla + ?
+                        WHERE id_talla = ?
                     `;
 
                     await connection.execute(stockQuery, [
                         item.cantidad,
-                        item.id_talla_producto
+                        item.id_talla
                     ]);
                 }
 
@@ -421,31 +450,6 @@ class Pedido extends BaseModel {
             };
         } catch (error) {
             throw new Error(`Error registrando pago: ${error.message}`);
-        }
-    }
-
-    /**
-     * Obtener pagos del pedido
-     */
-    async getPagos(id_pedido) {
-        try {
-            const query = `
-                SELECT 
-                    id_pago,
-                    monto,
-                    metodo_pago,
-                    estado_pago,
-                    referencia_transaccion,
-                    fecha_pago
-                FROM PAGO
-                WHERE id_pedido = ?
-                ORDER BY fecha_pago DESC
-            `;
-
-            const [rows] = await this.db.execute(query, [id_pedido]);
-            return rows;
-        } catch (error) {
-            throw new Error(`Error obteniendo pagos: ${error.message}`);
         }
     }
 

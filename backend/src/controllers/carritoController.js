@@ -47,7 +47,17 @@ exports.agregarItem = async (req, res) => {
             });
         }
 
-        const clienteId = req.cliente.id;
+const clienteId = req.cliente.id;
+        const clienteEmail = req.cliente.email;
+        
+        // Validación: Bloquear compras de trabajadores (@sportiva.com)
+        if (clienteEmail && clienteEmail.toLowerCase().endsWith('@sportiva.com')) {
+            return res.status(403).json({
+                success: false,
+                message: 'Las cuentas de trabajadores (@sportiva.com) no pueden realizar compras. Por favor, usa una cuenta de cliente.',
+                code: 'TRABAJADOR_NO_PUEDE_COMPRAR'
+            });
+        }
         
         // El frontend envía { id_producto, id_talla, cantidad }
         const { id_producto, cantidad, id_talla } = req.body;

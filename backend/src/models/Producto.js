@@ -55,7 +55,7 @@ class Producto extends BaseModel {
 
             const params = [];
 
-            // Filtros opcionales
+    // Filtros opcionales
             if (filters.id_categoria) {
                 query += ` AND p.id_categoria = ?`;
                 params.push(filters.id_categoria);
@@ -87,6 +87,12 @@ class Producto extends BaseModel {
 
             if (filters.nuevo) {
                 query += ` AND p.nuevo = 1`;
+            }
+
+            // Filtro para excluir producto específico (productos relacionados)
+            if (filters.excluir) {
+                query += ` AND p.id_producto != ?`;
+                params.push(parseInt(filters.excluir));
             }
 
             // Ordenamiento
@@ -199,14 +205,33 @@ class Producto extends BaseModel {
             // Obtener imágenes del producto
             producto.imagenes = await this.getImagesByProductId(id_producto);
 
-            // Obtener tallas disponibles con stock (si el producto tiene tallas)
-            if (producto.tiene_tallas) {
-                producto.tallas = await this.getTallasByProductId(id_producto);
-            } else {
-                producto.tallas = [];
-            }
-
+            // Obtener TODAS las tallas (incluyendo 'UNICA') para este producto
+            // Se ignora el flag 'tiene_tallas' y se confía en TALLA_PRODUCTO como fuente de verdad
+            const tallasQuery = `
+                SELECT 
+                    id_talla,
+                    id_producto,
+                    talla,
+                    stock_talla,
+                    medidas
+                FROM TALLA_PRODUCTO
+                WHERE id_producto = ?
+                ORDER BY 
+                    CASE talla
+                        WHEN 'XS' THEN 1
+                        WHEN 'S' THEN 2
+                        WHEN 'M' THEN 3
+                        WHEN 'L' THEN 4
+                        WHEN 'XL' THEN 5
+                        WHEN 'XXL' THEN 6
+                        ELSE 7
+                    END
+            `;
+            
+            const [tallas] = await this.db.execute(tallasQuery, [id_producto]);
+            producto.tallas = tallas;
             return producto;
+
         } catch (error) {
             throw new Error(`Error obteniendo producto por ID: ${error.message}`);
         }

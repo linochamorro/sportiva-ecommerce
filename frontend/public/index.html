@@ -15,6 +15,104 @@
     <script src="https://cdn.tailwindcss.com"></script>
     
     <meta name="description" content="Sportiva - Tu tienda online de implementos deportivos. Ropa, calzado, accesorios y equipamiento para todos los deportes.">
+    
+    <style>
+        /* Estilos para el menú de usuario */
+        .user-menu {
+            position: relative;
+            display: none; /* Oculto por defecto */
+        }
+        
+        .user-menu-button {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--color-black);
+            font-weight: 500;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        
+        .user-menu-button:hover {
+            background-color: #F3F4F6;
+        }
+        
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: var(--color-cta);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .user-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            background: white;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            min-width: 200px;
+            display: none;
+            z-index: 1000;
+        }
+        
+        .user-dropdown.active {
+            display: block;
+        }
+        
+        .dropdown-item {
+            display: block;
+            width: 100%;
+            padding: 12px 16px;
+            text-align: left;
+            border: none;
+            background: none;
+            cursor: pointer;
+            color: #374151;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        
+        .dropdown-item:hover {
+            background-color: #F3F4F6;
+        }
+        
+        .dropdown-divider {
+            height: 1px;
+            background-color: #E5E7EB;
+            margin: 4px 0;
+        }
+        
+        .login-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background-color: var(--color-cta);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+        
+        .login-button:hover {
+            background-color: #1E40AF;
+        }
+    </style>
 </head>
 <body>
     
@@ -33,9 +131,37 @@
             
             <div class="navbar-actions">
                 <button onclick="window.location.href='catalogo.html'" class="navbar-link">Buscar</button>
+                
+                <!-- Botón de Login (visible cuando NO está autenticado) -->
+                <button class="login-button" onclick="window.location.href='login.html'" id="btnLogin">
+                    <span>👤</span>
+                    <span>Ingresar</span>
+                </button>
+                
+                <!-- Menú de Usuario (visible cuando SÍ está autenticado) -->
+                <div class="user-menu" id="userMenu">
+                    <button class="user-menu-button" onclick="toggleUserDropdown()">
+                        <div class="user-avatar" id="userAvatar">U</div>
+                        <span class="user-name" id="userName">Usuario</span>
+                        <span>▾</span>
+                    </button>
+                    <div class="user-dropdown" id="userDropdown">
+                        <button class="dropdown-item" onclick="window.location.href='perfil.html'">
+                            👤 Mi Perfil
+                        </button>
+                        <button class="dropdown-item" onclick="window.location.href='pedidos.html'">
+                            📦 Mis Pedidos
+                        </button>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item" onclick="cerrarSesion()">
+                            🚪 Cerrar Sesión
+                        </button>
+                    </div>
+                </div>
+                
                 <button class="cart-button" onclick="window.location.href='carrito.html'">
                     🛒
-                    <span class="cart-count">0</span>
+                    <span class="cart-count" id="cartCount">0</span>
                 </button>
             </div>
         </div>
@@ -212,5 +338,87 @@
     <script src="../assets/js/authService.js"></script>
     <script src="../assets/js/main.js"></script>
     <script src="../assets/js/index.js"></script>
+    
+    <script>
+        // ============================================
+        // FUNCIONES DEL NAVBAR CON AUTENTICACIÓN
+        // ============================================
+        
+        /**
+         * Actualizar UI del navbar según estado de autenticación
+         */
+        function actualizarNavbarAuth() {
+            const isLoggedIn = authService.isLoggedIn();
+            const btnLogin = document.getElementById('btnLogin');
+            const userMenu = document.getElementById('userMenu');
+            
+            if (isLoggedIn) {
+                // Usuario autenticado: mostrar menú de usuario
+                btnLogin.style.display = 'none';
+                userMenu.style.display = 'block';
+                
+                // Actualizar nombre y avatar
+                const user = authService.getCurrentUser();
+                if (user) {
+                    const userName = document.getElementById('userName');
+                    const userAvatar = document.getElementById('userAvatar');
+                    
+                    const nombreCompleto = `${user.nombre || ''} ${user.apellido || ''}`.trim();
+                    userName.textContent = nombreCompleto || user.email;
+                    
+                    // Avatar con inicial
+                    const inicial = (user.nombre || user.email || 'U')[0].toUpperCase();
+                    userAvatar.textContent = inicial;
+                }
+            } else {
+                // Usuario NO autenticado: mostrar botón de login
+                btnLogin.style.display = 'inline-flex';
+                userMenu.style.display = 'none';
+            }
+        }
+        
+        /**
+         * Toggle del dropdown del menú de usuario
+         */
+        function toggleUserDropdown() {
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('active');
+        }
+        
+        /**
+         * Cerrar dropdown si se hace clic fuera
+         */
+        document.addEventListener('click', function(event) {
+            const userMenu = document.getElementById('userMenu');
+            const dropdown = document.getElementById('userDropdown');
+            
+            if (userMenu && !userMenu.contains(event.target)) {
+                dropdown?.classList.remove('active');
+            }
+        });
+        
+        /**
+         * Cerrar sesión
+         */
+        async function cerrarSesion() {
+            if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+                await authService.logout();
+            }
+        }
+        
+        // ============================================
+        // INICIALIZACIÓN
+        // ============================================
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            // Actualizar navbar con estado de autenticación
+            actualizarNavbarAuth();
+            
+            // Actualizar contador del carrito
+            if (typeof actualizarContadorCarrito === 'function') {
+                actualizarContadorCarrito();
+            }
+        });
+    </script>
 </body>
 </html>

@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Vendedor - Sportiva</title>
+    
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        :root {
+            --sidebar-width: 260px;
+            --header-height: 70px;
+        }
+
+        body {
+            background-color: #F9FAFB;
+        }
+
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, #059669 0%, #047857 100%);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar-logo {
+            font-size: 24px;
+            font-weight: 900;
+            color: white;
+            text-decoration: none;
+            display: block;
+        }
+
+        .sidebar-menu {
+            padding: 16px 0;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            color: #D1FAE5;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+        }
+
+        .menu-item:hover {
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        .menu-item.active {
+            background-color: rgba(255,255,255,0.15);
+            color: white;
+            border-left-color: #FCD34D;
+        }
+
+        .menu-icon {
+            font-size: 20px;
+            width: 24px;
+            text-align: center;
+        }
+
+        /* MAIN CONTENT */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            min-height: 100vh;
+        }
+
+        /* HEADER */
+        .dashboard-header {
+            height: var(--header-height);
+            background: white;
+            border-bottom: 1px solid #E5E7EB;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .header-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 16px;
+            background: #F0FDF4;
+            border-radius: 8px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: #111827;
+        }
+
+        .user-role {
+            font-size: 12px;
+            color: #059669;
+            font-weight: 600;
+        }
+
+        /* CONTENT AREA */
+        .content-area {
+            padding: 32px;
+        }
+
+        /* STATS CARDS */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid #E5E7EB;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 16px;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .stat-icon.green { background: #F0FDF4; }
+        .stat-icon.blue { background: #EFF6FF; }
+        .stat-icon.yellow { background: #FFFBEB; }
+        .stat-icon.red { background: #FEF2F2; }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #6B7280;
+            font-weight: 500;
+        }
+
+        .stat-change {
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .stat-change.positive { color: #10B981; }
+        .stat-change.negative { color: #EF4444; }
+
+        /* SECTION */
+        .section-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #E5E7EB;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        /* TABLE */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table thead {
+            background: #F9FAFB;
+        }
+
+        .data-table th {
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 13px;
+            color: #6B7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .data-table td {
+            padding: 16px;
+            border-top: 1px solid #E5E7EB;
+            font-size: 14px;
+            color: #374151;
+        }
+
+        .data-table tbody tr:hover {
+            background: #F9FAFB;
+        }
+
+        /* BADGES */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge.success {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .badge.warning {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+
+        .badge.danger {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        /* BUTTONS */
+        .btn-dashboard {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #10B981;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #059669;
+        }
+
+        .btn-secondary {
+            background: #F3F4F6;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #E5E7EB;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        /* QUICK ACTIONS */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .quick-action-card {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            text-align: center;
+        }
+
+        .quick-action-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .quick-action-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .quick-action-title {
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        /* ALERT */
+        .alert {
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .alert.info {
+            background: #EFF6FF;
+            color: #1E40AF;
+            border: 1px solid #BFDBFE;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="index.html" class="sidebar-logo">SPORTIVA</a>
+                <p style="font-size: 12px; color: #D1FAE5; margin-top: 4px;">Panel de Vendedor</p>
+            </div>
+
+            <nav class="sidebar-menu">
+                <a href="#" class="menu-item active" onclick="showSection('dashboard')">
+                    <span class="menu-icon">📊</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="menu-item" onclick="showSection('productos')">
+                    <span class="menu-icon">📦</span>
+                    <span>Productos</span>
+                </a>
+                <a href="#" class="menu-item" onclick="showSection('inventario')">
+                    <span class="menu-icon">📋</span>
+                    <span>Inventario</span>
+                </a>
+                <a href="#" class="menu-item" onclick="showSection('categorias')">
+                    <span class="menu-icon">🏷️</span>
+                    <span>Categorías</span>
+                </a>
+                
+                <div style="margin: 16px 0; height: 1px; background: rgba(255,255,255,0.2);"></div>
+                
+                <a href="index.html" class="menu-item">
+                    <span class="menu-icon">🏠</span>
+                    <span>Ir a la Tienda</span>
+                </a>
+                <a href="#" class="menu-item" onclick="cerrarSesion()">
+                    <span class="menu-icon">🚪</span>
+                    <span>Cerrar Sesión</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <!-- HEADER -->
+            <header class="dashboard-header">
+                <h1 class="header-title" id="pageTitle">Dashboard</h1>
+                
+                <div class="header-actions">
+                    <div class="user-info">
+                        <div class="user-avatar" id="userAvatar">V</div>
+                        <div class="user-details">
+                            <span class="user-name" id="userName">Vendedor</span>
+                            <span class="user-role" id="userRole">Vendedor</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- CONTENT AREA -->
+            <div class="content-area">
+                <!-- SECTION: DASHBOARD -->
+                <div id="section-dashboard" class="content-section">
+                    <h2 style="font-size: 28px; font-weight: 700; margin-bottom: 8px; color: #111827;">
+                        Bienvenido al Panel de Vendedor
+                    </h2>
+                    <p style="color: #6B7280; margin-bottom: 24px;">
+                        Gestiona productos e inventario de la tienda Sportiva
+                    </p>
+
+                    <!-- ALERT -->
+                    <div class="alert info">
+                        <span style="font-size: 24px;">ℹ️</span>
+                        <div>
+                            <strong>Permisos de Vendedor:</strong> Puedes crear, editar y administrar productos. 
+                            No tienes acceso a gestión de usuarios ni reportes financieros.
+                        </div>
+                    </div>
+
+                    <!-- STATS GRID -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div>
+                                    <div class="stat-value" id="statProductos">0</div>
+                                    <div class="stat-label">Productos Totales</div>
+                                </div>
+                                <div class="stat-icon green">📦</div>
+                            </div>
+                            <div class="stat-change positive">Activos en catálogo</div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div>
+                                    <div class="stat-value" id="statStock">0</div>
+                                    <div class="stat-label">Unidades en Stock</div>
+                                </div>
+                                <div class="stat-icon blue">📊</div>
+                            </div>
+                            <div class="stat-change positive">Stock total disponible</div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div>
+                                    <div class="stat-value" id="statBajoStock">0</div>
+                                    <div class="stat-label">Productos Bajo Stock</div>
+                                </div>
+                                <div class="stat-icon yellow">⚠️</div>
+                            </div>
+                            <div class="stat-change negative">Requieren reposición</div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div>
+                                    <div class="stat-value" id="statSinStock">0</div>
+                                    <div class="stat-label">Sin Stock</div>
+                                </div>
+                                <div class="stat-icon red">🔴</div>
+                            </div>
+                            <div class="stat-change negative">Agotados</div>
+                        </div>
+                    </div>
+
+                    <!-- QUICK ACTIONS -->
+                    <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px; color: #111827;">Acciones Rápidas</h3>
+                    <div class="quick-actions">
+                        <div class="quick-action-card" onclick="showSection('productos')">
+                            <div class="quick-action-icon">➕</div>
+                            <div class="quick-action-title">Agregar Producto</div>
+                        </div>
+                        <div class="quick-action-card" onclick="showSection('inventario')" style="background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);">
+                            <div class="quick-action-icon">📋</div>
+                            <div class="quick-action-title">Actualizar Inventario</div>
+                        </div>
+                        <div class="quick-action-card" onclick="showSection('categorias')" style="background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);">
+                            <div class="quick-action-icon">🏷️</div>
+                            <div class="quick-action-title">Gestionar Categorías</div>
+                        </div>
+                    </div>
+
+                    <!-- PRODUCTOS BAJO STOCK -->
+                    <div class="section-card">
+                        <div class="section-header">
+                            <h3 class="section-title">⚠️ Productos con Bajo Stock</h3>
+                            <button class="btn-dashboard btn-secondary btn-sm" onclick="showSection('inventario')">Ver Inventario</button>
+                        </div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>SKU</th>
+                                    <th>Stock Actual</th>
+                                    <th>Stock Mínimo</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lowStockTable">
+                                <tr>
+                                    <td colspan="6" style="text-align: center; padding: 40px; color: #9CA3AF;">
+                                        Cargando productos...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- SECTION: PRODUCTOS -->
+                <div id="section-productos" class="content-section" style="display: none;">
+                    <div class="section-card">
+                        <div class="section-header">
+                            <h3 class="section-title">Gestión de Productos</h3>
+                            <button class="btn-dashboard btn-primary">➕ Nuevo Producto</button>
+                        </div>
+                        <p style="color: #6B7280; margin-bottom: 24px;">
+                            Crea, edita y administra todos los productos de la tienda.
+                        </p>
+                        <div style="padding: 60px; text-align: center; background: #F9FAFB; border-radius: 8px;">
+                            <div style="font-size: 48px; margin-bottom: 16px;">📦</div>
+                            <h4 style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Módulo en Desarrollo</h4>
+                            <p style="color: #6B7280;">El CRUD completo de productos estará disponible próximamente.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION: INVENTARIO -->
+                <div id="section-inventario" class="content-section" style="display: none;">
+                    <div class="section-card">
+                        <div class="section-header">
+                            <h3 class="section-title">Control de Inventario</h3>
+                            <button class="btn-dashboard btn-primary">📥 Actualizar Stock</button>
+                        </div>
+                        <p style="color: #6B7280; margin-bottom: 24px;">
+                            Administra el stock y existencias de todos los productos.
+                        </p>
+                        <div style="padding: 60px; text-align: center; background: #F9FAFB; border-radius: 8px;">
+                            <div style="font-size: 48px; margin-bottom: 16px;">📋</div>
+                            <h4 style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Módulo en Desarrollo</h4>
+                            <p style="color: #6B7280;">La gestión de inventario estará disponible próximamente.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION: CATEGORÍAS -->
+                <div id="section-categorias" class="content-section" style="display: none;">
+                    <div class="section-card">
+                        <div class="section-header">
+                            <h3 class="section-title">Gestión de Categorías</h3>
+                            <button class="btn-dashboard btn-primary">➕ Nueva Categoría</button>
+                        </div>
+                        <p style="color: #6B7280; margin-bottom: 24px;">
+                            Organiza los productos en categorías.
+                        </p>
+                        <div style="padding: 60px; text-align: center; background: #F9FAFB; border-radius: 8px;">
+                            <div style="font-size: 48px; margin-bottom: 16px;">🏷️</div>
+                            <h4 style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Módulo en Desarrollo</h4>
+                            <p style="color: #6B7280;">La gestión de categorías estará disponible próximamente.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="../assets/js/apiConfig.js"></script>
+    <script src="../assets/js/authService.js"></script>
+    <script src="../assets/js/main.js"></script>
+
+    <script>
+        // ============================================
+        // PROTECCIÓN DE RUTA
+        // ============================================
+        if (!authService.requireTrabajador()) {
+            // Si no es trabajador, será redirigido automáticamente
+        }
+
+        // Verificar que sea vendedor o admin
+        const user = authService.getCurrentUser();
+        if (user && user.rol !== 'Vendedor' && user.rol !== 'Administrador') {
+            if (typeof mostrarToast === 'function') {
+                mostrarToast('No tienes permisos de vendedor', 'error');
+            }
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 2000);
+        }
+
+        // ============================================
+        // INICIALIZACIÓN
+        // ============================================
+        document.addEventListener('DOMContentLoaded', async () => {
+            cargarDatosUsuario();
+            await cargarEstadisticas();
+        });
+
+        // ============================================
+        // CARGAR DATOS DEL USUARIO
+        // ============================================
+        function cargarDatosUsuario() {
+            const user = authService.getCurrentUser();
+            if (user) {
+                const nombre = `${user.nombre || ''} ${user.apellido || ''}`.trim();
+                document.getElementById('userName').textContent = nombre || user.email;
+                document.getElementById('userRole').textContent = user.rol || 'Vendedor';
+                
+                const inicial = (user.nombre || user.email || 'V')[0].toUpperCase();
+                document.getElementById('userAvatar').textContent = inicial;
+            }
+        }
+
+        // ============================================
+        // CARGAR ESTADÍSTICAS
+        // ============================================
+        async function cargarEstadisticas() {
+            try {
+                // Cargar productos
+                const productosResponse = await apiGet(ENDPOINTS.PRODUCTOS.LISTAR);
+                if (productosResponse.success && productosResponse.data) {
+                    const productos = productosResponse.data.productos || [];
+                    document.getElementById('statProductos').textContent = productos.length;
+                    
+                    // Calcular stock total
+                    let stockTotal = 0;
+                    let bajoStock = 0;
+                    let sinStock = 0;
+                    
+                    productos.forEach(producto => {
+                        if (producto.tallas && Array.isArray(producto.tallas)) {
+                            producto.tallas.forEach(talla => {
+                                stockTotal += talla.stock_talla || 0;
+                                
+                                if (talla.stock_talla === 0) {
+                                    sinStock++;
+                                } else if (talla.stock_talla <= (producto.stock_minimo || 5)) {
+                                    bajoStock++;
+                                }
+                            });
+                        }
+                    });
+                    
+                    document.getElementById('statStock').textContent = stockTotal;
+                    document.getElementById('statBajoStock').textContent = bajoStock;
+                    document.getElementById('statSinStock').textContent = sinStock;
+                }
+            } catch (error) {
+                console.error('Error cargando estadísticas:', error);
+                // Valores de ejemplo si falla
+                document.getElementById('statProductos').textContent = '45';
+                document.getElementById('statStock').textContent = '1,234';
+                document.getElementById('statBajoStock').textContent = '8';
+                document.getElementById('statSinStock').textContent = '3';
+            }
+        }
+
+        // ============================================
+        // NAVEGACIÓN ENTRE SECCIONES
+        // ============================================
+        function showSection(sectionName) {
+            // Ocultar todas las secciones
+            const sections = document.querySelectorAll('.content-section');
+            sections.forEach(section => {
+                section.style.display = 'none';
+            });
+
+            // Mostrar la sección seleccionada
+            const targetSection = document.getElementById(`section-${sectionName}`);
+            if (targetSection) {
+                targetSection.style.display = 'block';
+            }
+
+            // Actualizar título
+            const titles = {
+                'dashboard': 'Dashboard',
+                'productos': 'Productos',
+                'inventario': 'Inventario',
+                'categorias': 'Categorías'
+            };
+            document.getElementById('pageTitle').textContent = titles[sectionName] || 'Dashboard';
+
+            // Actualizar menú activo
+            const menuItems = document.querySelectorAll('.menu-item');
+            menuItems.forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.closest('.menu-item')?.classList.add('active');
+        }
+
+        // ============================================
+        // CERRAR SESIÓN
+        // ============================================
+        async function cerrarSesion() {
+            if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+                await authService.logout();
+            }
+        }
+    </script>
+</body>
+</html>

@@ -73,58 +73,36 @@ exports.crearPedido = async (req, res) => {
         }
 
         const clienteId = req.cliente.id;
-        const { direccionEnvioId, nuevaDireccion, metodoPago, notasAdicionales } = req.body;
-
-        // Validar que existe carrito con items
-        const carrito = await Carrito.findByClienteId(clienteId);
         
-        if (!carrito || !carrito.items || carrito.items.length === 0) {
-            return res.status(400).json({
+        // Datos del checkout desde el frontend
+        const datosCheckout = {
+            id_direccion_envio: req.body.id_direccion_envio || null,
+            direccion_envio: req.body.direccion_envio || null,
+            metodo_pago: req.body.metodo_pago || 'tarjeta',
+            datos_pago: req.body.datos_pago || {},
+            requiere_factura: req.body.requiere_factura || false,
+            datos_facturacion: req.body.datos_facturacion || null,
+            notas: req.body.notas || null
+        };
+
+        // Usar el servicio para crear el pedido
+        const pedidoService = require('../services/pedidoService');
+        const resultado = await pedidoService.crearPedidoDesdeCarrito(clienteId, datosCheckout);
+
+        if (!resultado.success) {
+            return res.status(resultado.statusCode || 500).json({
                 success: false,
-                message: 'El carrito está vacío'
+                message: resultado.message,
+                data: resultado.data || null
             });
         }
 
-        // Validar stock disponible
-        const stockValido = await Carrito.validateStock(clienteId);
-        if (!stockValido) {
-            return res.status(400).json({
-                success: false,
-                message: 'Algunos productos no tienen stock disponible'
-            });
-        }
-
-        // Crear pedido desde carrito
-        const pedido = await Pedido.createFromCarrito(
-            clienteId, 
-            direccionEnvioId || nuevaDireccion,
-            notasAdicionales
-        );
-
-        if (!pedido) {
-            return res.status(500).json({
-                success: false,
-                message: 'Error al crear el pedido'
-            });
-        }
-
-        // Vaciar carrito después de crear pedido
-        await Carrito.clear(clienteId);
-
-        logger.info(`Pedido creado - ID: ${pedido.id}, Cliente: ${clienteId}`);
+        logger.info(`Pedido creado exitosamente - Número: ${resultado.data.numero_pedido}, Cliente: ${clienteId}`);
 
         res.status(201).json({
             success: true,
             message: 'Pedido creado exitosamente',
-            data: {
-                pedido: {
-                    id: pedido.id,
-                    numero_pedido: pedido.numero_pedido,
-                    total: pedido.total,
-                    estado: pedido.estado,
-                    fecha_pedido: pedido.fecha_pedido
-                }
-            }
+            data: resultado.data
         });
 
     } catch (error) {

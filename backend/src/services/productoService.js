@@ -37,7 +37,7 @@ class ProductoService {
     // ============================================
 
     /**
-     * Obtener catálogo de productos con filtros
+     * Obtener catálogo de productos con filtros (incluye filtro por stock)
      */
     async getCatalogo(filters = {}, pagination = {}) {
         try {
@@ -46,22 +46,30 @@ class ProductoService {
             const page = parseInt(pagination.page) || 1;
             const offset = (page - 1) * limit;
 
+            // Agregar filtro de stock si se solicita
+            const filtrosConStock = { ...filters };
+            
+            if (filters.solo_con_stock === 'true' || filters.solo_con_stock === true) {
+                filtrosConStock.con_stock = true;
+            }
+
             // Obtener productos con filtros
             const productos = await this.productoModel.findAllWithDetails({
-                ...filters,
+                ...filtrosConStock,
                 limit,
                 offset
             });
 
             // Contar total de productos activos (sin paginación)
-            const total = await this.productoModel.countActive(filters);
+            const total = await this.productoModel.countActive(filtrosConStock);
 
             // Procesar productos (normalizar rutas de imágenes)
             const productosProcessed = productos.map(producto => ({
                 ...producto,
                 imagen_principal: this.normalizarRutaImagen(producto.imagen_principal),
                 precio_formateado: this.formatPrice(producto.precio),
-                en_stock: this.checkProductStock(producto)
+                en_stock: this.checkProductStock(producto),
+                stock_total: this.calculateTotalStock(producto.tallas)
             }));
 
             return {
@@ -398,7 +406,7 @@ class ProductoService {
      */
     calculateTotalStock(tallas) {
         if (!tallas || tallas.length === 0) return 0;
-        return tallas.reduce((total, talla) => total + talla.stock_talla, 0);
+        return tallas.reduce((total, talla) => total + (talla.stock_talla || 0), 0);
     }
 
     /**

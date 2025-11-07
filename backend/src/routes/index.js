@@ -10,6 +10,7 @@ const authRoutes = require('./authRoutes');
 const productoRoutes = require('./productoRoutes');
 const carritoRoutes = require('./carritoRoutes');
 const pedidoRoutes = require('./pedidoRoutes');
+const trabajadorRoutes = require('./trabajadorRoutes');
 
 // ============================================
 // CONFIGURACIÓN DE RUTAS
@@ -27,6 +28,9 @@ router.use('/carrito', carritoRoutes);
 // Rutas de pedidos
 router.use('/pedidos', pedidoRoutes);
 
+// Rutas de trabajadores
+router.use('/trabajadores', trabajadorRoutes);
+
 // ============================================
 // RUTA DE SALUD DE LA API
 // ============================================
@@ -41,7 +45,8 @@ router.get('/health', (req, res) => {
             auth: '/api/auth',
             productos: '/api/productos',
             carrito: '/api/carrito',
-            pedidos: '/api/pedidos'
+            pedidos: '/api/pedidos',
+            trabajadores: '/api/trabajadores'
         }
     });
 });
@@ -62,6 +67,7 @@ router.use((req, res) => {
             productos: '/api/productos',
             carrito: '/api/carrito',
             pedidos: '/api/pedidos',
+            trabajadores: '/api/trabajadores',
             health: '/api/health'
         }
     });

@@ -19,7 +19,8 @@ let filtrosActivos = {
     precioMax: 1000,
     tallas: [],
     genero: '',
-    busqueda: ''
+    busqueda: '',
+    solo_con_stock: false
 };
 
 // Cache de productos
@@ -413,10 +414,14 @@ function aplicarFiltrosYOrden() {
     const checkboxDisponibilidad = document.getElementById('soloDisponibles');
     if (checkboxDisponibilidad && checkboxDisponibilidad.checked) {
         productosFiltrados = productosFiltrados.filter(p => {
-            // Calcular stock desde tallas
+            // Usar stock_total del backend si está disponible
+            if (p.stock_total !== undefined) {
+                return p.stock_total > 0;
+            }
+            // Calcular stock desde tallas como fallback
             const stock = p.tallas && Array.isArray(p.tallas)
                 ? p.tallas.reduce((sum, t) => sum + (parseInt(t.stock) || parseInt(t.stock_talla) || 0), 0)
-                : (parseInt(p.stock_total) || parseInt(p.stock) || 0);
+                : (parseInt(p.stock) || 0);
             return stock > 0;
         });
     }
@@ -905,6 +910,14 @@ function agregarAlCarritoLocal(producto) {
  */
 function inicializarEventListeners() {
     // Búsqueda
+    // Filtro de disponibilidad (solo con stock)
+    const checkboxDisponibilidad = document.getElementById('soloDisponibles');
+    if (checkboxDisponibilidad) {
+        checkboxDisponibilidad.addEventListener('change', function() {
+            aplicarFiltrosYOrden();
+        });
+    }
+    
     const inputBusqueda = document.getElementById('inputBusqueda');
     if (inputBusqueda) {
         let timeoutBusqueda;
@@ -1064,7 +1077,8 @@ function limpiarFiltros() {
         precioMax: 1000,
         tallas: [],
         genero: '',
-        busqueda: ''
+        busqueda: '',
+        solo_con_stock: false
     };
     
     ordenActual = 'destacados';

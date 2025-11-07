@@ -1,10 +1,10 @@
 // ============================================
 // SPORTIVA - API CONFIGURATION & JWT MANAGER
-// Sistema de integración Frontend-Backend
+// Sistema de integraciÃ³n Frontend-Backend
 // ============================================
 
 // ============================================
-// CONFIGURACIÓN GLOBAL API
+// CONFIGURACIÃ“N GLOBAL API
 // ============================================
 
 const API_CONFIG = {
@@ -17,7 +17,7 @@ const API_CONFIG = {
 };
 
 // ============================================
-// ENDPOINTS ORGANIZADOS POR MÓDULO
+// ENDPOINTS ORGANIZADOS POR MÃ“DULO
 // ============================================
 
 const ENDPOINTS = {
@@ -70,11 +70,23 @@ const ENDPOINTS = {
         CREAR_RESENA: (id) => `/pedidos/${id}/resena`,
         FACTURA: (id) => `/pedidos/${id}/factura`,
         ESTADISTICAS: '/pedidos/resumen/estadisticas'
+    },
+    
+    TRABAJADORES: {
+        LOGIN: '/trabajadores/login',
+        REGISTER: '/trabajadores/register',
+        LISTAR: '/trabajadores',
+        DETALLE: (id) => `/trabajadores/${id}`,
+        ACTUALIZAR: (id) => `/trabajadores/${id}`,
+        CAMBIAR_ESTADO: (id) => `/trabajadores/${id}/estado`,
+        CAMBIAR_ROL: (id) => `/trabajadores/${id}/rol`,
+        PROFILE: '/trabajadores/profile',
+        CHANGE_PASSWORD: '/trabajadores/change-password'
     }
 };
 
 // ============================================
-// GESTIÓN DE JWT TOKENS
+// GESTIÃ“N DE JWT TOKENS
 // ============================================
 
 function getToken() {
@@ -119,7 +131,7 @@ function isTokenValid() {
 }
 
 // ============================================
-// INTERCEPTOR HTTP - FUNCIÓN PRINCIPAL
+// INTERCEPTOR HTTP - FUNCIÃ“N PRINCIPAL
 // ============================================
 
 let isRefreshing = false;
@@ -201,14 +213,14 @@ async function apiRequest(endpoint, options = {}) {
                 
                 if (!window.location.pathname.includes('login.html')) {
                     if (typeof mostrarToast === 'function') {
-                        mostrarToast('Sesión expirada. Por favor inicia sesión nuevamente.', 'warning');
+                        mostrarToast('SesiÃ³n expirada. Por favor inicia sesiÃ³n nuevamente.', 'warning');
                     }
                     setTimeout(() => {
                         window.location.href = 'login.html';
                     }, 1500);
                 }
                 
-                throw new Error('Sesión expirada');
+                throw new Error('SesiÃ³n expirada');
                 
             } catch (refreshError) {
                 isRefreshing = false;
@@ -223,7 +235,7 @@ async function apiRequest(endpoint, options = {}) {
         
         if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
             if (typeof mostrarToast === 'function') {
-                mostrarToast('Error de conexión. Verifica tu internet.', 'error');
+                mostrarToast('Error de conexiÃ³n. Verifica tu internet.', 'error');
             }
         }
         
@@ -242,7 +254,7 @@ async function handleResponse(response) {
         const data = await response.json();
         
         if (!response.ok) {
-            const errorMessage = data.message || data.error || 'Error en la petición';
+            const errorMessage = data.message || data.error || 'Error en la peticiÃ³n';
             
             if (response.status === 400) {
                 if (data.errors && Array.isArray(data.errors)) {
@@ -253,7 +265,7 @@ async function handleResponse(response) {
             }
             
             if (response.status === 403) {
-                throw new Error('No tienes permisos para realizar esta acción');
+                throw new Error('No tienes permisos para realizar esta acciÃ³n');
             }
             
             if (response.status === 404) {
@@ -265,7 +277,7 @@ async function handleResponse(response) {
             }
             
             if (response.status >= 500) {
-                throw new Error('Error del servidor. Intenta más tarde.');
+                throw new Error('Error del servidor. Intenta mÃ¡s tarde.');
             }
             
             throw new Error(errorMessage);
@@ -277,7 +289,7 @@ async function handleResponse(response) {
     if (contentType && (contentType.includes('text/plain') || contentType.includes('text/html'))) {
         const text = await response.text();
         if (!response.ok) {
-            throw new Error(text || 'Error en la petición');
+            throw new Error(text || 'Error en la peticiÃ³n');
         }
         return text;
     }
@@ -290,7 +302,7 @@ async function handleResponse(response) {
 }
 
 // ============================================
-// FUNCIONES HELPER PARA MÉTODOS HTTP
+// FUNCIONES HELPER PARA MÃ‰TODOS HTTP
 // ============================================
 
 async function apiGet(endpoint, params = {}) {
@@ -334,7 +346,7 @@ function isAuthenticated() {
 function requireAuth() {
     if (!isAuthenticated()) {
         if (typeof mostrarToast === 'function') {
-            mostrarToast('Debes iniciar sesión para continuar', 'warning');
+            mostrarToast('Debes iniciar sesiÃ³n para continuar', 'warning');
         }
         setTimeout(() => {
             window.location.href = 'login.html';
@@ -381,6 +393,6 @@ window.isAuthenticated = isAuthenticated;
 window.requireAuth = requireAuth;
 window.isTokenValid = isTokenValid;
 
-console.log('%c✅ API Config cargado correctamente', 'color: #4CAF50; font-weight: bold;');
+console.log('%câœ… API Config cargado correctamente', 'color: #4CAF50; font-weight: bold;');
 console.log('Base URL:', API_CONFIG.BASE_URL);
 console.log('Endpoints disponibles:', Object.keys(ENDPOINTS).length * 10, 'aprox.');

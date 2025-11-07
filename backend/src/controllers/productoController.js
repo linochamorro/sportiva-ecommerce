@@ -25,14 +25,18 @@ exports.obtenerTodos = async (req, res) => {
 
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 12;
+        
+        // Parámetro para excluir producto específico (productos relacionados)
+        const excluirProductoId = req.query.excluir ? parseInt(req.query.excluir) : null;
 
-        const filtros = {
-            categoria: req.query.categoria,
+const filtros = {
+            id_categoria: req.query.categoria ? parseInt(req.query.categoria) : null,
             precioMin: req.query.precioMin,
             precioMax: req.query.precioMax,
             genero: req.query.genero,
             busqueda: req.query.q,
-            marca: req.query.marca
+            marca: req.query.marca,
+            excluir: excluirProductoId
         };
 
         const resultado = await productoService.getCatalogo(filtros, { page, limit });

@@ -922,29 +922,60 @@ async function finalizarCompra() {
     
     try {
         if (typeof apiConfig !== 'undefined') {
-            // Crear pedido en la API
+            // Preparar datos del pedido según lo que espera el backend
             const datosPedido = {
-                direccion_envio: datosCheckout.direccion_envio,
-                requiere_factura: datosCheckout.requiere_factura,
-                datos_facturacion: datosCheckout.requiere_factura ? datosCheckout.datos_facturacion : null,
+                // Dirección de envío (objeto completo)
+                direccion_envio: {
+                    direccion: datosCheckout.direccion_envio.direccion,
+                    distrito: datosCheckout.direccion_envio.distrito,
+                    departamento: datosCheckout.direccion_envio.departamento || 'Lima',
+                    codigo_postal: datosCheckout.direccion_envio.codigo_postal || '15000',
+                    referencia: datosCheckout.direccion_envio.referencia || null
+                },
+                
+                // Método de pago
                 metodo_pago: datosCheckout.metodo_pago,
-                datos_pago: datosCheckout.datos_pago
+                
+                // Datos del pago (si aplica)
+                datos_pago: datosCheckout.datos_pago || {},
+                
+                // Facturación (si se requiere)
+                requiere_factura: datosCheckout.requiere_factura || false,
+                datos_facturacion: datosCheckout.requiere_factura ? {
+                    ruc: datosCheckout.datos_facturacion.ruc,
+                    razon_social: datosCheckout.datos_facturacion.razon_social,
+                    direccion_fiscal: datosCheckout.datos_facturacion.direccion_fiscal
+                } : null,
+                
+                // Notas adicionales (opcional)
+                notas: datosCheckout.notas || null
             };
             
+            console.log('📦 Enviando pedido al backend:', datosPedido);
+            
+            // Crear pedido en la API
             const response = await apiConfig.apiPost('/pedidos', datosPedido);
+            
+            console.log('✅ Respuesta del backend:', response);
             
             if (response.success && response.data) {
                 datosCheckout.pedido_id = response.data.pedido_id;
                 datosCheckout.numero_pedido = response.data.numero_pedido;
+                const numeroTracking = response.data.numero_tracking || `TRK-${response.data.numero_pedido}`;
+                
+                // Limpiar carrito del localStorage (si aplica)
+                if (typeof localStorage !== 'undefined') {
+                    localStorage.removeItem('carrito');
+                }
                 
                 // Redirigir a página de confirmación
-                window.location.href = `/confirmacion.html?pedido=${datosCheckout.numero_pedido}`;
+                window.location.href = `/confirmacion.html?pedido=${datosCheckout.numero_pedido}&tracking=${numeroTracking}`;
             } else {
                 throw new Error(response.message || 'Error al crear el pedido');
             }
         } else {
-            // Simular creación de pedido
-            datosCheckout.numero_pedido = 'SPV-' + Date.now();
+            // Simular creación de pedido (fallback)
+            datosCheckout.numero_pedido = 'SPT-' + Date.now();
             
             setTimeout(() => {
                 window.location.href = `/confirmacion.html?pedido=${datosCheckout.numero_pedido}`;
@@ -953,7 +984,21 @@ async function finalizarCompra() {
         
     } catch (error) {
         console.error('❌ Error al finalizar compra:', error);
-        mostrarNotificacion(error.message || 'Error al procesar el pedido', 'error');
+        
+        let mensajeError = 'Error al procesar el pedido';
+        
+        // Manejar errores específicos
+        if (error.message) {
+            if (error.message.includes('stock')) {
+                mensajeError = 'Algunos productos ya no tienen stock disponible. Por favor revisa tu carrito.';
+            } else if (error.message.includes('vacío')) {
+                mensajeError = 'Tu carrito está vacío. Agrega productos antes de continuar.';
+            } else {
+                mensajeError = error.message;
+            }
+        }
+        
+        mostrarNotificacion(mensajeError, 'error');
         
         // Rehabilitar botón
         btnFinalizar.disabled = false;

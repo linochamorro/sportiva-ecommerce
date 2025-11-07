@@ -94,7 +94,6 @@
             border-bottom-color: var(--color-cta);
         }
 
-        /* Password requirements indicator */
         .password-requirements {
             margin-top: 8px;
             padding: 12px;
@@ -148,6 +147,24 @@
         .requirement.valid .requirement-icon::before {
             content: '✓';
         }
+
+        /* Info badge para trabajadores */
+        .info-badge {
+            background-color: #EFF6FF;
+            border: 1px solid #BFDBFE;
+            color: #1E40AF;
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-badge-icon {
+            font-size: 18px;
+        }
     </style>
 </head>
 <body>
@@ -188,6 +205,12 @@
 
             <!-- TAB LOGIN -->
             <div id="tabLogin" class="tab-content active">
+                <!-- Info badge para trabajadores (oculto por defecto) -->
+                <div id="trabajadorInfoBadge" class="info-badge" style="display: none;">
+                    <span class="info-badge-icon">👔</span>
+                    <span>Has ingresado un email de trabajador. Usa tu email @sportiva.com</span>
+                </div>
+
                 <form id="formLogin" onsubmit="return procesarLogin(event)">
                     <div class="form-group">
                         <label class="form-label">Email</label>
@@ -213,65 +236,66 @@
 
             <!-- TAB REGISTRO -->
             <div id="tabRegistro" class="tab-content">
+                <p class="text-small text-secondary" style="margin-bottom: 24px;">
+                    Crea tu cuenta para acceder a todas las funcionalidades de Sportiva.
+                </p>
+
                 <form id="formRegistro" onsubmit="return procesarRegistro(event)">
                     <div class="form-group">
-                        <label class="form-label">Nombre</label>
-                        <input type="text" name="nombre" id="regNombre" class="form-input" placeholder="Tu nombre" required>
+                        <label class="form-label">Nombre *</label>
+                        <input type="text" name="nombre" id="regNombre" class="form-input" placeholder="Juan" required>
                         <span class="form-error" id="errorRegNombre">El nombre es requerido</span>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Apellido</label>
-                        <input type="text" name="apellido" id="regApellido" class="form-input" placeholder="Tu apellido" required>
+                        <label class="form-label">Apellido *</label>
+                        <input type="text" name="apellido" id="regApellido" class="form-input" placeholder="Pérez" required>
                         <span class="form-error" id="errorRegApellido">El apellido es requerido</span>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Email</label>
+                        <label class="form-label">Email *</label>
                         <input type="email" name="email" id="regEmail" class="form-input" placeholder="tu@email.com" required>
-                        <span class="form-error" id="errorRegEmail">Email inválido</span>
+                        <span class="form-error" id="errorRegEmail">Email inválido o email @sportiva.com no permitido aquí</span>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Teléfono (opcional)</label>
-                        <input type="tel" name="telefono" id="regTelefono" class="form-input" placeholder="987654321" maxlength="9">
-                        <span class="form-error" id="errorRegTelefono">Teléfono inválido (debe ser 9 dígitos)</span>
+                        <input type="tel" name="telefono" id="regTelefono" class="form-input" placeholder="999888777" pattern="[0-9]{9}">
+                        <span class="form-error" id="errorRegTelefono">Debe ser 9 dígitos comenzando con 9</span>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Contraseña</label>
+                        <label class="form-label">Contraseña *</label>
                         <input type="password" name="password" id="regPassword" class="form-input" placeholder="••••••••" required minlength="8">
-                        <span class="form-error" id="errorRegPassword">La contraseña no cumple los requisitos</span>
                         
                         <!-- Indicador de requisitos de contraseña -->
-                        <div class="password-requirements" id="passwordRequirements">
-                            <h4>Requisitos de contraseña:</h4>
+                        <div id="passwordRequirements" class="password-requirements">
+                            <h4>La contraseña debe contener:</h4>
                             <div class="requirement" id="req-length">
-                                <span class="requirement-icon"></span>
+                                <div class="requirement-icon"></div>
                                 <span>Mínimo 8 caracteres</span>
                             </div>
                             <div class="requirement" id="req-uppercase">
-                                <span class="requirement-icon"></span>
-                                <span>Al menos 1 mayúscula (A-Z)</span>
+                                <div class="requirement-icon"></div>
+                                <span>Al menos una mayúscula</span>
                             </div>
                             <div class="requirement" id="req-lowercase">
-                                <span class="requirement-icon"></span>
-                                <span>Al menos 1 minúscula (a-z)</span>
+                                <div class="requirement-icon"></div>
+                                <span>Al menos una minúscula</span>
                             </div>
                             <div class="requirement" id="req-number">
-                                <span class="requirement-icon"></span>
-                                <span>Al menos 1 número (0-9)</span>
-                            </div>
-                            <div class="requirement" id="req-special">
-                                <span class="requirement-icon"></span>
-                                <span>Al menos 1 carácter especial (@$!%*?&)</span>
+                                <div class="requirement-icon"></div>
+                                <span>Al menos un número</span>
                             </div>
                         </div>
+                        
+                        <span class="form-error" id="errorRegPassword">La contraseña no cumple los requisitos</span>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Confirmar Contraseña</label>
-                        <input type="password" name="confirmPassword" id="regConfirmPassword" class="form-input" placeholder="••••••••" required minlength="8">
+                        <label class="form-label">Confirmar Contraseña *</label>
+                        <input type="password" name="confirmPassword" id="regConfirmPassword" class="form-input" placeholder="••••••••" required>
                         <span class="form-error" id="errorRegConfirmPassword">Las contraseñas no coinciden</span>
                     </div>
 
@@ -280,7 +304,7 @@
                     </button>
                     
                     <p class="text-small text-secondary" style="text-align: center; margin-top: 16px;">
-                        Al registrarte aceptas nuestros <a href="#" style="color: var(--color-cta);">Términos y Condiciones</a>
+                        Al registrarte, aceptas nuestros Términos y Condiciones
                     </p>
                 </form>
             </div>
@@ -289,63 +313,81 @@
 
     <!-- FOOTER -->
     <footer class="footer">
-        <div class="footer-container">
-            <div class="footer-section">
-                <h3 class="footer-title">SPORTIVA</h3>
-                <p class="footer-text">Tu tienda deportiva de confianza</p>
+        <div class="container">
+            <div class="footer-grid">
+                <div>
+                    <h4 class="footer-title">Productos</h4>
+                    <ul class="footer-links">
+                        <li><a href="catalogo.html?categoria=Calzado Deportivo" class="footer-link">Calzado</a></li>
+                        <li><a href="catalogo.html?categoria=Ropa Deportiva" class="footer-link">Ropa</a></li>
+                        <li><a href="catalogo.html?categoria=Accesorios" class="footer-link">Accesorios</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="footer-title">Deportes</h4>
+                    <ul class="footer-links">
+                        <li><a href="catalogo.html" class="footer-link">Running</a></li>
+                        <li><a href="catalogo.html" class="footer-link">Fútbol</a></li>
+                        <li><a href="catalogo.html" class="footer-link">Training</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="footer-title">Soporte</h4>
+                    <ul class="footer-links">
+                        <li><a href="#" class="footer-link">Ayuda</a></li>
+                        <li><a href="#" class="footer-link">Devoluciones</a></li>
+                        <li><a href="#" class="footer-link">Contacto</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="footer-title">Empresa</h4>
+                    <ul class="footer-links">
+                        <li><a href="#" class="footer-link">Nosotros</a></li>
+                        <li><a href="#" class="footer-link">Tiendas</a></li>
+                    </ul>
+                </div>
             </div>
             
-            <div class="footer-section">
-                <h4 class="footer-subtitle">Información</h4>
-                <ul class="footer-links">
-                    <li><a href="#">Sobre Nosotros</a></li>
-                    <li><a href="#">Envíos</a></li>
-                    <li><a href="#">Devoluciones</a></li>
-                </ul>
+            <div class="footer-bottom">
+                <p class="footer-copyright">&copy; 2025 Sportiva Perú. Todos los derechos reservados.</p>
             </div>
-            
-            <div class="footer-section">
-                <h4 class="footer-subtitle">Ayuda</h4>
-                <ul class="footer-links">
-                    <li><a href="#">Preguntas Frecuentes</a></li>
-                    <li><a href="#">Contacto</a></li>
-                    <li><a href="#">Términos y Condiciones</a></li>
-                </ul>
-            </div>
-        </div>
-        
-        <div class="footer-bottom">
-            <p>&copy; 2024 Sportiva. Todos los derechos reservados.</p>
         </div>
     </footer>
 
-    <!-- SCRIPTS -->
+    <!-- JavaScript -->
     <script src="../assets/js/apiConfig.js"></script>
     <script src="../assets/js/authService.js"></script>
     <script src="../assets/js/main.js"></script>
-    
+
     <script>
         // ============================================
-        // CAMBIAR TABS
+        // CONSTANTES Y CONFIGURACIÓN
+        // ============================================
+        
+        const SPORTIVA_EMAIL_DOMAIN = '@sportiva.com';
+        
+        // ============================================
+        // CAMBIAR ENTRE TABS
         // ============================================
         
         function cambiarTab(tab) {
-            // Ocultar todos los tabs
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
+            const tabLogin = document.getElementById('tabLogin');
+            const tabRegistro = document.getElementById('tabRegistro');
+            const btnTabs = document.querySelectorAll('.tab');
             
-            document.querySelectorAll('.tab').forEach(button => {
-                button.classList.remove('active');
-            });
-            
-            // Mostrar tab seleccionado
             if (tab === 'login') {
-                document.getElementById('tabLogin').classList.add('active');
-                document.querySelector('.tab:first-child').classList.add('active');
+                tabLogin.classList.add('active');
+                tabRegistro.classList.remove('active');
+                btnTabs[0].classList.add('active');
+                btnTabs[1].classList.remove('active');
             } else {
-                document.getElementById('tabRegistro').classList.add('active');
-                document.querySelector('.tab:last-child').classList.add('active');
+                tabLogin.classList.remove('active');
+                tabRegistro.classList.add('active');
+                btnTabs[0].classList.remove('active');
+                btnTabs[1].classList.add('active');
             }
         }
         
@@ -354,132 +396,100 @@
         // ============================================
         
         function validarEmail(email) {
-            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return re.test(email);
+            const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return regex.test(email);
         }
         
         function validarTelefono(telefono) {
-            // Validar que sea exactamente 9 dígitos y comience con 9
-            const re = /^9\d{8}$/;
-            return re.test(telefono);
+            return /^9[0-9]{8}$/.test(telefono);
         }
-
-        /**
-         * Validar requisitos de contraseña según backend
-         */
+        
         function validarPasswordCompleta(password) {
-            const requisitos = {
+            return {
                 length: password.length >= 8,
                 uppercase: /[A-Z]/.test(password),
                 lowercase: /[a-z]/.test(password),
-                number: /\d/.test(password),
-                special: /[@$!%*?&]/.test(password)
-            };
-
-            const todosValidos = Object.values(requisitos).every(val => val === true);
-
-            return {
-                valido: todosValidos,
-                requisitos: requisitos
+                number: /[0-9]/.test(password),
+                get valido() {
+                    return this.length && this.uppercase && this.lowercase && this.number;
+                }
             };
         }
 
         /**
-         * Actualizar indicador visual de requisitos
+         * Detecta si el email es de trabajador (@sportiva.com)
          */
-        function actualizarIndicadorPassword(password) {
-            const validacion = validarPasswordCompleta(password);
-            const req = validacion.requisitos;
-
-            // Actualizar cada requisito
-            document.getElementById('req-length').classList.toggle('valid', req.length);
-            document.getElementById('req-uppercase').classList.toggle('valid', req.uppercase);
-            document.getElementById('req-lowercase').classList.toggle('valid', req.lowercase);
-            document.getElementById('req-number').classList.toggle('valid', req.number);
-            document.getElementById('req-special').classList.toggle('valid', req.special);
-
-            return validacion.valido;
+        function esTrabajador(email) {
+            return email.toLowerCase().endsWith(SPORTIVA_EMAIL_DOMAIN);
         }
         
         // ============================================
-        // VALIDACIÓN EN TIEMPO REAL
+        // VALIDACIONES EN TIEMPO REAL
         // ============================================
         
+        function actualizarIndicadorPassword(password) {
+            const validacion = validarPasswordCompleta(password);
+            
+            document.getElementById('req-length').classList.toggle('valid', validacion.length);
+            document.getElementById('req-uppercase').classList.toggle('valid', validacion.uppercase);
+            document.getElementById('req-lowercase').classList.toggle('valid', validacion.lowercase);
+            document.getElementById('req-number').classList.toggle('valid', validacion.number);
+        }
+        
         function setupRealtimeValidation() {
-            // Login - Email
-            document.getElementById('loginEmail')?.addEventListener('blur', function() {
-                const error = document.getElementById('errorLoginEmail');
-                if (!validarEmail(this.value)) {
-                    error.classList.add('active');
-                } else {
-                    error.classList.remove('active');
-                }
+            // Mostrar indicador al enfocar campo de contraseña en registro
+            document.getElementById('regPassword')?.addEventListener('focus', function() {
+                document.getElementById('passwordRequirements').classList.add('active');
             });
             
-            // Registro - Nombre
-            document.getElementById('regNombre')?.addEventListener('blur', function() {
-                const error = document.getElementById('errorRegNombre');
-                if (this.value.trim().length < 2) {
-                    error.classList.add('active');
-                } else {
-                    error.classList.remove('active');
-                }
+            // Actualizar indicador al escribir
+            document.getElementById('regPassword')?.addEventListener('input', function() {
+                actualizarIndicadorPassword(this.value);
             });
             
-            // Registro - Apellido
-            document.getElementById('regApellido')?.addEventListener('blur', function() {
-                const error = document.getElementById('errorRegApellido');
-                if (this.value.trim().length < 2) {
-                    error.classList.add('active');
+            // Validar email en login para detectar trabajadores
+            document.getElementById('loginEmail')?.addEventListener('input', function() {
+                const email = this.value.trim();
+                const infoBadge = document.getElementById('trabajadorInfoBadge');
+                
+                if (email && esTrabajador(email)) {
+                    infoBadge.style.display = 'flex';
                 } else {
-                    error.classList.remove('active');
+                    infoBadge.style.display = 'none';
                 }
             });
-            
-            // Registro - Email
+
+            // Validar email en registro para bloquear @sportiva.com
             document.getElementById('regEmail')?.addEventListener('blur', function() {
+                const email = this.value.trim();
                 const error = document.getElementById('errorRegEmail');
-                if (!validarEmail(this.value)) {
+                
+                if (email && esTrabajador(email)) {
+                    error.textContent = 'No puedes registrarte con un email @sportiva.com aquí';
                     error.classList.add('active');
+                    this.classList.add('error');
+                } else if (email && !validarEmail(email)) {
+                    error.textContent = 'Email inválido';
+                    error.classList.add('active');
+                    this.classList.add('error');
                 } else {
                     error.classList.remove('active');
+                    this.classList.remove('error');
                 }
             });
             
-            // Registro - Teléfono
+            // Validar teléfono
             document.getElementById('regTelefono')?.addEventListener('blur', function() {
                 const error = document.getElementById('errorRegTelefono');
+                
                 if (this.value && !validarTelefono(this.value)) {
                     error.classList.add('active');
                 } else {
                     error.classList.remove('active');
                 }
             });
-
-            // Registro - Password con indicador visual
-            const passwordInput = document.getElementById('regPassword');
-            const passwordRequirements = document.getElementById('passwordRequirements');
-
-            passwordInput?.addEventListener('focus', function() {
-                passwordRequirements.classList.add('active');
-            });
-
-            passwordInput?.addEventListener('input', function() {
-                actualizarIndicadorPassword(this.value);
-            });
-
-            passwordInput?.addEventListener('blur', function() {
-                const esValido = actualizarIndicadorPassword(this.value);
-                const error = document.getElementById('errorRegPassword');
-                
-                if (this.value && !esValido) {
-                    error.classList.add('active');
-                } else {
-                    error.classList.remove('active');
-                }
-            });
-
-            // Confirmar contraseña
+            
+            // Validar confirmación de contraseña
             document.getElementById('regConfirmPassword')?.addEventListener('blur', function() {
                 const password = document.getElementById('regPassword').value;
                 const error = document.getElementById('errorRegConfirmPassword');
@@ -520,26 +530,49 @@
                 return false;
             }
             
+            // Detectar tipo de usuario
+            const isTrabajador = esTrabajador(email);
+            
             // Loading state
             btn.classList.add('btn-loading');
             btn.textContent = 'Iniciando sesión...';
             
             try {
-                // Llamar al authService
-                const usuario = await authService.login(email, password);
+                let usuario;
+                
+                if (isTrabajador) {
+                    // Login de trabajador - usar endpoint de trabajadores
+                    console.log('🔐 Autenticando trabajador...');
+                    usuario = await authService.loginTrabajador(email, password);
+                } else {
+                    // Login de cliente normal
+                    console.log('🔐 Autenticando cliente...');
+                    usuario = await authService.login(email, password);
+                }
                 
                 if (usuario) {
                     mostrarToast(`¡Bienvenido ${usuario.nombre}!`, 'success');
                     
-                    // Redirigir después de 1 segundo
+                    // Redirigir según tipo de usuario después de 1 segundo
                     setTimeout(() => {
-                        // Verificar si hay URL de redirección guardada
-                        const redirectUrl = localStorage.getItem('sportiva_redirect_after_login');
-                        if (redirectUrl) {
-                            localStorage.removeItem('sportiva_redirect_after_login');
-                            window.location.href = redirectUrl;
+                        if (isTrabajador) {
+                            // Redirigir según rol del trabajador
+                            if (usuario.rol === 'Administrador') {
+                                window.location.href = 'admin-dashboard.html';
+                            } else if (usuario.rol === 'Vendedor') {
+                                window.location.href = 'vendedor-dashboard.html';
+                            } else {
+                                window.location.href = 'index.html';
+                            }
                         } else {
-                            window.location.href = 'index.html';
+                            // Cliente: verificar URL de redirección o ir a catálogo/carrito
+                            const redirectUrl = localStorage.getItem('sportiva_redirect_after_login');
+                            if (redirectUrl) {
+                                localStorage.removeItem('sportiva_redirect_after_login');
+                                window.location.href = redirectUrl;
+                            } else {
+                                window.location.href = 'catalogo.html';
+                            }
                         }
                     }, 1000);
                 }
@@ -582,6 +615,14 @@
             
             if (!validarEmail(email)) {
                 mostrarToast('Email inválido', 'error');
+                return false;
+            }
+
+            // BLOQUEAR registro con email @sportiva.com
+            if (esTrabajador(email)) {
+                mostrarToast('No puedes registrarte como cliente con un email @sportiva.com', 'error');
+                document.getElementById('errorRegEmail').textContent = 'Email @sportiva.com no permitido aquí';
+                document.getElementById('errorRegEmail').classList.add('active');
                 return false;
             }
             
@@ -641,11 +682,9 @@
                     // Redirigir después de 1.5 segundos
                     setTimeout(() => {
                         if (redirectUrl) {
-                            // Regresar a la página donde estaba
                             window.location.href = redirectUrl;
                         } else {
-                            // Si no hay redirect, ir a index
-                            window.location.href = 'index.html';
+                            window.location.href = 'catalogo.html';
                         }
                     }, 1500);
                 }
@@ -667,7 +706,7 @@
                 mostrarToast(errorMsg, 'error');
                 
             } finally {
-                // IMPORTANTE: Siempre restaurar botón en el bloque finally
+                // Siempre restaurar botón
                 btn.classList.remove('btn-loading');
                 btn.textContent = 'Crear Cuenta';
             }

@@ -36,6 +36,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Inicializar componentes
     inicializarEventListeners();
 
+    // Deshabilitar botón de agregar si es trabajador
+    if (typeof authService !== 'undefined' && authService.isTrabajador()) {
+        const btnAgregar = document.querySelector('.btn-agregar-carrito');
+        if (btnAgregar) {
+            btnAgregar.disabled = true;
+            btnAgregar.innerHTML = '<i class="fas fa-lock"></i> NO DISPONIBLE PARA TRABAJADORES';
+            btnAgregar.style.backgroundColor = '#999';
+            btnAgregar.style.cursor = 'not-allowed';
+        }
+    }
+
     console.log('✅ Detalle de producto inicializado correctamente');
 });
 
@@ -69,18 +80,24 @@ async function cargarProducto(productoId) {
         } else {
             await cargarProductoLocal(productoId);
         }
-
+        // Auto-seleccionar talla 'UNICA' si el producto no tiene tallas
+        if (productoActual && !productoActual.tiene_tallas) {
+            const tallaUnica = (productoActual.variantes || []).find(v => v.talla === 'UNICA');
+            if (tallaUnica) {
+                tallaSeleccionada = tallaUnica.talla;
+                console.log('Talla ÚNICA auto-seleccionada:', tallaSeleccionada);
+            } else {
+                console.warn('Producto sin tallas no tiene Talla "UNICA" definida', productoActual);
+            }
+        }
         renderizarProducto();
-
         // Cargar datos adicionales
         Promise.all([
             cargarProductosRelacionados(productoId).catch(e => console.warn('⚠️ Productos relacionados no disponibles', e)),
             cargarResenas(productoId).catch(e => console.warn('⚠️ Reseñas no disponibles', e))
         ]);
-
     } catch (error) {
         console.error('❌ Error al cargar producto:', error);
-
         try {
             await cargarProductoLocal(productoId);
             renderizarProducto();
@@ -128,7 +145,7 @@ function normalizarProducto(producto) {
         imagenPath = '../' + imagenPath.replace('frontend/', '');
     }
 
-    // Normalizar la estructura de datos
+// Normalizar la estructura de datos
     return {
         ...producto,
         id: producto.id_producto || producto.producto_id || producto.id,
@@ -137,6 +154,10 @@ function normalizarProducto(producto) {
         imagen: imagenPath,
         imagen_url: imagenPath,
         precio_venta: producto.precio || producto.precio_venta,
+        
+        // Asegurarse de que 'tiene_tallas' se incluya en el objeto normalizado
+        // Esta propiedad es crucial para ocultar la guía y el selector de tallas.
+        tiene_tallas: producto.tiene_tallas, 
         // Usar tallas como variantes para compatibilidad con lógica de renderizado
         variantes: producto.tallas ? producto.tallas.map(t => ({ talla: t.talla, stock: t.stock_talla, id_talla: t.id_talla })) : producto.variantes || [],
         rating: producto.calificacion_promedio || 4.5,
@@ -223,12 +244,14 @@ function crearEstructuraHTML() {
                     AGREGAR AL CARRITO
                 </button>
 
-                <button onmouseover="this.style.backgroundColor='var(--color-black)'; this.style.color='var(--color-white)'; this.style.borderColor='var(--color-black)';"
-                        onmouseout="this.style.backgroundColor='var(--color-white)'; this.style.color='var(--color-black)'; this.style.borderColor='var(--color-black)';"
-                        onclick="abrirGuiaTallas()" class="btn btn-outline"
-                        style="width: 100%; margin-top: 16px; padding: 16px; border: 2px solid var(--color-black); background: var(--color-white); color: var(--color-black); font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: all 0.3s;">
-                    VER GUÍA DE TALLAS
-                </button>
+                ${productoActual.tiene_tallas ? `
+                    <button onmouseover="this.style.backgroundColor='var(--color-black)'; this.style.color='var(--color-white)'; this.style.borderColor='var(--color-black)';"
+                            onmouseout="this.style.backgroundColor='var(--color-white)'; this.style.color='var(--color-black)'; this.style.borderColor='var(--color-black)';"
+                            onclick="abrirGuiaTallas()" class="btn btn-outline"
+                            style="width: 100%; margin-top: 16px; padding: 16px; border: 2px solid var(--color-black); background: var(--color-white); color: var(--color-black); font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: all 0.3s;">
+                        VER GUÍA DE TALLAS
+                    </button>
+                ` : ''}
 
                 <div id="acordeones-info" style="margin-top: 24px;"></div>
             </div>
@@ -356,15 +379,20 @@ function renderizarDetalles() {
     `;
 }
 
-
 /**
  * Renderizar selector de tallas
  */
 function renderizarSelectorTallas() {
     const selectorContainer = document.getElementById('selector-tallas-container');
     if (!selectorContainer) return;
-
+  
     let tallas = obtenerTallasDisponibles();
+
+    // Si no tiene tallas (es Talla Única), no mostrar el selector
+    if (productoActual && !productoActual.tiene_tallas) {
+        selectorContainer.innerHTML = '';
+        return;
+    }    
 
     if (tallas.length === 0) {
         selectorContainer.innerHTML = '';
@@ -427,7 +455,6 @@ function renderizarSelectorTallas() {
     `;
     // No se selecciona ninguna talla por defecto al renderizar
 }
-
 
 /**
  * Renderizar los acordeones de información
@@ -504,25 +531,37 @@ function obtenerTallasDisponibles() {
  */
 async function cargarProductosRelacionados(productoId) {
     try {
-        if (typeof apiConfig !== 'undefined' && productoActual.categoria) {
-            // Filtrar por nombre de categoría en lugar de id
-            const response = await apiConfig.apiGet(`/productos?limit=20`);
+        if (typeof apiConfig !== 'undefined' && productoActual) {
+            // Obtener id_categoria del producto actual
+            const idCategoria = productoActual.id_categoria;
+            const idProductoActual = productoActual.id_producto || productoActual.id;
+            
+            if (!idCategoria) {
+                console.warn('Producto sin categoría, no se pueden cargar relacionados');
+                return;
+            }
+            
+            // Llamar API con filtro de categoría y exclusión
+            const response = await apiConfig.apiGet(`/productos`, {
+                categoria: idCategoria,
+                excluir: idProductoActual,
+                limit: 4
+            });
 
             if (response.success && response.data) {
-                productosRelacionados = (response.data.productos || response.data)
-                    .filter(p => {
-                        // Filtrar productos de la misma categoría y excluir el producto actual
-                        const mismaCategoria = p.categoria === productoActual.categoria || 
-                                               p.categoria_nombre === productoActual.categoria ||
-                                               p.categoria_nombre === productoActual.categoria_nombre;
-                        return mismaCategoria && p.id_producto != productoActual.id_producto;
-                    })
-                    .slice(0, 4);
-                renderizarProductosRelacionados();
+                productosRelacionados = response.data.productos || response.data || [];
+                
+                if (productosRelacionados.length > 0) {
+                    renderizarProductosRelacionados();
+                } else {
+                    console.log('No hay productos relacionados en esta categoría');
+                    const parentDiv = document.getElementById('productosRelacionados');
+                    if (parentDiv) parentDiv.style.display = 'none';
+                }
             }
         }
     } catch (error) {
-        console.error('❌ Error al cargar productos relacionados:', error);
+        console.error('Error al cargar productos relacionados:', error);
     }
 }
 
@@ -552,15 +591,27 @@ function crearCardProductoRelacionado(producto) {
     } else if (imagen.startsWith('/')) {
         imagen = '..' + imagen;
     }
+    
+    // Obtener la ruta correcta para navegación
+    const productoIdUrl = producto.id_producto || producto.producto_id || producto.id;
+    const currentPath = window.location.pathname;
+    
+    // Determinar si estamos en /frontend/public/ o en raíz
+    let linkHref;
+    if (currentPath.includes('/frontend/public/')) {
+        linkHref = `producto.html?id=${productoIdUrl}`;
+    } else {
+        linkHref = `/frontend/public/producto.html?id=${productoIdUrl}`;
+    }
 
     return `
         <div class="producto-card-mini" style="border: 1px solid var(--color-gray-border); padding: 16px;">
-            <a href="/producto.html?id=${producto.id_producto || producto.producto_id || producto.id}" style="display: block;">
+            <a href="${linkHref}" style="display: block; text-decoration: none; color: inherit;">
                 <div style="background-color: var(--color-gray-light); aspect-ratio: 1; margin-bottom: 12px;">
                     <img src="${imagen}" alt="${producto.nombre_producto || producto.nombre}" style="width: 100%; height: 100%; object-fit: cover;">
                 </div>
-                <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">${producto.nombre_producto || producto.nombre}</h4>
-                <div class="precio" style="font-weight: 700;">S/ ${precio.toFixed(2)}</div>
+                <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 4px; color: var(--color-black);">${producto.nombre_producto || producto.nombre}</h4>
+                <div class="precio" style="font-weight: 700; color: var(--color-black);">S/ ${precio.toFixed(2)}</div>
             </a>
         </div>
     `;
@@ -596,7 +647,6 @@ function seleccionarTalla(tallaNombre, stock) {
 
 }
 
-
 /**
  * Cambiar cantidad
  */
@@ -631,7 +681,6 @@ function cambiarCantidad(delta) {
     cantidadSeleccionada = nuevaCantidad;
     actualizarCantidadInput(); // Llama a la función que actualiza el valor del input
 }
-
 
 /**
  * Actualizar input de cantidad
@@ -692,6 +741,14 @@ function actualizarCantidadDesdeInput(nuevoValor) {
  * Agregar al carrito (click handler)
  */
 async function agregarAlCarritoClick() {
+    // 🔒 Verificar si es trabajador
+    if (typeof authService !== 'undefined' && authService.isTrabajador()) {
+        if (typeof mostrarToast === 'function') {
+            mostrarToast('Las cuentas de trabajadores no pueden realizar compras', 'warning');
+        }
+        return;
+    }
+
     // Validar talla si el producto tiene tallas
     if (productoActual.variantes && productoActual.variantes.length > 0 && !tallaSeleccionada) {
         if (typeof mostrarToast === 'function') mostrarToast('Por favor selecciona una talla', 'warning');
