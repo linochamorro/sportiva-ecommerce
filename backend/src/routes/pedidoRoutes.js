@@ -6,6 +6,7 @@ const express = require('express');
 const router = express.Router();
 const pedidoController = require('../controllers/pedidoController');
 const authMiddleware = require('../middlewares/authMiddleware');
+const { requireAdmin, verifyToken } = require('../middlewares/authMiddleware');
 
 // IMPORTAR VALIDATORS
 const {
@@ -78,6 +79,13 @@ router.get('/:id/factura',
 // GET /api/pedidos/resumen/estadisticas - Estadísticas de pedidos del cliente
 router.get('/resumen/estadisticas', 
     pedidoController.obtenerEstadisticas
+);
+
+// GET /api/pedidos/stats/admin - Estadísticas generales (Admin)
+router.get('/stats/admin', 
+    verifyToken,
+    requireAdmin,               
+    pedidoController.obtenerEstadisticasGenerales
 );
 
 module.exports = router;

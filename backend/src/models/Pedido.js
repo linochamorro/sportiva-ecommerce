@@ -465,14 +465,14 @@ class Pedido extends BaseModel {
             let query = `
                 SELECT 
                     COUNT(*) as total_pedidos,
-                    COUNT(CASE WHEN estado = 'pendiente' THEN 1 END) as pedidos_pendientes,
-                    COUNT(CASE WHEN estado = 'confirmado' THEN 1 END) as pedidos_confirmados,
-                    COUNT(CASE WHEN estado = 'procesando' THEN 1 END) as pedidos_procesando,
-                    COUNT(CASE WHEN estado = 'enviado' THEN 1 END) as pedidos_enviados,
-                    COUNT(CASE WHEN estado = 'entregado' THEN 1 END) as pedidos_entregados,
-                    COUNT(CASE WHEN estado = 'cancelado' THEN 1 END) as pedidos_cancelados,
-                    COALESCE(SUM(total), 0) as ventas_totales,
-                    COALESCE(AVG(total), 0) as ticket_promedio
+                    COUNT(CASE WHEN estado_pedido = 'pendiente' THEN 1 END) as pedidos_pendientes,
+                    COUNT(CASE WHEN estado_pedido = 'confirmado' THEN 1 END) as pedidos_confirmados,
+                    COUNT(CASE WHEN estado_pedido = 'procesando' THEN 1 END) as pedidos_procesando,
+                    COUNT(CASE WHEN estado_pedido = 'enviado' THEN 1 END) as pedidos_enviados,
+                    COUNT(CASE WHEN estado_pedido = 'entregado' THEN 1 END) as pedidos_entregados,
+                    COUNT(CASE WHEN estado_pedido = 'cancelado' THEN 1 END) as pedidos_cancelados,
+                    COALESCE(SUM(total_pedido), 0) as ventas_totales,
+                    COALESCE(AVG(total_pedido), 0) as ticket_promedio
                 FROM PEDIDO
                 WHERE 1=1
             `;

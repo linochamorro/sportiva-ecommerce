@@ -6,6 +6,7 @@ const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
 const authMiddleware = require('../middlewares/authMiddleware');
+const { requireAdmin } = require('../middlewares/authMiddleware');
 
 // IMPORTAR VALIDATORS PROFESIONALES
 const { 
@@ -71,6 +72,13 @@ router.put('/change-password',
     authMiddleware.verifyToken,
     validateChangePassword,
     authController.changePassword
+);
+
+// GET /api/auth/stats/admin - Estadísticas de clientes (Admin)
+router.get('/stats/admin',
+    authMiddleware.verifyToken,
+    requireAdmin,
+    authController.obtenerEstadisticasClientes
 );
 
 module.exports = router;

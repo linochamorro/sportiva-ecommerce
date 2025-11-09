@@ -527,4 +527,31 @@ exports.obtenerEstadisticas = async (req, res) => {
     }
 };
 
+// ============================================
+// OBTENER ESTADÍSTICAS GENERALES (ADMIN)
+// ============================================
+
+exports.obtenerEstadisticasGenerales = async (req, res) => {
+    try {
+        const { fecha_desde, fecha_hasta } = req.query;
+        const filtros = {};
+        if (fecha_desde) filtros.fecha_desde = fecha_desde;
+        if (fecha_hasta) filtros.fecha_hasta = fecha_hasta;
+
+        const estadisticas = await Pedido.getStats(filtros);
+
+        res.json({
+            success: true,
+            data: estadisticas
+        });
+    } catch (error) {
+        logger.error('Error al obtener estadísticas de pedidos:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al obtener estadísticas',
+            error: error.message
+        });
+    }
+};
+
 module.exports = exports;

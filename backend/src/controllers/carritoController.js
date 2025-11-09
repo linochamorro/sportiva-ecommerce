@@ -273,8 +273,19 @@ exports.vaciarCarrito = async (req, res) => {
 
 exports.obtenerResumen = async (req, res) => {
     try {
+        // Si el usuario es un trabajador (admin/vendedor), no tiene carrito.
+        if (req.trabajador) {
+            logger.info('Solicitud de resumen de carrito por trabajador, devolviendo vacío.');
+            return res.json({
+                success: true,
+                data: {
+                    items: [], total_items: 0, total_productos: 0, subtotal: 0,
+                    igv: 0, costoEnvio: 0, total: 0, subtotal_formateado: "S/ 0.00",
+                    empty: true
+                }
+            });
+        }
         const clienteId = req.cliente.id;
-
         const resumen = await carritoService.getQuickSummary(clienteId);
 
         res.json({
@@ -396,9 +407,18 @@ exports.removerCupon = async (req, res) => {
 // ============================================
 
 exports.obtenerCantidadItems = async (req, res) => {
-    try {
+      try {
+        if (req.trabajador) {
+            logger.info('Solicitud de cantidad de items por trabajador, devolviendo 0.');
+            return res.json({
+                success: true,
+                data: {
+                    cantidadItems: 0,
+                    totalProductos: 0
+                }
+            });
+        }
         const clienteId = req.cliente.id;
-
         const resumen = await carritoService.getQuickSummary(clienteId);
 
         res.json({

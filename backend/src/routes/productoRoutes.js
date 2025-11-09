@@ -5,6 +5,7 @@
 const express = require('express');
 const router = express.Router();
 const productoController = require('../controllers/productoController');
+const { requireAdmin, verifyToken } = require('../middlewares/authMiddleware');
 
 // IMPORTAR VALIDATORS
 const {
@@ -88,6 +89,13 @@ router.get('/:id/relacionados',
 router.get('/:id/resenas', 
     validateObtenerResenas,
     productoController.obtenerResenas
+);
+
+// GET /api/productos/stats/general - Estadísticas generales (Admin)
+router.get('/stats/general',
+    verifyToken,
+    requireAdmin,
+    productoController.obtenerEstadisticas
 );
 
 module.exports = router;

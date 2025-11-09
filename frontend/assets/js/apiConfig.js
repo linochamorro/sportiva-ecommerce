@@ -4,7 +4,7 @@
 // ============================================
 
 // ============================================
-// CONFIGURACIÃ“N GLOBAL API
+// CONFIGURACIÓN GLOBAL API
 // ============================================
 
 const API_CONFIG = {
@@ -17,7 +17,7 @@ const API_CONFIG = {
 };
 
 // ============================================
-// ENDPOINTS ORGANIZADOS POR MÃ“DULO
+// ENDPOINTS ORGANIZADOS POR MÓDULO
 // ============================================
 
 const ENDPOINTS = {
@@ -29,7 +29,8 @@ const ENDPOINTS = {
         REFRESH: '/auth/refresh',
         PROFILE: '/auth/profile',
         UPDATE_PROFILE: '/auth/profile',
-        CHANGE_PASSWORD: '/auth/change-password'
+        CHANGE_PASSWORD: '/auth/change-password',
+        STATS_ADMIN: '/auth/stats/admin'
     },
     
     PRODUCTOS: {
@@ -44,7 +45,8 @@ const ENDPOINTS = {
         RELACIONADOS: (id) => `/productos/${id}/relacionados`,
         RESENAS: (id) => `/productos/${id}/resenas`,
         STATS_CATEGORIAS: '/productos/stats/categorias',
-        STATS_PRECIOS: '/productos/stats/precios'
+        STATS_PRECIOS: '/productos/stats/precios',
+        STATS_GENERAL: '/productos/stats/general'
     },
     
     CARRITO: {
@@ -69,7 +71,8 @@ const ENDPOINTS = {
         ESTADO: (id) => `/pedidos/${id}/estado`,
         CREAR_RESENA: (id) => `/pedidos/${id}/resena`,
         FACTURA: (id) => `/pedidos/${id}/factura`,
-        ESTADISTICAS: '/pedidos/resumen/estadisticas'
+        ESTADISTICAS: '/pedidos/resumen/estadisticas',
+        STATS_ADMIN: '/pedidos/stats/admin'
     },
     
     TRABAJADORES: {
@@ -86,7 +89,7 @@ const ENDPOINTS = {
 };
 
 // ============================================
-// GESTIÃ“N DE JWT TOKENS
+// GESTIÓN DE JWT TOKENS
 // ============================================
 
 function getToken() {
@@ -131,7 +134,7 @@ function isTokenValid() {
 }
 
 // ============================================
-// INTERCEPTOR HTTP - FUNCIÃ“N PRINCIPAL
+// INTERCEPTOR HTTP - FUNCIÓN PRINCIPAL
 // ============================================
 
 let isRefreshing = false;
@@ -213,14 +216,14 @@ async function apiRequest(endpoint, options = {}) {
                 
                 if (!window.location.pathname.includes('login.html')) {
                     if (typeof mostrarToast === 'function') {
-                        mostrarToast('SesiÃ³n expirada. Por favor inicia sesiÃ³n nuevamente.', 'warning');
+                        mostrarToast('Sesión expirada. Por favor inicia sesión nuevamente.', 'warning');
                     }
                     setTimeout(() => {
                         window.location.href = 'login.html';
                     }, 1500);
                 }
                 
-                throw new Error('SesiÃ³n expirada');
+                throw new Error('Sesión expirada');
                 
             } catch (refreshError) {
                 isRefreshing = false;
@@ -235,7 +238,7 @@ async function apiRequest(endpoint, options = {}) {
         
         if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
             if (typeof mostrarToast === 'function') {
-                mostrarToast('Error de conexiÃ³n. Verifica tu internet.', 'error');
+                mostrarToast('Error de conexión. Verifica tu internet.', 'error');
             }
         }
         
@@ -254,7 +257,7 @@ async function handleResponse(response) {
         const data = await response.json();
         
         if (!response.ok) {
-            const errorMessage = data.message || data.error || 'Error en la peticiÃ³n';
+            const errorMessage = data.message || data.error || 'Error en la petición';
             
             if (response.status === 400) {
                 if (data.errors && Array.isArray(data.errors)) {
@@ -265,7 +268,7 @@ async function handleResponse(response) {
             }
             
             if (response.status === 403) {
-                throw new Error('No tienes permisos para realizar esta acciÃ³n');
+                throw new Error('No tienes permisos para realizar esta acción');
             }
             
             if (response.status === 404) {
@@ -277,7 +280,7 @@ async function handleResponse(response) {
             }
             
             if (response.status >= 500) {
-                throw new Error('Error del servidor. Intenta mÃ¡s tarde.');
+                throw new Error('Error del Servidor. Intenta más tarde.');
             }
             
             throw new Error(errorMessage);
@@ -289,7 +292,7 @@ async function handleResponse(response) {
     if (contentType && (contentType.includes('text/plain') || contentType.includes('text/html'))) {
         const text = await response.text();
         if (!response.ok) {
-            throw new Error(text || 'Error en la peticiÃ³n');
+            throw new Error(text || 'Error en la petición');
         }
         return text;
     }
@@ -302,7 +305,7 @@ async function handleResponse(response) {
 }
 
 // ============================================
-// FUNCIONES HELPER PARA MÃ‰TODOS HTTP
+// FUNCIONES HELPER PARA MÉTODOS HTTP
 // ============================================
 
 async function apiGet(endpoint, params = {}) {
@@ -328,6 +331,13 @@ async function apiPut(endpoint, data = {}) {
     });
 }
 
+async function apiPatch(endpoint, data = {}) {
+    return await apiRequest(endpoint, {
+        method: 'PATCH',
+        body: JSON.stringify(data)
+    });
+}
+
 async function apiDelete(endpoint) {
     return await apiRequest(endpoint, {
         method: 'DELETE'
@@ -346,7 +356,7 @@ function isAuthenticated() {
 function requireAuth() {
     if (!isAuthenticated()) {
         if (typeof mostrarToast === 'function') {
-            mostrarToast('Debes iniciar sesiÃ³n para continuar', 'warning');
+            mostrarToast('Debes iniciar sesión para continuar', 'warning');
         }
         setTimeout(() => {
             window.location.href = 'login.html';
@@ -373,6 +383,7 @@ window.apiConfig = {
     apiGet,
     apiPost,
     apiPut,
+    apiPatch,
     apiDelete,
     isAuthenticated,
     requireAuth
@@ -393,6 +404,6 @@ window.isAuthenticated = isAuthenticated;
 window.requireAuth = requireAuth;
 window.isTokenValid = isTokenValid;
 
-console.log('%câœ… API Config cargado correctamente', 'color: #4CAF50; font-weight: bold;');
+console.log('API Config cargado correctamente', 'color: #4CAF50; font-weight: bold;');
 console.log('Base URL:', API_CONFIG.BASE_URL);
 console.log('Endpoints disponibles:', Object.keys(ENDPOINTS).length * 10, 'aprox.');

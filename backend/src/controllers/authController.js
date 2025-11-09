@@ -349,4 +349,27 @@ exports.changePassword = async (req, res) => {
     }
 };
 
+// ============================================
+// OBTENER ESTADÍSTICAS DE CLIENTES (ADMIN)
+// ============================================
+
+exports.obtenerEstadisticasClientes = async (req, res) => {
+    try {
+        const totalClientes = await authService.clienteModel.count({ activo: 1 });
+        res.json({
+            success: true,
+            data: {
+                clientes_activos: totalClientes
+            }
+        });
+    } catch (error) {
+        logger.error('Error al obtener estadísticas de clientes:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al obtener estadísticas de clientes',
+            error: error.message
+        });
+    }
+};
+
 module.exports = exports;
