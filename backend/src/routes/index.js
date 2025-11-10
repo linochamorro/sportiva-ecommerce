@@ -11,6 +11,7 @@ const productoRoutes = require('./productoRoutes');
 const carritoRoutes = require('./carritoRoutes');
 const pedidoRoutes = require('./pedidoRoutes');
 const trabajadorRoutes = require('./trabajadorRoutes');
+const clienteRoutes = require('./clienteRoutes');
 
 // ============================================
 // CONFIGURACIÓN DE RUTAS
@@ -30,6 +31,9 @@ router.use('/pedidos', pedidoRoutes);
 
 // Rutas de trabajadores
 router.use('/trabajadores', trabajadorRoutes);
+
+// Rutas de clientes (Gestión Admin)
+router.use('/clientes', clienteRoutes);
 
 // ============================================
 // RUTA DE SALUD DE LA API

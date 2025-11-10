@@ -478,6 +478,124 @@ class ProductoService {
             return [];
         }
     }
+
+
+    // ============================================
+    // CREAR PRODUCTO (ADMIN)
+    // ============================================
+    async crearProducto(data) {
+        // COMENTARIO: Usamos una transacción para asegurar la integridad de datos
+        // al insertar en PRODUCTO, TALLA_PRODUCTO e IMAGEN_PRODUCTO.
+        return await this.productoModel.executeInTransaction(async (connection) => {
+            
+            // 1. Insertar en la tabla PRODUCTO
+            const productoData = {
+                nombre_producto: data.nombre_producto,
+                descripcion: data.descripcion,
+                precio: data.precio,
+                stock_minimo: data.stock_minimo,
+                id_categoria: data.id_categoria,
+                marca: data.marca,
+                sku: data.sku,
+                peso: data.peso,
+                dimensiones: data.dimensiones,
+                tiene_tallas: data.tiene_tallas,
+                estado_producto: data.estado_producto || 'Activo',
+                destacado: data.destacado,
+                nuevo: data.nuevo,
+                descuento_porcentaje: data.descuento_porcentaje
+            };
+
+            const queryProducto = `INSERT INTO PRODUCTO SET ?`;
+            const [resultProducto] = await connection.execute(queryProducto, [productoData]);
+            const newProductoId = resultProducto.insertId;
+
+            // 2. Insertar Stock en TALLA_PRODUCTO
+            // COMENTARIO: Si "tiene_tallas" es falso, se crea una entrada 'UNICA'.
+            if (!data.tiene_tallas) {
+                const queryTalla = `INSERT INTO TALLA_PRODUCTO (id_producto, talla, stock_talla) VALUES (?, 'UNICA', ?)`;
+                await connection.execute(queryTalla, [newProductoId, data.stock_unica || 0]);
+            }
+            // (Si tiene tallas, el admin debe gestionarlas en un módulo de inventario más avanzado)
+
+            // 3. Insertar Imagen Principal en IMAGEN_PRODUCTO
+            // COMENTARIO: Se inserta la imagen principal.
+            if (data.imagen_url) {
+                const queryImagen = `INSERT INTO IMAGEN_PRODUCTO (id_producto, url_imagen, es_principal) VALUES (?, ?, 1)`;
+                await connection.execute(queryImagen, [newProductoId, data.imagen_url]);
+            }
+
+            return { success: true, id: newProductoId, message: 'Producto creado exitosamente' };
+        });
+    }
+
+    // ============================================
+    // ACTUALIZAR PRODUCTO (ADMIN)
+    // ============================================
+    async actualizarProducto(id_producto, data) {
+        // COMENTARIO: Transacción para actualizar PRODUCTO y sus tablas relacionadas.
+        return await this.productoModel.executeInTransaction(async (connection) => {
+            
+            // 1. Actualizar tabla PRODUCTO
+            const productoData = {
+                nombre_producto: data.nombre_producto,
+                descripcion: data.descripcion,
+                precio: data.precio,
+                stock_minimo: data.stock_minimo,
+                id_categoria: data.id_categoria,
+                marca: data.marca,
+                sku: data.sku,
+                peso: data.peso,
+                dimensiones: data.dimensiones,
+                tiene_tallas: data.tiene_tallas,
+                estado_producto: data.estado_producto,
+                destacado: data.destacado,
+                nuevo: data.nuevo,
+                descuento_porcentaje: data.descuento_porcentaje
+            };
+
+            const queryProducto = `UPDATE PRODUCTO SET ? WHERE id_producto = ?`;
+            await connection.execute(queryProducto, [productoData, id_producto]);
+
+            // 2. Actualizar Stock en TALLA_PRODUCTO (Solo para 'UNICA')
+            if (!data.tiene_tallas) {
+                const queryUpdateStock = `
+                    INSERT INTO TALLA_PRODUCTO (id_producto, talla, stock_talla) 
+                    VALUES (?, 'UNICA', ?)
+                    ON DUPLICATE KEY UPDATE stock_talla = VALUES(stock_talla)
+                `;
+                await connection.execute(queryUpdateStock, [id_producto, data.stock_unica || 0]);
+            }
+
+            // 3. Actualizar Imagen Principal en IMAGEN_PRODUCTO
+            if (data.imagen_url) {
+                // Borramos la imagen principal anterior
+                const queryDeleteImg = `DELETE FROM IMAGEN_PRODUCTO WHERE id_producto = ? AND es_principal = 1`;
+                await connection.execute(queryDeleteImg, [id_producto]);
+                
+                // Insertamos la nueva imagen principal
+                const queryInsertImg = `INSERT INTO IMAGEN_PRODUCTO (id_producto, url_imagen, es_principal) VALUES (?, ?, 1)`;
+                await connection.execute(queryInsertImg, [id_producto, data.imagen_url]);
+            }
+
+            return { success: true, message: 'Producto actualizado exitosamente' };
+        });
+    }
+
+    // ============================================
+    // ACTUALIZAR ESTADO DE PRODUCTO (ADMIN)
+    // ============================================
+    async actualizarEstadoProducto(id_producto, estado) {
+        // COMENTARIO: Actualiza solo el estado (Activo/Inactivo).
+        const query = `UPDATE PRODUCTO SET estado_producto = ? WHERE id_producto = ?`;
+        const [result] = await this.productoModel.db.execute(query, [estado, id_producto]);
+
+        if (result.affectedRows === 0) {
+            return { success: false, message: 'Producto no encontrado' };
+        }
+        
+        return { success: true, message: `Producto ${estado === 'Activo' ? 'activado' : 'desactivado'}` };
+    }
 }
 
 // Exportar instancia única (Singleton pattern)

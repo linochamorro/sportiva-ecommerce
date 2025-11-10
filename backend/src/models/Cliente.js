@@ -415,6 +415,30 @@ class Cliente extends BaseModel {
             throw new Error(`Error desactivando cliente: ${error.message}`);
         }
     }
+
+    /**
+     * Activa o desactiva un cliente (Admin)
+     */
+    async updateEstado(id_cliente, estado) {
+        try {
+            // El estado debe ser 0 (Inactivo) o 1 (Activo)
+            const nuevoEstado = (estado === 1 || estado === 'Activo' || estado === true) ? 1 : 0;
+
+            const query = `
+                UPDATE CLIENTE
+                SET activo = ?
+                WHERE id_cliente = ?
+            `;
+
+            const [result] = await this.db.execute(query, [nuevoEstado, id_cliente]);
+
+            return {
+                success: result.affectedRows > 0
+            };
+        } catch (error) {
+            throw new Error(`Error actualizando estado del cliente: ${error.message}`);
+        }
+    }
 }
 
 module.exports = Cliente;

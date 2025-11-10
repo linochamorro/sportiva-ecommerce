@@ -39,16 +39,19 @@ const ENDPOINTS = {
         DESTACADOS: '/productos/destacados',
         OFERTAS: '/productos/ofertas',
         NUEVOS: '/productos/nuevos',
+        CREAR: '/productos',
         CATEGORIA: (id) => `/productos/categoria/${id}`,
         DETALLE: (id) => `/productos/${id}`,
         STOCK: (id) => `/productos/${id}/stock`,
         RELACIONADOS: (id) => `/productos/${id}/relacionados`,
         RESENAS: (id) => `/productos/${id}/resenas`,
+
+        ACTUALIZAR: (id) => `/productos/${id}`,
+        CAMBIAR_ESTADO: (id) => `/productos/${id}/estado`,
         STATS_CATEGORIAS: '/productos/stats/categorias',
         STATS_PRECIOS: '/productos/stats/precios',
         STATS_GENERAL: '/productos/stats/general'
     },
-    
     CARRITO: {
         OBTENER: '/carrito',
         AGREGAR_ITEM: '/carrito/items',
@@ -75,6 +78,13 @@ const ENDPOINTS = {
         STATS_ADMIN: '/pedidos/stats/admin'
     },
     
+    CLIENTES: {
+        LISTAR: '/clientes',
+        DETALLE: (id) => `/clientes/${id}`,
+        ACTUALIZAR: (id) => `/clientes/${id}`,
+        CAMBIAR_ESTADO: (id) => `/clientes/${id}/estado`
+    },
+
     TRABAJADORES: {
         LOGIN: '/trabajadores/login',
         REGISTER: '/trabajadores/register',

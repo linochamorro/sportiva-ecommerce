@@ -452,14 +452,20 @@ exports.obtenerResenas = async (req, res) => {
 
 exports.obtenerEstadisticasCategorias = async (req, res) => {
     try {
-        const estadisticas = await Producto.getCategoriaStats();
+        // Se llama a 'getAvailableFilters' del servicio,
+        // que ya consulta la BD por categorías.
+        const resultado = await productoService.getAvailableFilters();
 
-        res.json({
-            success: true,
-            data: {
-                categorias: estadisticas
-            }
-        });
+        if (resultado.success) {
+            // Devolvemos el objeto 'data' completo del servicio.
+            // El frontend (admin-dashboard.html) espera la respuesta en 'response.data.categorias'.
+            res.json({
+                success: true,
+                data: resultado.data 
+            });
+        } else {
+            res.status(400).json(resultado);
+        }
 
     } catch (error) {
         logger.error('Error al obtener estadísticas de categorías:', error);
@@ -543,6 +549,113 @@ exports.obtenerEstadisticas = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Error al obtener estadísticas',
+            error: error.message
+        });
+    }
+};
+
+// ============================================
+// CREAR NUEVO PRODUCTO (ADMIN/VENDEDOR)
+// Endpoint: POST /api/productos
+// ============================================
+
+exports.crearProducto = async (req, res) => {
+    try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                success: false,
+                message: 'Errores de validación',
+                errors: errors.array()
+            });
+        }
+
+        // Se envían los datos del formulario al servicio.
+        const resultado = await productoService.crearProducto(req.body);
+
+        if (resultado.success) {
+            res.status(201).json(resultado);
+        } else {
+            res.status(400).json(resultado);
+        }
+
+    } catch (error) {
+        logger.error('Error al crear producto:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al crear producto',
+            error: error.message
+        });
+    }
+};
+
+// ============================================
+// ACTUALIZAR PRODUCTO (ADMIN/VENDEDOR)
+// Endpoint: PUT /api/productos/:id
+// ============================================
+
+exports.actualizarProducto = async (req, res) => {
+    try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                success: false,
+                message: 'Errores de validación',
+                errors: errors.array()
+            });
+        }
+
+        const productoId = req.params.id;
+        
+        // Se envían los datos y el ID al servicio.
+        const resultado = await productoService.actualizarProducto(productoId, req.body);
+
+        if (resultado.success) {
+            res.json(resultado);
+        } else {
+            res.status(400).json(resultado);
+        }
+
+    } catch (error) {
+        logger.error('Error al actualizar producto:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al actualizar producto',
+            error: error.message
+        });
+    }
+};
+
+// ============================================
+// ACTUALIZAR ESTADO DE PRODUCTO (ADMIN/VENDEDOR)
+// Endpoint: PATCH /api/productos/:id/estado
+// ============================================
+
+exports.actualizarEstadoProducto = async (req, res) => {
+    try {
+        const productoId = req.params.id;
+        const { estado } = req.body; // Se espera { "estado": "Inactivo" }
+
+        if (!estado || !['Activo', 'Inactivo', 'Descontinuado'].includes(estado)) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Estado inválido. Debe ser 'Activo', 'Inactivo' o 'Descontinuado'." 
+            });
+        }
+
+        const resultado = await productoService.actualizarEstadoProducto(productoId, estado);
+
+        if (resultado.success) {
+            res.json(resultado);
+        } else {
+            res.status(404).json(resultado);
+        }
+
+    } catch (error) {
+        logger.error('Error al actualizar estado de producto:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al actualizar estado de producto',
             error: error.message
         });
     }

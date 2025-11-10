@@ -5,7 +5,7 @@
 const express = require('express');
 const router = express.Router();
 const productoController = require('../controllers/productoController');
-const { requireAdmin, verifyToken } = require('../middlewares/authMiddleware');
+const { requireAdmin, verifyToken, requireVendedor } = require('../middlewares/authMiddleware');
 
 // IMPORTAR VALIDATORS
 const {
@@ -15,7 +15,9 @@ const {
     validateCategoria,
     validateVerificarStock,
     validateProductosRelacionados,
-    validateObtenerResenas
+    validateObtenerResenas,
+    validateCrearProducto,
+    validateActualizarProducto
 } = require('../validators');
 
 // ============================================
@@ -96,6 +98,37 @@ router.get('/stats/general',
     verifyToken,
     requireAdmin,
     productoController.obtenerEstadisticas
+);
+
+// ============================================
+// RUTAS PROTEGIDAS (ADMIN / VENDEDOR)
+// ============================================
+
+// Se usa 'requireVendedor' que, según,
+// permite el acceso a Vendedores y Administradores.
+
+// POST /api/productos - Crear un nuevo producto
+router.post('/',
+    verifyToken,
+    requireVendedor,
+    validateCrearProducto,
+    productoController.crearProducto
+);
+
+// PUT /api/productos/:id - Actualizar un producto existente
+router.put('/:id',
+    verifyToken,
+    requireVendedor,
+    validateActualizarProducto,
+    productoController.actualizarProducto
+);
+
+// PATCH /api/productos/:id/estado - Cambiar el estado de un producto
+router.patch('/:id/estado',
+    verifyToken,
+    requireVendedor,
+    validateProductoId, // Reutilizamos el validador de ID
+    productoController.actualizarEstadoProducto
 );
 
 module.exports = router;

@@ -465,7 +465,6 @@
                             </div>
                             <div class="stat-change positive">+12.5% vs mes anterior</div>
                         </div>
-
                         <div class="stat-card">
                             <div class="stat-header">
                                 <div>
@@ -476,7 +475,6 @@
                             </div>
                             <div class="stat-change positive">+8.2% vs mes anterior</div>
                         </div>
-
                         <div class="stat-card">
                             <div class="stat-header">
                                 <div>
@@ -487,7 +485,6 @@
                             </div>
                             <div class="stat-change positive">+15.3% vs mes anterior</div>
                         </div>
-
                         <div class="stat-card">
                             <div class="stat-header">
                                 <div>
@@ -549,27 +546,52 @@
                     </div>
                 </div>
 
-                <!-- SECTION: PRODUCTOS -->
                 <div id="section-productos" class="content-section" style="display: none;">
                     <div class="section-card">
                         <div class="section-header">
                             <h3 class="section-title">Gestión de Productos</h3>
-                            <button class="btn-dashboard btn-primary">➕ Nuevo Producto</button>
+                            <button class="btn-dashboard" 
+                                    style="background-color: #111827; color: white;" 
+                                    onmouseover="this.style.backgroundColor='#374151'" 
+                                    onmouseout="this.style.backgroundColor='#111827'"
+                                    onclick="mostrarModalProducto()">
+                                <span style="color: white; font-weight: bold; font-size: 1.25rem; line-height: 1;">+</span>
+                                <span>Nuevo Producto</span>
+                            </button>
                         </div>
                         <p style="color: #6B7280; margin-bottom: 24px;">
                             Aquí podrás crear, editar y administrar todos los productos de la tienda.
                         </p>
-                        <div style="padding: 60px; text-align: center; background: #F9FAFB; border-radius: 8px;">
-                            <div style="font-size: 48px; margin-bottom: 16px;">📦</div>
-                            <h4 style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Módulo en Desarrollo</h4>
-                            <p style="color: #6B7280;">La gestión completa de productos estará disponible próximamente.</p>
+
+                        <div style="overflow-x: auto;">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Producto</th>
+                                        <th>Categoría</th>
+                                        <th>Marca</th>
+                                        <th>Precio</th>
+                                        <th>Stock Total</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="productosTableBody">
+                                    <tr>
+                                        <td colspan="8" style="text-align: center; padding: 40px; color: #9CA3AF;">
+                                            Cargando productos...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
 
-                <!-- SECTION: PEDIDOS -->
-                <div id="section-pedidos" class="content-section" style="display: none;">
-                    <div class="section-card">
+                    <!-- PEDIDOS -->
+                    <div id="section-pedidos" class="content-section" style="display: none;">
+                      <div class="section-card">
                         <div class="section-header">
                             <h3 class="section-title">Gestión de Pedidos</h3>
                         </div>
@@ -581,72 +603,87 @@
                             <h4 style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Módulo en Desarrollo</h4>
                             <p style="color: #6B7280;">La gestión de pedidos estará disponible próximamente.</p>
                         </div>
+                      </div>
                     </div>
-                </div>
 
-                <!-- SECTION: CLIENTES -->
-                <div id="section-clientes" class="content-section" style="display: none;">
-                    <div class="section-card">
+                    <!-- CLIENTES -->
+                    <div id="section-clientes" class="content-section" style="display: none;">
+                      <div class="section-card">
                         <div class="section-header">
-                            <h3 class="section-title">Gestión de Clientes</h3>
+                          <h3 class="section-title">Gestión de Clientes</h3>
                         </div>
                         <p style="color: #6B7280; margin-bottom: 24px;">
-                            Administra la información de todos los clientes registrados.
+                          Administra la información de todos los clientes registrados.
                         </p>
-                        <div style="padding: 60px; text-align: center; background: #F9FAFB; border-radius: 8px;">
-                            <div style="font-size: 48px; margin-bottom: 16px;">👥</div>
-                            <h4 style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Módulo en Desarrollo</h4>
-                            <p style="color: #6B7280;">La gestión de clientes estará disponible próximamente.</p>
+                        <div style="overflow-x: auto;">
+                          <table class="data-table">
+                            <thead>
+                              <tr>
+                                  <th>ID</th>
+                                  <th>Nombre</th>
+                                  <th>Email</th>
+                                  <th>Teléfono</th>
+                                  <th>Estado</th>
+                                  <th>Última Sesión</th>
+                                  <th>Acciones</th>
+                              </tr>
+                            </thead>
+                            <tbody id="clientesTableBody">
+                              <tr>
+                                <td colspan="7" style="text-align: center; padding: 40px; color: #9CA3AF;">
+                                    Cargando clientes...
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- TRABAJADORES -->
+                    <div id="section-trabajadores" class="content-section" style="display: none;">
+                        <div class="section-card">
+                            <div class="section-header">
+                                <h3 class="section-title">Gestión de Trabajadores</h3>
+                                <button class="btn-dashboard" 
+                                  style="background-color: #111827; color: white;" 
+                                  onmouseover="this.style.backgroundColor='#374151'" 
+                                  onmouseout="this.style.backgroundColor='#111827'"
+                                  onclick="mostrarModalTrabajador()">
+                                  <span style="color: white; font-weight: bold; font-size: 1.25rem; line-height: 1;">+</span>
+                                  <span>Nuevo Trabajador</span>
+                                </button>
+                            </div>
+                            <p style="color: #6B7280; margin-bottom: 24px;">
+                                Crea y administra cuentas de trabajadores (Administradores y Vendedores).
+                            </p>
+                            <div style="overflow-x: auto;">
+                                <table class="data-table">
+                                  <thead>
+                                      <tr>
+                                        <th>ID</th>
+                                        <th>Nombre</th>
+                                        <th>Email</th>
+                                        <th>Rol</th>
+                                        <th>Estado</th>
+                                        <th>Última Sesión</th>
+                                        <th>Acciones</th>
+                                      </tr>
+                                  </thead>
+                                  <tbody id="trabajadoresTableBody">
+                                    <tr>
+                                      <td colspan="7" style="text-align: center; padding: 40px; color: #9CA3AF;">
+                                        Cargando trabajadores...
+                                      </td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- SECTION: TRABAJADORES -->
-                <div id="section-trabajadores" class="content-section" style="display: none;">
-                  <div class="section-card">
-                    <div class="section-header">
-                        <h3 class="section-title">Gestión de Trabajadores</h3>
-                        <button class="btn-dashboard" 
-                          style="background-color: #111827; color: white;" 
-                          onmouseover="this.style.backgroundColor='#374151'" 
-                          onmouseout="this.style.backgroundColor='#111827'"
-                          onclick="mostrarModalTrabajador()">
-                          <span style="color: white; font-weight: bold; font-size: 1.25rem; line-height: 1;">+</span>
-                          <span>Nuevo Trabajador</span>
-                        </button>
-                    </div>
-                    <p style="color: #6B7280; margin-bottom: 24px;">
-                        Crea y administra cuentas de trabajadores (Administradores y Vendedores).
-                    </p>
-
-                    <div style="overflow-x: auto;">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Nombre</th>
-                                    <th>Email</th>
-                                    <th>Rol</th>
-                                    <th>Estado</th>
-                                    <th>Última Sesión</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="trabajadoresTableBody">
-                                <tr>
-                                    <td colspan="7" style="text-align: center; padding: 40px; color: #9CA3AF;">
-                                        Cargando trabajadores...
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- SECTION: REPORTES -->
-                <div id="section-reportes" class="content-section" style="display: none;">
-                    <div class="section-card">
+                    <!-- REPORTES -->
+                    <div id="section-reportes" class="content-section" style="display: none;">
+                      <div class="section-card">
                         <div class="section-header">
                             <h3 class="section-title">Reportes y Estadísticas</h3>
                         </div>
@@ -658,25 +695,25 @@
                             <h4 style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Módulo en Desarrollo</h4>
                             <p style="color: #6B7280;">Los reportes estarán disponibles próximamente.</p>
                         </div>
+                      </div>
                     </div>
-                </div>
 
-                <!-- SECTION: CONFIGURACIÓN -->
-                <div id="section-configuracion" class="content-section" style="display: none;">
-                    <div class="section-card">
-                        <div class="section-header">
+                    <!-- CONFIGURACIÓN -->
+                    <div id="section-configuracion" class="content-section" style="display: none;">
+                      <div class="section-card">
+                          <div class="section-header">
                             <h3 class="section-title">Configuración del Sistema</h3>
-                        </div>
-                        <p style="color: #6B7280; margin-bottom: 24px;">
+                          </div>
+                          <p style="color: #6B7280; margin-bottom: 24px;">
                             Configura opciones generales de la tienda.
-                        </p>
-                        <div style="padding: 60px; text-align: center; background: #F9FAFB; border-radius: 8px;">
+                          </p>
+                          <div style="padding: 60px; text-align: center; background: #F9FAFB; border-radius: 8px;">
                             <div style="font-size: 48px; margin-bottom: 16px;">⚙️</div>
                             <h4 style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Módulo en Desarrollo</h4>
                             <p style="color: #6B7280;">La configuración estará disponible próximamente.</p>
-                        </div>
+                          </div>
+                      </div>
                     </div>
-                </div>
             </div>
         </main>
     </div>
@@ -687,7 +724,6 @@
             <h2 id="modalTrabajadorTitulo" style="font-size: 24px; font-weight: 700; margin-bottom: 24px;">Nuevo Trabajador</h2>
             <form id="formTrabajador" onsubmit="guardarTrabajador(event); return false;">
                 <input type="hidden" id="trabajadorId" value="">
-
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                     <div class="form-group" style="margin-bottom: 16px;">
                         <label class="form-label" style="font-size: 14px; font-weight: 600; margin-bottom: 8px; display: block;">Nombre *</label>
@@ -698,18 +734,15 @@
                         <input type="text" id="trabajadorApellido" class="form-input" style="width: 100%; padding: 10px; border: 1px solid #D1D5DB; border-radius: 6px;" required>
                     </div>
                 </div>
-
                 <div class="form-group" style="margin-bottom: 16px;">
                     <label class="form-label" style="font-size: 14px; font-weight: 600; margin-bottom: 8px; display: block;">Email *</label>
                     <input type="email" id="trabajadorEmail" class="form-input" style="width: 100%; padding: 10px; border: 1px solid #D1D5DB; border-radius: 6px;" placeholder="nombre@sportiva.com" required>
                     <small style="color: #6B7280; font-size: 12px;">Debe ser un email `@sportiva.com`.</small>
                 </div>
-
                 <div class="form-group" style="margin-bottom: 16px;">
                     <label class="form-label" style="font-size: 14px; font-weight: 600; margin-bottom: 8px; display: block;">Teléfono (Opcional)</label>
                     <input type="tel" id="trabajadorTelefono" class="form-input" style="width: 100%; padding: 10px; border: 1px solid #D1D5DB; border-radius: 6px;" placeholder="987654321" maxlength="9">
                 </div>
-
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                     <div class="form-group" style="margin-bottom: 16px;">
                         <label class="form-label" style="font-size: 14px; font-weight: 600; margin-bottom: 8px; display: block;">Contraseña *</label>
@@ -723,9 +756,7 @@
                         </select>
                     </div>
                 </div>
-
                 <div id="errorModalTrabajador" style="color: var(--color-error); font-size: 14px; margin-bottom: 16px; display: none;"></div>
-
                 <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
                     <button type="button" class="btn-dashboard btn-secondary" onclick="cerrarModalTrabajador()">Cancelar</button>
                     <button type="submit" class="btn-dashboard" id="btnGuardarTrabajador" 
@@ -738,7 +769,6 @@
             </form>
         </div>
     </div>
-
     <div id="modalConfirmacion" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1010; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
         <div style="background-color: white; max-width: 450px; width: 90%; padding: 32px; border-radius: 12px; text-align: center; box-shadow: 0 4px 24px rgba(0,0,0,0.15);">
             <h3 id="modalConfirmTitulo" style="font-size: 20px; font-weight: 700; margin-bottom: 12px;">Confirmar Acción</h3>
@@ -747,6 +777,159 @@
                 <button id="btnModalCancelar" class="btn-dashboard btn-secondary">Cancelar</button>
                 <button id="btnModalConfirmar" class="btn-dashboard" style="background-color: #DC2626; color: white;">Confirmar</button>
             </div>
+        </div>
+    </div>
+
+    <div id="modalCliente" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+        <div style="background-color: white; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; padding: 32px; border-radius: 12px; position: relative;">
+            <button onclick="cerrarModalCliente()" style="position: absolute; top: 16px; right: 16px; font-size: 24px; font-weight: 700; color: #9CA3AF; cursor: pointer; background: none; border: none;">&times;</button>
+            <h2 id="modalClienteTitulo" style="font-size: 24px; font-weight: 700; margin-bottom: 24px;">Editar Cliente</h2>
+            <form id="formCliente" onsubmit="guardarCliente(event); return false;">
+                <input type="hidden" id="clienteId" value="">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label class="form-label" style="font-size: 14px; font-weight: 600; margin-bottom: 8px; display: block;">Nombre *</label>
+                        <input type="text" id="clienteNombre" class="form-input" style="width: 100%; padding: 10px; border: 1px solid #D1D5DB; border-radius: 6px;" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label class="form-label" style="font-size: 14px; font-weight: 600; margin-bottom: 8px; display: block;">Apellido *</label>
+                        <input type="text" id="clienteApellido" class="form-input" style="width: 100%; padding: 10px; border: 1px solid #D1D5DB; border-radius: 6px;" required>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label class="form-label" style="font-size: 14px; font-weight: 600; margin-bottom: 8px; display: block;">Email *</label>
+                    <input type="email" id="clienteEmail" class="form-input" style="width: 100%; padding: 10px; border: 1px solid #D1D5DB; border-radius: 6px;" required>
+                </div>
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label class="form-label" style="font-size: 14px; font-weight: 600; margin-bottom: 8px; display: block;">Teléfono (Opcional)</label>
+                    <input type="tel" id="clienteTelefono" class="form-input" style="width: 100%; padding: 10px; border: 1px solid #D1D5DB; border-radius: 6px;" placeholder="987654321" maxlength="9">
+                </div>
+                <div id="errorModalCliente" style="color: var(--color-error); font-size: 14px; margin-bottom: 16px; display: none;"></div>
+                <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
+                    <button type="button" class="btn-dashboard btn-secondary" onclick="cerrarModalCliente()">Cancelar</button>
+                    <button type="submit" class="btn-dashboard" id="btnGuardarCliente" 
+                            style="background-color: #111827; color: white;" 
+                            onmouseover="this.style.backgroundColor='#374151'" 
+                            onmouseout="this.style.backgroundColor='#111827'">
+                        Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div id="modalProducto" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+        <div style="background-color: white; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; padding: 32px; border-radius: 12px; position: relative;">
+            <button onclick="cerrarModalProducto()" style="position: absolute; top: 16px; right: 16px; font-size: 24px; font-weight: 700; color: #9CA3AF; cursor: pointer; background: none; border: none;">&times;</button>
+            <h2 id="modalProductoTitulo" style="font-size: 24px; font-weight: 700; margin-bottom: 24px;">Nuevo Producto</h2>
+
+            <form id="formProducto" onsubmit="guardarProducto(event); return false;">
+                <input type="hidden" id="productoId" value="">
+
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label class="form-label" style="font-size: 14px; font-weight: 600; margin-bottom: 8px; display: block;">Nombre del Producto *</label>
+                    <input type="text" id="productoNombre" class="form-input" style="width: 100%; padding: 10px; border: 1px solid #D1D5DB; border-radius: 6px;" required>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label class="form-label" style="font-size: 14px; font-weight: 600; margin-bottom: 8px; display: block;">Descripción *</label>
+                    <textarea id="productoDescripcion" class="form-input" style="width: 100%; padding: 10px; border: 1px solid #D1D5DB; border-radius: 6px; min-height: 80px;" required></textarea>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label class="form-label" style="font-size: 14px; font-weight: 600; margin-bottom: 8px; display: block;">Precio (S/) *</label>
+                        <input type="number" id="productoPrecio" class="form-input" style="width: 100%; padding: 10px; border: 1px solid #D1D5DB; border-radius: 6px;" step="0.01" min="0.01" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label class="form-label" style="font-size: 14px; font-weight: 600; margin-bottom: 8px; display: block;">Marca *</label>
+                        <input type="text" id="productoMarca" class="form-input" style="width: 100%; padding: 10px; border: 1px solid #D1D5DB; border-radius: 6px;" required>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label class="form-label" style="font-size: 14px; font-weight: 600; margin-bottom: 8px; display: block;">Categoría *</label>
+                        <select id="productoCategoria" class="form-select" style="width: 100%; padding: 10px; border: 1px solid #D1D5DB; border-radius: 6px; background-color: white;" required>
+                            </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label class="form-label" style="font-size: 14px; font-weight: 600; margin-bottom: 8px; display: block;">SKU *</label>
+                        <input type="text" id="productoSku" class="form-input" style="width: 100%; padding: 10px; border: 1px solid #D1D5DB; border-radius: 6px;" required>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label class="form-label" style="font-size: 14px; font-weight: 600; margin-bottom: 8px; display: block;">Peso (kg)</label>
+                        <input type="number" id="productoPeso" class="form-input" style="width: 100%; padding: 10px; border: 1px solid #D1D5DB; border-radius: 6px;" step="0.01" min="0">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label class="form-label" style="font-size: 14px; font-weight: 600; margin-bottom: 8px; display: block;">Dimensiones (cm)</label>
+                        <input type="text" id="productoDimensiones" class="form-input" style="width: 100%; padding: 10px; border: 1px solid #D1D5DB; border-radius: 6px;" placeholder="Ej: 30x20x10">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label class="form-label" style="font-size: 14px; font-weight: 600; margin-bottom: 8px; display: block;">URL Imagen Principal (Opcional)</label>
+                    <input type="text" id="productoImagenUrl" class="form-input" style="width: 100%; padding: 10px; border: 1px solid #D1D5DB; border-radius: 6px;" placeholder="assets/images/productos/mi-producto.jpg">
+                    <small style="color: #6B7280; font-size: 12px;">Ruta relativa a la carpeta `frontend/`. Ej: `assets/images/productos/mi-producto.jpg`</small>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label class="form-label" style="font-size: 14px; font-weight: 600; margin-bottom: 8px; display: block;">Stock Mínimo</label>
+                        <input type="number" id="productoStockMinimo" class="form-input" style="width: 100%; padding: 10px; border: 1px solid #D1D5DB; border-radius: 6px;" min="0" value="5">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label class="form-label" style="font-size: 14px; font-weight: 600; margin-bottom: 8px; display: block;">Descuento (%)</label>
+                        <input type="number" id="productoDescuento" class="form-input" style="width: 100%; padding: 10px; border: 1px solid #D1D5DB; border-radius: 6px;" step="0.01" min="0" value="0.00">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px;">
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 14px;">
+                        <input type="checkbox" id="productoTieneTallas"> Tiene Tallas
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 14px;">
+                        <input type="checkbox" id="productoDestacado"> Destacado
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 14px;">
+                        <input type="checkbox" id="productoNuevo" checked> Nuevo
+                    </label>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label class="form-label" style="font-size: 14px; font-weight: 600; margin-bottom: 8px; display: block;">Estado *</label>
+                        <select id="productoEstado" class="form-select" style="width: 100%; padding: 10px; border: 1px solid #D1D5DB; border-radius: 6px; background-color: white;" required>
+                            <option value="Activo">Activo</option>
+                            <option value="Inactivo">Inactivo</option>
+                            <option value="Descontinuado">Descontinuado</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="stockUnicaContainer" style="margin-bottom: 16px;">
+                        <label class="form-label" style="font-size: 14px; font-weight: 600; margin-bottom: 8px; display: block;">Stock (Talla Única) *</label>
+                        <input type="number" id="productoStockUnica" class="form-input" style="width: 100%; padding: 10px; border: 1px solid #D1D5DB; border-radius: 6px;" min="0" value="0">
+                    </div>
+                </div>
+
+                <small id="tallasInfo" style="color: #6B7280; font-size: 12px; display: none;">
+                  La gestión de múltiples tallas y su stock se realiza en un módulo avanzado.
+                </small>
+
+                <div id="errorModalProducto" style="color: var(--color-error); font-size: 14px; margin-bottom: 16px; display: none;"></div>
+
+                <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
+                    <button type="button" class="btn-dashboard btn-secondary" onclick="cerrarModalProducto()">Cancelar</button>
+                    <button type="submit" class="btn-dashboard" id="btnGuardarProducto" 
+                            style="background-color: #111827; color: white;" 
+                            onmouseover="this.style.backgroundColor='#374151'" 
+                            onmouseout="this.style.backgroundColor='#111827'">
+                        Guardar
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -789,6 +972,7 @@
         // ============================================
         // CARGAR ESTADÍSTICAS
         // ============================================
+
         async function cargarEstadisticas() {
           try {
             // 1. Cargar estadísticas de PRODUCTOS
@@ -853,12 +1037,14 @@
           }
           // Cargar datos dinámicamente al cambiar de sección
           switch (sectionName) {
+            case 'productos':
+                cargarProductos();
+                break;
             case 'trabajadores':
                 cargarTrabajadores();
                 break;
             case 'clientes':
-                // (Aún no implementado)
-                // cargarClientes(); 
+                cargarClientes(); 
                 break;
             case 'pedidos':
                 // (Aún no implementado)
@@ -895,6 +1081,7 @@
         // ============================================
         // CERRAR SESIÓN
         // ============================================
+
         async function cerrarSesion() {
             if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
                 await authService.logout();
@@ -956,12 +1143,14 @@
                     <td><span class="${estadoClass}">${t.estado}</span></td>
                     <td>${fechaSesion}</td>
                     <td>
-                        <button class="btn-dashboard btn-secondary btn-sm" onclick="mostrarModalTrabajador(${t.id_trabajador})" title="Editar">
-                            ✏️
-                        </button>
-                        <button class="btn-dashboard btn-secondary btn-sm" onclick="cambiarEstadoTrabajador(${t.id_trabajador}, '${t.estado}')" title="Cambiar Estado">
-                            ${t.estado === 'Activo' ? '❌' : '✅'}
-                        </button>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn-dashboard btn-secondary btn-sm" onclick="mostrarModalTrabajador(${t.id_trabajador})" title="Editar">
+                                ✏️
+                            </button>
+                            <button class="btn-dashboard btn-secondary btn-sm" onclick="cambiarEstadoTrabajador(${t.id_trabajador}, '${t.estado}')" title="Cambiar Estado">
+                                ${t.estado === 'Activo' ? '❌' : '✅'}
+                            </button>
+                        </div>
                     </td>
                 </tr>
             `;
@@ -1000,7 +1189,7 @@
             if (response.success && response.data) {
                 const worker = response.data;
 
-                // 4. POBLAR EL FORMULARIO
+                // 4. LLENAR EL FORMULARIO CON DATA DEL REGISTRO A EDITAR
                 document.getElementById('trabajadorNombre').value = worker.nombre;
                 document.getElementById('trabajadorApellido').value = worker.apellido;
                 document.getElementById('trabajadorEmail').value = worker.email;
@@ -1195,6 +1384,522 @@
         return false;
     }
 
+    // ============================================
+    // GESTIÓN DE CLIENTES (CRUD)
+    // ============================================
+
+    /**
+     * Carga y renderiza la tabla de clientes
+     */
+    async function cargarClientes() {
+        const tableBody = document.getElementById('clientesTableBody');
+        tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center;">Cargando...</td></tr>`;
+
+        try {
+            const response = await apiGet(ENDPOINTS.CLIENTES.LISTAR);
+
+            if (response.success && Array.isArray(response.data)) {
+                renderClientesTabla(response.data);
+            } else {
+                tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: red;">Error al cargar clientes.</td></tr>`;
+            }
+        } catch (error) {
+            console.error('Error al cargar clientes:', error);
+            tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: red;">${error.message}</td></tr>`;
+        }
+    }
+
+    /**
+     * Renderiza las filas de la tabla de clientes
+     */
+    function renderClientesTabla(clientes) {
+        const tableBody = document.getElementById('clientesTableBody');
+        if (clientes.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center;">No se encontraron clientes.</td></tr>`;
+            return;
+        }
+
+        tableBody.innerHTML = clientes.map(c => {
+            // La tabla CLIENTE usa 'activo' (0 o 1)
+            const estadoClass = c.activo ? 'badge success' : 'badge danger';
+            const estadoTexto = c.activo ? 'Activo' : 'Inactivo';
+
+            let fechaSesion = 'Nunca';
+            if (c.ultimo_acceso) { 
+                fechaSesion = new Date(c.ultimo_acceso).toLocaleString('es-PE');
+            }
+
+            return `
+                <tr>
+                    <td>${c.id_cliente}</td>
+                    <td>${c.nombre} ${c.apellido}</td>
+                    <td>${c.email}</td>
+                    <td>${c.telefono || 'N/A'}</td>
+                    <td><span class="${estadoClass}">${estadoTexto}</span></td>
+                    <td>${fechaSesion}</td>
+                    <td>
+                        <button class="btn-dashboard btn-secondary btn-sm" onclick="mostrarModalCliente(${c.id_cliente})" title="Editar">
+                            ✏️
+                        </button>
+                        <button class="btn-dashboard btn-secondary btn-sm" onclick="cambiarEstadoCliente(${c.id_cliente}, ${c.activo})" title="Cambiar Estado">
+                            ${c.activo ? '❌' : '✅'}
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    /**
+     * Muestra el modal para editar un cliente
+     */
+    async function mostrarModalCliente(id) {
+        const modal = document.getElementById('modalCliente');
+        const form = document.getElementById('formCliente');
+        const titulo = document.getElementById('modalClienteTitulo');
+        const errorBox = document.getElementById('errorModalCliente');
+
+        errorBox.style.display = 'none';
+        form.reset();
+        titulo.textContent = 'Editar Cliente';
+        document.getElementById('clienteId').value = id;
+
+        try {
+            const response = await apiGet(ENDPOINTS.CLIENTES.DETALLE(id));
+            if (response.success && response.data) {
+                const cliente = response.data;
+                document.getElementById('clienteNombre').value = cliente.nombre;
+                document.getElementById('clienteApellido').value = cliente.apellido;
+                document.getElementById('clienteEmail').value = cliente.email;
+                document.getElementById('clienteTelefono').value = cliente.telefono || '';
+                modal.style.display = 'flex';
+            } else {
+                throw new Error(response.message);
+            }
+        } catch (error) {
+            if(typeof mostrarToast === 'function') mostrarToast('Error al cargar cliente: ' + error.message, 'error');
+        }
+    }
+
+    /**
+     * Cierra el modal de cliente
+     */
+    function cerrarModalCliente() {
+        document.getElementById('modalCliente').style.display = 'none';
+    }
+
+    /**
+     * Guarda los cambios de un cliente
+     */
+    async function guardarCliente(event) {
+        event.preventDefault();
+        const btn = document.getElementById('btnGuardarCliente');
+        const errorBox = document.getElementById('errorModalCliente');
+
+        const id = document.getElementById('clienteId').value;
+        const data = {
+            nombre: document.getElementById('clienteNombre').value,
+            apellido: document.getElementById('clienteApellido').value,
+            email: document.getElementById('clienteEmail').value,
+            telefono: document.getElementById('clienteTelefono').value || null
+        };
+
+        btn.disabled = true;
+        btn.textContent = 'Guardando...';
+        errorBox.style.display = 'none';
+
+        try {
+            const response = await apiPut(ENDPOINTS.CLIENTES.ACTUALIZAR(id), data);
+            if (response.success) {
+                cerrarModalCliente();
+                await cargarClientes();
+                if(typeof mostrarToast === 'function') mostrarToast('Cliente actualizado', 'success');
+            } else {
+                throw new Error(response.message);
+            }
+        } catch (error) {
+            errorBox.textContent = 'Error: ' + error.message;
+            errorBox.style.display = 'block';
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Guardar Cambios';
+        }
+        return false;
+    }
+
+    /**
+     * Cambia el estado (Activo/Inactivo) de un cliente
+     */
+    async function cambiarEstadoCliente(id, estadoActual) {
+        const nuevoEstado = estadoActual === 1 ? 0 : 1; // 1 es Activo, 0 es Inactivo
+        const accion = estadoActual === 1 ? 'Desactivar' : 'Activar';
+
+        mostrarConfirmacionAdmin(
+            `¿Estás seguro de ${accion.toLowerCase()} a este cliente?`,
+            `${accion} Cliente`,
+            async () => {
+                try {
+                    const response = await apiPatch(ENDPOINTS.CLIENTES.CAMBIAR_ESTADO(id), { estado: nuevoEstado });
+
+                    if (response.success) {
+                        if (typeof mostrarToast === 'function') mostrarToast(response.message || 'Estado cambiado', 'success');
+                        await cargarClientes();
+                    } else {
+                        throw new Error(response.message);
+                    }
+                } catch (error) {
+                    if(typeof mostrarToast === 'function') mostrarToast('Error: ' + error.message, 'error');
+                }
+            }
+        );
+    }
+
+
+        // ============================================
+        // 3. GESTIÓN DE PRODUCTOS (CORREGIDO)
+        // ============================================
+
+        // Variable para cachear categorías
+        let cacheCategorias = null;
+
+        /**
+         * Carga las categorías desde la API (o productos) y las guarda en cache
+         */
+        async function cargarOpcionesCategorias() {
+            if (cacheCategorias) {
+                return cacheCategorias;
+            }
+
+            try {
+                // COMENTARIO (Req: Corrección Categorías): 
+                // El endpoint STATS_CATEGORIAS devuelve { data: { categorias: [...] } }.
+                // Accedemos a response.data.categorias en lugar de response.data.
+                const response = await apiGet(ENDPOINTS.PRODUCTOS.STATS_CATEGORIAS);
+
+                if (response.success && response.data && Array.isArray(response.data.categorias)) {
+                    // Se accede al array anidado correctamente
+                    cacheCategorias = response.data.categorias; 
+                    return cacheCategorias;
+                } else {
+                    // Fallback: Cargar todos los productos y extraer categorías
+                    const prodResponse = await apiGet(ENDPOINTS.PRODUCTOS.LISTAR, { limit: 100 });
+                    if (prodResponse.success && prodResponse.data.productos) {
+                        const categorias = [...new Map(prodResponse.data.productos.map(p => 
+                            [p.id_categoria, { id_categoria: p.id_categoria, nombre_categoria: p.categoria_nombre }]
+                        )).values()];
+                        cacheCategorias = categorias;
+                        return cacheCategorias;
+                    }
+                }
+            } catch (error) {
+                console.error("Error cargando categorías:", error);
+                return [];
+            }
+        }
+
+        /**
+         * Puebla el <select> del modal con las categorías
+         */
+        async function poblarSelectCategorias() {
+            const select = document.getElementById('productoCategoria');
+            select.innerHTML = '<option value="">Cargando...</option>';
+            const categorias = await cargarOpcionesCategorias();
+
+            if (categorias && categorias.length > 0) {
+                select.innerHTML = '<option value="">Seleccione una categoría</option>';
+                // Usamos los datos de la tabla CATEGORIA
+                categorias.forEach(cat => {
+                    select.innerHTML += `<option value="${cat.id_categoria}">${cat.nombre_categoria}</option>`;
+                });
+            } else {
+                select.innerHTML = '<option value="">No se pudieron cargar</option>';
+            }
+        }
+
+        /**
+         * Carga y renderiza la tabla de productos
+         */
+        async function cargarProductos() {
+            const tableBody = document.getElementById('productosTableBody');
+            tableBody.innerHTML = `<tr><td colspan="8" style="text-align: center;">Cargando...</td></tr>`;
+
+            try {
+                // Usamos el endpoint de listado general de productos
+                const response = await apiGet(ENDPOINTS.PRODUCTOS.LISTAR, { limit: 100 });
+
+                if (response.success && response.data && Array.isArray(response.data.productos)) {
+                    renderProductosTabla(response.data.productos);
+                } else {
+                    tableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: red;">Error al cargar productos.</td></tr>`;
+                }
+            } catch (error) {
+                console.error('Error al cargar productos:', error);
+                tableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: red;">${error.message}</td></tr>`;
+            }
+        }
+
+        /**
+         * Renderiza las filas de la tabla de productos
+         * COMENTARIO (Req 5): Muestra solo campos clave
+         */
+        function renderProductosTabla(productos) {
+            const tableBody = document.getElementById('productosTableBody');
+            if (productos.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="8" style="text-align: center;">No se encontraron productos.</td></tr>`;
+                return;
+            }
+
+            tableBody.innerHTML = productos.map(p => {
+                const estadoClass = p.estado_producto === 'Activo' ? 'badge success' : 'badge danger';
+
+                // El stock total viene del servicio
+                const stockTotal = p.stock_total || 0;
+
+                return `
+                    <tr>
+                        <td>${p.id_producto}</td>
+                        <td>${p.nombre_producto}</td>
+                        <td>${p.categoria_nombre || 'N/A'}</td>
+                        <td>${p.marca || 'N/A'}</td>
+                        <td>S/ ${parseFloat(p.precio).toFixed(2)}</td>
+                        <td>${stockTotal}</td>
+                        <td><span class="${estadoClass}">${p.estado_producto}</span></td>
+                        <td>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn-dashboard btn-secondary btn-sm" onclick="mostrarModalProducto(${p.id_producto})" title="Editar">
+                                    ✏️
+                                </button>
+                                <button class="btn-dashboard btn-secondary btn-sm" onclick="cambiarEstadoProducto(${p.id_producto}, '${p.estado_producto}')" title="Cambiar Estado">
+                                    ${p.estado_producto === 'Activo' ? '❌' : '✅'}
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        /**
+         * Muestra el modal para crear o editar un producto
+         * COMENTARIO (Req 2 & 3): Maneja tanto 'Nuevo' como 'Editar'
+         */
+        async function mostrarModalProducto(id = null) {
+            const modal = document.getElementById('modalProducto');
+            const form = document.getElementById('formProducto');
+            const titulo = document.getElementById('modalProductoTitulo');
+            const errorBox = document.getElementById('errorModalProducto');
+            const stockUnicaContainer = document.getElementById('stockUnicaContainer');
+            const tallasInfo = document.getElementById('tallasInfo');
+            const tieneTallasCheckbox = document.getElementById('productoTieneTallas');
+
+            // Limpiar errores y formulario
+            errorBox.style.display = 'none';
+            errorBox.textContent = '';
+            form.reset();
+
+            // Cargar categorías en el select
+            await poblarSelectCategorias();
+
+            if (id) {
+                // --- MODO EDICIÓN (Req 3) ---
+                titulo.textContent = 'Editar Producto';
+                document.getElementById('productoId').value = id;
+
+                try {
+                    // Obtener datos completos del producto
+                    const response = await apiGet(ENDPOINTS.PRODUCTOS.DETALLE(id));
+                    if (!response.success || !response.data) {
+                        throw new Error('No se pudieron cargar los datos del producto.');
+                    }
+
+                    const producto = response.data.producto;
+
+                    // Poblar formulario
+                    document.getElementById('productoNombre').value = producto.nombre_producto;
+                    document.getElementById('productoDescripcion').value = producto.descripcion;
+                    document.getElementById('productoPrecio').value = parseFloat(producto.precio).toFixed(2);
+                    document.getElementById('productoMarca').value = producto.marca;
+
+                    // COMENTARIO (Req: Corrección Categorías): 
+                    // Aseguramos que la categoría se seleccione
+                    document.getElementById('productoCategoria').value = producto.id_categoria;
+
+                    document.getElementById('productoSku').value = producto.sku;
+                    document.getElementById('productoStockMinimo').value = producto.stock_minimo || 5;
+                    document.getElementById('productoDescuento').value = parseFloat(producto.descuento_porcentaje || 0).toFixed(2);
+                    document.getElementById('productoEstado').value = producto.estado_producto;
+
+                    // Poblar campos nuevos
+                    document.getElementById('productoPeso').value = producto.peso || '';
+                    document.getElementById('productoDimensiones').value = producto.dimensiones || '';
+
+                    // COMENTARIO (Req: Imagen): 
+                    // Poblamos el campo 'imagen_url' con 'imagen_principal'
+                    // que viene del servicio (productoService.getProductoById)
+                    document.getElementById('productoImagenUrl').value = producto.imagen_principal || '';
+
+                    // Checkboxes
+                    document.getElementById('productoTieneTallas').checked = producto.tiene_tallas;
+                    document.getElementById('productoDestacado').checked = producto.destacado;
+                    document.getElementById('productoNuevo').checked = producto.nuevo;
+
+                    // Lógica de Stock
+                    if (producto.tiene_tallas) {
+                        stockUnicaContainer.style.display = 'none';
+                        tallasInfo.style.display = 'block';
+                        document.getElementById('productoStockUnica').value = 0;
+                    } else {
+                        stockUnicaContainer.style.display = 'block';
+                        tallasInfo.style.display = 'none';
+                        // Buscar el stock de la talla 'UNICA'
+                        const tallaUnica = (producto.tallas || []).find(t => t.talla === 'UNICA');
+                        document.getElementById('productoStockUnica').value = tallaUnica ? tallaUnica.stock_talla : 0;
+                    }
+
+                    modal.style.display = 'flex';
+
+                } catch (error) {
+                    console.error('Error al cargar producto:', error);
+                    if(typeof mostrarToast === 'function') mostrarToast('Error al cargar datos: ' + error.message, 'error');
+                }
+
+            } else {
+                // --- MODO CREACIÓN (Req 2) ---
+                titulo.textContent = 'Nuevo Producto';
+                document.getElementById('productoId').value = '';
+                // Por defecto, no tiene tallas, mostramos stock único
+                stockUnicaContainer.style.display = 'block';
+                tallasInfo.style.display = 'none';
+                tieneTallasCheckbox.checked = false;
+
+                modal.style.display = 'flex';
+            }
+
+            // Listener para el checkbox 'Tiene Tallas'
+            tieneTallasCheckbox.onchange = (e) => {
+                if (e.target.checked) {
+                    stockUnicaContainer.style.display = 'none';
+                    tallasInfo.style.display = 'block';
+                } else {
+                    stockUnicaContainer.style.display = 'block';
+                    tallasInfo.style.display = 'none';
+                }
+            };
+        }
+
+        /**
+         * Cierra el modal de producto
+         */
+        function cerrarModalProducto() {
+            document.getElementById('modalProducto').style.display = 'none';
+        }
+
+        /**
+         * Guarda (Crea o Edita) un producto
+         */
+        async function guardarProducto(event) {
+            event.preventDefault();
+            const btn = document.getElementById('btnGuardarProducto');
+            const errorBox = document.getElementById('errorModalProducto');
+
+            btn.disabled = true;
+            btn.textContent = 'Guardando...';
+            errorBox.style.display = 'none';
+
+            // Obtener datos del formulario
+            const id = document.getElementById('productoId').value;
+            const tieneTallas = document.getElementById('productoTieneTallas').checked;
+
+            // COMENTARIO (Req: Campos Faltantes): 
+            // Se incluyen todos los campos del modal en el objeto 'data'
+            const data = {
+                nombre_producto: document.getElementById('productoNombre').value,
+                descripcion: document.getElementById('productoDescripcion').value,
+                precio: parseFloat(document.getElementById('productoPrecio').value),
+                marca: document.getElementById('productoMarca').value,
+                id_categoria: parseInt(document.getElementById('productoCategoria').value),
+                sku: document.getElementById('productoSku').value,
+                stock_minimo: parseInt(document.getElementById('productoStockMinimo').value),
+                descuento_porcentaje: parseFloat(document.getElementById('productoDescuento').value),
+                estado_producto: document.getElementById('productoEstado').value,
+                tiene_tallas: tieneTallas,
+                destacado: document.getElementById('productoDestacado').checked,
+                nuevo: document.getElementById('productoNuevo').checked,
+
+                // Campos nuevos
+                peso: parseFloat(document.getElementById('productoPeso').value) || null,
+                dimensiones: document.getElementById('productoDimensiones').value || null,
+
+                // COMENTARIO (Req: Imagen):
+                // Se envía la 'imagen_url' al backend.
+                // El backend debe encargarse de asociarla a IMAGEN_PRODUCTO.
+                imagen_url: document.getElementById('productoImagenUrl').value || null,
+
+                // Gestión de Stock Simplificada
+                stock_unica: !tieneTallas ? parseInt(document.getElementById('productoStockUnica').value) : null
+            };
+
+            try {
+                let response;
+                if (id) {
+                    // Lógica de ACTUALIZACIÓN (PUT)
+                    response = await apiPut(ENDPOINTS.PRODUCTOS.ACTUALIZAR(id), data);
+                } else {
+                    // Lógica de CREACIÓN (POST)
+                    response = await apiPost(ENDPOINTS.PRODUCTOS.CREAR, data);
+                }
+
+                if (response.success) {
+                    cerrarModalProducto();
+                    await cargarProductos(); // Recargar la tabla
+                    if (typeof mostrarToast === 'function') {
+                        mostrarToast(response.message || 'Operación exitosa', 'success');
+                    }
+                } else {
+                    throw new Error(response.message || 'Error desconocido');
+                }
+
+            } catch (error) {
+                console.error('Error al guardar producto:', error);
+                errorBox.textContent = 'Error: ' + error.message;
+                errorBox.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Guardar';
+            }
+            return false;
+        }
+
+        /**
+         * Cambia el estado (Activo/Inactivo) de un producto
+         * COMENTARIO (Req 4): Se implementa la sugerencia de usar 'Inactivo' (soft delete)
+         * en lugar de un borrado físico para mantener la integridad de datos.
+         */
+        async function cambiarEstadoProducto(id, estadoActual) {
+            // La tabla PRODUCTO usa 'Activo', 'Inactivo', 'Descontinuado'
+            const nuevoEstado = estadoActual === 'Activo' ? 'Inactivo' : 'Activo';
+            const accion = estadoActual === 'Activo' ? 'Desactivar' : 'Activar';
+
+            mostrarConfirmacionAdmin(
+                `¿Estás seguro de ${accion.toLowerCase()} este producto? El producto ${nuevoEstado === 'Inactivo' ? 'no' : 'sí'} será visible en la tienda.`,
+                `${accion} Producto`,
+                async () => {
+                    try {
+                        const response = await apiPatch(ENDPOINTS.PRODUCTOS.CAMBIAR_ESTADO(id), { estado: nuevoEstado });
+
+                        if (response.success) {
+                            if (typeof mostrarToast === 'function') mostrarToast(response.message || 'Estado cambiado', 'success');
+                            await cargarProductos(); // Recargar la tabla
+                        } else {
+                            throw new Error(response.message);
+                        }
+                    } catch (error) {
+                        console.error('Error al cambiar estado:', error);
+                        if(typeof mostrarToast === 'function') mostrarToast('Error: ' + error.message, 'error');
+                    }
+                }
+            );
+        }
     </script>
 </body>
 </html>
