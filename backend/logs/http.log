@@ -13525,3 +13525,6 @@
 [2025-11-28 10:20:13] [INFO]: Cliente cerró sesión: 28 | Data: {"metadata":{"service":"sportiva-backend","environment":"development","timestamp":"2025-11-28T15:20:13.284Z"}}
 [2025-11-28 10:20:14] [INFO]: GET /api/productos/destacados | Data: {"metadata":{"service":"sportiva-backend","environment":"development","ip":"::ffff:127.0.0.1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:145.0) Gecko/20100101 Firefox/145.0","query":{},"timestamp":"2025-11-28T15:20:14.596Z"}}
 [2025-11-28 10:26:33] [INFO]: ==================================== | Data: {"metadata":{"service":"sportiva-backend","environment":"development","timestamp":"2025-11-28T15:26:33.158Z"}}
+[2025-11-29 08:13:03] [INFO]: ⚠️ Servicio de email deshabilitado en configuración | Data: {"metadata":{"service":"sportiva-backend","environment":"test","timestamp":"2025-11-29T13:13:03.487Z"}}
+[2025-11-29 08:13:16] [INFO]: Nuevo cliente registrado: nuevo@ejemplo.com | Data: {"metadata":{"service":"sportiva-backend","environment":"test","timestamp":"2025-11-29T13:13:16.213Z"}}
+[2025-11-29 08:13:16] [INFO]: Cliente autenticado: test@sportiva.com | Data: {"metadata":{"service":"sportiva-backend","environment":"test","timestamp":"2025-11-29T13:13:16.344Z"}}

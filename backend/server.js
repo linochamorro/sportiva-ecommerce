@@ -32,15 +32,19 @@ const allowedOrigins = [
 
 app.use(cors({
     origin: function(origin, callback) {
-        // Permitir requests sin origin
-        if (!origin && process.env.NODE_ENV === 'development') {
+        // Permitir requests sin origin (como Postman o Tests)
+        if (!origin) {
             return callback(null, true);
         }
         if (allowedOrigins.indexOf(origin) !== -1) {
             callback(null, true);
         } else {
+            // En desarrollo o tests, ser permisivo
+            if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
+                return callback(null, true);
+            }
             logger.warn(`Origen bloqueado por CORS: ${origin}`);
-            callback(null, true); // Permitir en desarrollo
+            return callback(new Error('Bloqueado por CORS'));
         }
     },
     credentials: true,
@@ -57,18 +61,22 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Sanitización de inputs
 app.use(sanitizeInput);
 
-// Rate limiting general
-app.use('/api', generalLimiter);
+// Rate limiting general (Desactivar en tests para evitar falsos positivos)
+if (process.env.NODE_ENV !== 'test') {
+    app.use('/api', generalLimiter);
+}
 
-// Logging de requests
-app.use((req, res, next) => {
-    logger.info(`${req.method} ${req.path}`, {
-        ip: req.ip,
-        userAgent: req.get('user-agent'),
-        query: req.query
+// Logging de requests (Silenciar en tests para mantener la consola limpia)
+if (process.env.NODE_ENV !== 'test') {
+    app.use((req, res, next) => {
+        logger.info(`${req.method} ${req.path}`, {
+            ip: req.ip,
+            userAgent: req.get('user-agent'),
+            query: req.query
+        });
+        next();
     });
-    next();
-});
+}
 
 // ============================================
 // RUTAS BÁSICAS
@@ -118,7 +126,7 @@ app.use(notFound);
 app.use(errorHandler);
 
 // ============================================
-// MANEJO DE PROCESOS
+// MANEJO DE PROCESOS (Restaurado de serverBK.js)
 // ============================================
 
 // Graceful shutdown
@@ -146,18 +154,16 @@ process.on('unhandledRejection', (reason, promise) => {
 // INICIAR SERVIDOR
 // ============================================
 
-app.listen(PORT, () => {
-    logger.info(`🚀 Servidor iniciado en puerto ${PORT}`);
-    logger.info(`🔗 URL: http://localhost:${PORT}`);
-    logger.info(`🌍 Entorno: ${process.env.NODE_ENV || 'development'}`);
-    logger.info(`📦 API Base: http://localhost:${PORT}/api`);
-    logger.info(`✅ Orígenes CORS permitidos:`);
-    allowedOrigins.forEach(origin => {
-        logger.info(`   - ${origin}`);
+// Solo iniciar el servidor si este archivo se ejecuta directamente
+// Si se importa desde los tests, NO iniciamos el servidor aquí para evitar EADDRINUSE
+if (require.main === module) {
+    app.listen(PORT, () => {
+        logger.info(`🚀 Servidor iniciado en puerto ${PORT}`);
+        logger.info(`🔗 URL: http://localhost:${PORT}`);
+        logger.info(`🌍 Entorno: ${process.env.NODE_ENV || 'development'}`);
+        logger.info(`📦 API Base: http://localhost:${PORT}/api`);
     });
-    logger.info(`✅ Rutas configuradas:`);
-    logger.info(`   - /api/auth (Autenticación)`);
-    logger.info(`   - /api/productos (Productos)`);
-    logger.info(`   - /api/carrito (Carrito)`);
-    logger.info(`   - /api/pedidos (Pedidos)`);
-});
+}
+
+// Exportar app para los tests
+module.exports = app;
