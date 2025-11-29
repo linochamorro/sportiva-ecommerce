@@ -25,12 +25,47 @@
             </ul>
             
             <div class="navbar-actions">
-                <button onclick="toggleBusqueda()" class="navbar-link">Buscar</button>
+                <button class="btn-login-minimal" onclick="window.location.href='login.html'" id="btnLogin">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span>Ingresar</span>
+                </button>
+                
+                <div class="user-menu" id="userMenu" style="display: none;">
+                    <button class="user-menu-button" onclick="toggleUserMenu()">
+                        <div class="user-avatar" id="userAvatar">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </div>
+                        <span class="user-name" id="userName">Usuario</span>
+                        <span>▾</span>
+                    </button>
+                    
+                    <div class="user-dropdown-content">
+                        <button class="dropdown-item" onclick="window.location.href='perfil.html'">
+                            👤 Mi Perfil
+                        </button>
+                        <button class="dropdown-item" onclick="window.location.href='pedidos.html'">
+                            📦 Mis Pedidos
+                        </button>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item" onclick="cerrarSesion()" style="color: #DC3545;">
+                            🚪 Cerrar Sesión
+                        </button>
+                    </div>
+                </div>
+                
                 <button class="cart-button" onclick="window.location.href='carrito.html'">
                     🛒
                     <span class="cart-count">0</span>
                 </button>
             </div>
+
+
         </div>
     </nav>
 

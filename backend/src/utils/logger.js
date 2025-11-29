@@ -380,7 +380,6 @@ process.on('uncaughtException', (error) => {
         fatal: true
     });
     
-    // Esperar a que se escriba el log antes de salir
     setTimeout(() => {
         process.exit(1);
     }, 1000);

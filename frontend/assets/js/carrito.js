@@ -68,9 +68,14 @@ async function cargarCarrito() {
             
             console.log('📦 Respuesta API carrito:', response);
             
-            // El backend devuelve: { success: true, data: { items, subtotal, igv, total, empty } }
             if (response.success && response.data && !response.data.empty) {
                 carritoActual = procesarDatosCarrito(response.data);
+                
+                // Si hay un cupón activo en memoria, reaplicarlo
+                if (cuponActual && cuponActual.descuento) {
+                    carritoActual.descuento = cuponActual.descuento;
+                    carritoActual.total = Math.max(0, carritoActual.total - carritoActual.descuento);
+                }
                 console.log('✅ Carrito cargado desde API:', carritoActual);
             } else if (response.success && response.data && response.data.empty) {
                 // Carrito vacío
@@ -88,7 +93,7 @@ async function cargarCarrito() {
         // Renderizar carrito
         renderizarCarrito();
         
-        // Actualizar resumen - CRÍTICO
+        // Actualizar resumen
         actualizarResumen();
         
     } catch (error) {
@@ -107,7 +112,6 @@ async function cargarCarrito() {
  * Procesar datos del carrito desde API
  */
 function procesarDatosCarrito(data) {
-    // El backend devuelve: { items: [...], subtotal, igv, costoEnvio, total }
     
     return {
         items: data.items || [],
@@ -128,7 +132,6 @@ function cargarCarritoLocal() {
     
     carritoActual.items = carritoLocal;
     
-    // CRÍTICO: Calcular totales después de cargar items
     calcularTotales();
     
     console.log('✅ Carrito cargado desde localStorage:', {
@@ -179,21 +182,36 @@ function renderizarCarrito() {
  * Crear HTML de item del carrito
  */
 function crearItemCarrito(item, index) {
-    // Mapear propiedades del backend (soporte múltiples formatos)
+    // Mapear propiedades
     const precio = parseFloat(item.precio_unitario || item.precio || item.precio_venta || 0);
     const cantidad = parseInt(item.cantidad || 1);
     const subtotal = parseFloat(item.subtotal || (precio * cantidad));
-    const imagen = item.imagen || item.imagen_url || '/assets/images/placeholder.jpg';
-    const stockDisponible = item.stock_disponible || item.stock || 99;
     const nombre = item.nombre_producto || item.nombre || 'Producto';
     const idProducto = item.id_producto || item.producto_id || 0;
+    
+    let rawImg = item.imagen || item.imagen_url || item.url_imagen || '';
+    
+    if (rawImg && !rawImg.startsWith('http')) {
+        rawImg = rawImg.replace(/^frontend\//, '').replace(/^public\//, '');
+        
+        if (rawImg.startsWith('/')) rawImg = rawImg.substring(1);
+
+        if (rawImg.startsWith('assets/')) {
+            rawImg = '../' + rawImg;
+        }
+    }
+    // Fallback final
+    if (!rawImg) rawImg = '../assets/images/placeholder.jpg';
+    // ------------------------------------
+    
+    const stockDisponible = item.stock_disponible || item.stock || 99;
     
     return `
         <div class="carrito-item" data-index="${index}" data-item-id="${item.id_detalle_carrito || item.carrito_item_id || item.id}">
             <div class="carrito-imagen">
-                <img src="${imagen}" alt="${nombre}" 
+                <img src="${rawImg}" alt="${nombre}" 
                     style="width: 100%; height: 100%; object-fit: cover;"
-                    onerror="if(this.src!=='http://127.0.0.1:5500/assets/images/placeholder.jpg' && this.src!=='http://localhost:5500/assets/images/placeholder.jpg'){this.src='/assets/images/placeholder.jpg';this.onerror=null;}">
+                    onerror="this.onerror=null; this.src='../assets/images/placeholder.jpg';">
             </div>
             
             <div style="flex: 1; padding: 0 16px;">
@@ -223,7 +241,7 @@ function crearItemCarrito(item, index) {
                     S/ ${subtotal.toFixed(2)}
                 </p>
                 <button class="btn btn-outline" onclick="eliminarItem(${index})" style="padding: 8px 16px; font-size: 12px;">
-                    Eliminar
+                    ELIMINAR
                 </button>
             </div>
         </div>
@@ -307,8 +325,7 @@ async function actualizarCantidadInput(index, valor) {
  */
 async function actualizarCantidadItem(index, nuevaCantidad) {
     const item = carritoActual.items[index];
-    if (!item) return;
-    
+    if (!item) return;  
     mostrarLoader(true);
     
     try {
@@ -481,7 +498,7 @@ async function aplicarCupon() {
     try {
         if (typeof apiConfig !== 'undefined') {
             const response = await apiConfig.apiPost('/carrito/aplicar-cupon', {
-                codigo: codigoCupon
+                codigoCupon: codigoCupon
             });
             
             if (response.success) {
@@ -647,13 +664,9 @@ function calcularTotales() {
 
 /**
  * Actualizar resumen del carrito
- * SOPORTA MÚLTIPLES FORMATOS DE HTML
  */
 function actualizarResumen() {
-    // Formato 1: HTML con IDs individuales (carrito.html nuevo)
     actualizarResumenFormato1();
-    
-    // Formato 2: HTML con contenedor dinámico (carrito.html original)
     actualizarResumenFormato2();
 }
 
@@ -666,6 +679,8 @@ function actualizarResumenFormato1() {
     const igvCarrito = document.getElementById('igvCarrito');
     const envioCarrito = document.getElementById('envioCarrito');
     const totalCarrito = document.getElementById('totalCarrito');
+    const filaDescuento = document.getElementById('filaDescuento');
+    const descuentoCarrito = document.getElementById('descuentoCarrito');
     
     // Si no existen estos elementos, este formato no aplica
     if (!subtotalCarrito && !igvCarrito && !envioCarrito && !totalCarrito) {
@@ -697,6 +712,16 @@ function actualizarResumenFormato1() {
         }
     }
     
+    // Actualizar fila de descuento
+    if (filaDescuento && descuentoCarrito) {
+        if (carritoActual.descuento > 0) {
+            filaDescuento.style.display = 'flex';
+            descuentoCarrito.textContent = `- S/ ${carritoActual.descuento.toFixed(2)}`;
+        } else {
+            filaDescuento.style.display = 'none';
+        }
+    }
+
     if (totalCarrito) {
         totalCarrito.textContent = `S/ ${carritoActual.total.toFixed(2)}`;
     }
@@ -848,27 +873,48 @@ async function irACheckout() {
         return;
     }
     
-    // Validar stock antes de proceder
+    if (carritoActual.descuento > 0) {
+        const datosCupon = {
+            codigo: cuponActual ? cuponActual.codigo : '',
+            descuento: carritoActual.descuento,
+            tipo: cuponActual ? cuponActual.tipo : 'MONTO',
+            valor: cuponActual ? cuponActual.valor : 0
+        };
+        localStorage.setItem('sportiva_cupon_checkout', JSON.stringify(datosCupon));
+    } else {
+        localStorage.removeItem('sportiva_cupon_checkout');
+    }
+
+    // VALIDACIÓN DE STOCK
     mostrarLoader(true);
     
     try {
         if (typeof apiConfig !== 'undefined') {
-            const response = await apiConfig.apiPost('/carrito/validar');
-            
-            if (response.success) {
-                window.location.href = '/checkout.html';
-            } else {
-                throw new Error(response.message || 'Algunos productos no tienen stock disponible');
+            try {
+                // Intentar validar stock
+                const response = await apiConfig.apiPost('/carrito/validar');
+                
+                if (!response.success) {
+                    throw new Error(response.message || 'Stock no disponible');
+                }
+            } catch (apiError) {
+                console.warn("Advertencia en validación:", apiError);
+
+                const msg = apiError.message || '';
+                if (msg.includes('stock') || msg.includes('disponible') || msg.includes('insuficiente')) {
+                    throw apiError;
+                }
             }
+            
+            window.location.href = 'checkout.html';
+            
         } else {
-            // Sin validación, ir directo
-            window.location.href = '/checkout.html';
+            // Fallback
+            window.location.href = 'checkout.html';
         }
     } catch (error) {
-        console.error('❌ Error al validar carrito:', error);
+        console.error('❌ Error bloqueante al validar:', error);
         mostrarNotificacion(error.message || 'Error al validar carrito', 'error');
-        
-        // Recargar carrito para actualizar stocks
         await cargarCarrito();
     } finally {
         mostrarLoader(false);

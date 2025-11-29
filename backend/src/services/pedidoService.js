@@ -82,22 +82,29 @@ class PedidoService {
             if (datosCheckout.id_direccion_envio) {
                 id_direccion_envio = datosCheckout.id_direccion_envio;
             } else if (datosCheckout.direccion_envio) {
+                const datosDireccion = {
+                    direccion: datosCheckout.direccion_envio.direccion || 'Dirección no especificada',
+                    ciudad: datosCheckout.direccion_envio.distrito || 'Lima',
+                    departamento: datosCheckout.direccion_envio.departamento || 'Lima',
+                    codigo_postal: datosCheckout.direccion_envio.codigo_postal || '15000',
+                    referencia: datosCheckout.direccion_envio.referencia ? datosCheckout.direccion_envio.referencia : null,
+                    es_principal: false,
+                    pais: 'Perú'
+                };
+
+                logger.info('Creando nueva dirección con datos:', datosDireccion);
+
                 // Crear nueva dirección si se proporcionó
                 const nuevaDireccion = await this.clienteModel.addDireccion(
                     id_cliente,
-                    {
-                        direccion: datosCheckout.direccion_envio.direccion,
-                        ciudad: datosCheckout.direccion_envio.distrito || 'Lima',
-                        departamento: datosCheckout.direccion_envio.departamento || 'Lima',
-                        codigo_postal: datosCheckout.direccion_envio.codigo_postal || '15000',
-                        referencia: datosCheckout.direccion_envio.referencia || null,
-                        es_principal: false
-                    }
+                    datosDireccion
                 );
 
                 if (nuevaDireccion.success) {
                     id_direccion_envio = nuevaDireccion.id;
                     logger.info(`Nueva dirección creada: ${id_direccion_envio}`);
+                } else {
+                    logger.warn('Fallo al crear dirección, continuando con ID nulo');
                 }
             }
 
@@ -116,7 +123,7 @@ class PedidoService {
             // 7. Preparar items del carrito para el pedido
             const carritoItems = carrito.items.map(item => ({
                 id_producto: item.id_producto,
-                id_talla_producto: item.id_talla, // Usar id_talla del carrito
+                id_talla_producto: item.id_talla,
                 cantidad: item.cantidad,
                 precio_unitario: item.precio_unitario,
                 subtotal: item.subtotal
@@ -124,7 +131,7 @@ class PedidoService {
 
             logger.info('Items preparados para pedido:', carritoItems.length);
 
-            // 8. Crear pedido en transacción atómica
+            // 8. Crear pedido en transacción
             const resultadoPedido = await this.pedidoModel.createFromCarrito(
                 pedidoData,
                 carritoItems

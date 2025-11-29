@@ -93,6 +93,12 @@ class AuthService {
             // Buscar cliente por email
             const cliente = await this.clienteModel.findByEmail(email.toLowerCase());
 
+            console.log('🔍 Cliente encontrado:', cliente ? 'SÍ' : 'NO');
+            if (cliente) {
+                console.log('📧 Email:', cliente.email);
+                console.log('🔐 Hash existe:', cliente.password ? 'SÍ' : 'NO');
+            }
+
             if (!cliente) {
                 return {
                     success: false,
@@ -103,7 +109,7 @@ class AuthService {
             // Verificar password
             const isPasswordValid = await this.clienteModel.verifyPassword(
                 password,
-                cliente.password_hash
+                cliente.password
             );
 
             if (!isPasswordValid) {
@@ -171,7 +177,7 @@ class AuthService {
     }
 
     /**
-     * Decodificar token sin verificar (para debugging)
+     * Decodificar token sin verificar
      */
     decodeToken(token) {
         try {
@@ -187,8 +193,6 @@ class AuthService {
     async refreshToken(oldToken) {
         try {
             const decoded = this.verifyToken(oldToken);
-            
-            // Verificar que el cliente siga existiendo y activo
             const cliente = await this.clienteModel.findById(decoded.id_cliente);
             
             if (!cliente || !cliente.activo) {
@@ -241,7 +245,7 @@ class AuthService {
             // Verificar password actual
             const isPasswordValid = await this.clienteModel.verifyPassword(
                 currentPassword,
-                cliente.password_hash
+                cliente.password
             );
 
             if (!isPasswordValid) {
@@ -280,15 +284,11 @@ class AuthService {
             const cliente = await this.clienteModel.findByEmail(email.toLowerCase());
 
             if (!cliente) {
-                // Por seguridad, siempre retornamos éxito
                 return {
                     success: true,
                     message: 'Si el email existe, recibirás instrucciones para resetear tu password'
                 };
             }
-
-            // Aquí iría la lógica para enviar email con token de reseteo
-            // Por ahora solo retornamos éxito
 
             return {
                 success: true,
@@ -457,9 +457,6 @@ class AuthService {
      */
     async logout(id_cliente) {
         try {
-            // Aquí podrías agregar lógica para invalidar tokens en una blacklist
-            // Por ahora solo retornamos éxito
-
             return {
                 success: true,
                 message: 'Logout exitoso'

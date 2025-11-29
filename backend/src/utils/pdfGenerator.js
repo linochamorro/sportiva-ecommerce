@@ -236,14 +236,13 @@ class PDFGenerator {
   // ============================================
   // REPORTE DE VENTAS
   // ============================================
-  
+
   static generarReporteVentas(pedidos, fechaInicio, fechaFin) {
     return new Promise((resolve, reject) => {
       try {
         const doc = new PDFDocument({ 
           size: 'A4', 
-          margin: 50,
-          layout: 'landscape'
+          margin: 50
         });
 
         const chunks = [];
@@ -251,52 +250,70 @@ class PDFGenerator {
         doc.on('end', () => resolve(Buffer.concat(chunks)));
         doc.on('error', reject);
 
-        // Header
-        doc.fontSize(18)
-            .font('Helvetica-Bold')
-            .fillColor('#000000')
-            .text('REPORTE DE VENTAS', 50, 50, { align: 'center' });
+        const X_PEDIDO = 50;
+        const X_FECHA = 160; 
+        const X_CLIENTE = 240;
+        const X_ITEMS = 440;
+        const X_TOTAL = 490;
+        const drawHeader = (y) => {
+            doc.fontSize(10).font('Helvetica-Bold').fillColor('#000000');
+            
+            doc.text('N° Pedido', X_PEDIDO, y);
+            doc.text('Fecha', X_FECHA, y);
+            doc.text('Cliente', X_CLIENTE, y);
+            doc.text('Items', X_ITEMS, y); 
+            doc.text('Total', X_TOTAL, y);
+            
+            doc.moveTo(50, y + 15).lineTo(550, y + 15).stroke();
+        };
 
-        doc.fontSize(12)
-            .font('Helvetica')
-            .fillColor('#767676')
-            .text(`Período: ${fechaInicio} - ${fechaFin}`, 50, 80, { align: 'center' });
+        // --- PÁGINA 1: TÍTULO Y RESUMEN ---
+        
+        doc.fontSize(18).font('Helvetica-Bold').text('REPORTE DE VENTAS', 50, 50, { align: 'center' });
+        doc.fontSize(12).font('Helvetica').fillColor('#767676').text(`Período: ${fechaInicio} - ${fechaFin}`, 50, 80, { align: 'center' });
 
         // Estadísticas generales
-        const totalVentas = pedidos.reduce((sum, p) => sum + p.monto_total, 0);
-        const ticketPromedio = totalVentas / pedidos.length;
+        const totalVentas = pedidos.reduce((sum, p) => sum + parseFloat(p.total_pedido || 0), 0);
+        const ticketPromedio = pedidos.length > 0 ? totalVentas / pedidos.length : 0;
 
-        doc.fontSize(10)
+        doc.fontSize(10).fillColor('#000000')
             .text(`Total Pedidos: ${pedidos.length}`, 50, 120)
-            .text(`Total Ventas: S/ ${totalVentas.toFixed(2)}`, 250, 120)
-            .text(`Ticket Promedio: S/ ${ticketPromedio.toFixed(2)}`, 450, 120);
+            .text(`Total Ventas: S/ ${totalVentas.toFixed(2)}`, 200, 120)
+            .text(`Ticket Promedio: S/ ${ticketPromedio.toFixed(2)}`, 400, 120);
 
-        // Tabla de ventas (simplificada)
+        // --- TABLA DE DATOS ---
+        
         let y = 160;
-        doc.fontSize(9)
-            .font('Helvetica-Bold')
-            .text('N° Pedido', 50, y)
-            .text('Fecha', 130, y)
-            .text('Cliente', 220, y)
-            .text('Items', 400, y)
-            .text('Total', 480, y);
+        drawHeader(y);
+        y += 25; 
+        
+        doc.font('Helvetica').fontSize(9);
 
-        y += 20;
-        doc.font('Helvetica');
+        pedidos.forEach((pedido) => {
+          if (y > 700) { 
+              doc.addPage();
+              y = 50; 
+              drawHeader(y); 
+              y += 25;
+              doc.font('Helvetica').fontSize(9); 
+          }
 
-        pedidos.slice(0, 20).forEach((pedido) => { // Limitar a 20 para no exceder página
-          doc.text(pedido.id_pedido, 50, y)
-              .text(new Date(pedido.fecha_pedido).toLocaleDateString('es-PE'), 130, y)
-              .text(`${pedido.cliente_nombre} ${pedido.cliente_apellido}`.substring(0, 25), 220, y)
-              .text(pedido.cantidad_items, 400, y)
-              .text(`S/ ${pedido.monto_total.toFixed(2)}`, 480, y);
-          y += 15;
+          const montoTotal = parseFloat(pedido.total_pedido || 0);
+          const fecha = new Date(pedido.fecha_pedido).toLocaleDateString('es-PE');
+          const items = pedido.cantidad_items || 0; 
+
+          // Usamos las nuevas coordenadas ajustadas
+          doc.text(pedido.numero_pedido || pedido.id_pedido, X_PEDIDO, y)
+              .text(fecha, X_FECHA, y)
+              .text(`${pedido.cliente_nombre || ''}`.substring(0, 30), X_CLIENTE, y) 
+              .text(items.toString(), X_ITEMS, y)
+              .text(`S/ ${montoTotal.toFixed(2)}`, X_TOTAL, y);
+              
+          y += 20; 
         });
 
         doc.end();
 
-        logger.info('PDF reporte ventas generado');
-        
       } catch (error) {
         logger.error('Error generando PDF reporte ventas:', error);
         reject(error);

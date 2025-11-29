@@ -32,7 +32,7 @@ const allowedOrigins = [
 
 app.use(cors({
     origin: function(origin, callback) {
-        // Permitir requests sin origin (como Postman) en desarrollo
+        // Permitir requests sin origin
         if (!origin && process.env.NODE_ENV === 'development') {
             return callback(null, true);
         }
@@ -47,7 +47,7 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     exposedHeaders: ['Content-Length', 'X-Request-Id'],
-    maxAge: 600 // Cache preflight por 10 minutos
+    maxAge: 600
 }));
 
 // Body parsers

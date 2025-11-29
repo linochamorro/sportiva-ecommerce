@@ -5,7 +5,8 @@
 const express = require('express');
 const router = express.Router();
 const productoController = require('../controllers/productoController');
-const { requireAdmin, verifyToken, requireVendedor } = require('../middlewares/authMiddleware');
+const { requireAdmin, verifyToken, requireVendedor, requireTrabajador } = require('../middlewares/authMiddleware');
+const { param, body } = require('express-validator');
 
 // IMPORTAR VALIDATORS
 const {
@@ -104,9 +105,6 @@ router.get('/stats/general',
 // RUTAS PROTEGIDAS (ADMIN / VENDEDOR)
 // ============================================
 
-// Se usa 'requireVendedor' que, según,
-// permite el acceso a Vendedores y Administradores.
-
 // POST /api/productos - Crear un nuevo producto
 router.post('/',
     verifyToken,
@@ -121,6 +119,17 @@ router.put('/:id',
     requireVendedor,
     validateActualizarProducto,
     productoController.actualizarProducto
+);
+
+// PATCH /api/productos/tallas/:id_talla/stock - Actualizar stock de talla específica
+router.patch('/tallas/:id_talla/stock',
+    verifyToken,
+    requireTrabajador,
+    [
+        param('id_talla').isInt({ min: 1 }).withMessage('ID de talla inválido'),
+        body('stock_talla').isInt({ min: 0 }).withMessage('Stock debe ser un número positivo')
+    ],
+    productoController.actualizarStockTalla
 );
 
 // PATCH /api/productos/:id/estado - Cambiar el estado de un producto

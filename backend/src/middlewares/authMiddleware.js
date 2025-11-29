@@ -3,7 +3,6 @@ const { JWT_SECRET } = require('../config/jwt');
 const { Cliente } = require('../models');
 const Trabajador = require('../models/Trabajador');
 const logger = require('../utils/logger');
-
 const trabajadorModel = new Trabajador();
 
 exports.verifyToken = async (req, res, next) => {
@@ -19,7 +18,6 @@ exports.verifyToken = async (req, res, next) => {
         }
 
         const parts = authHeader.split(' ');
-        
         if (parts.length !== 2 || parts[0] !== 'Bearer') {
             return res.status(401).json({
                 success: false,
@@ -93,24 +91,13 @@ if (!cliente) {
     });
 }
 
-// Validar cuenta activa (maneja tanto campo activo como estado)
-const estaActivo = cliente.activo === 1 || 
-                  cliente.activo === true || 
-                  cliente.activo === '1' ||
-                  (cliente.estado && cliente.estado === 'Activo');
-
-if (!estaActivo) {
-    console.log('❌ Cuenta inactiva - activo:', cliente.activo, '- estado:', cliente.estado);
+if (cliente.estado !== 'Activo') {
     return res.status(403).json({
         success: false,
-        message: 'Cuenta desactivada',
+        message: 'Cuenta desactivada o bloqueada',
         code: 'ACCOUNT_DISABLED'
     });
 }
-
-console.log('✅ Cliente autenticado:', cliente.email, '- activo:', cliente.activo);
-
-
 
             req.cliente = {
                 id: cliente.id_cliente,
@@ -268,7 +255,6 @@ exports.optionalAuth = async (req, res, next) => {
             req.cliente = null;
             req.trabajador = null;
         }
-
         next();
 
     } catch (error) {

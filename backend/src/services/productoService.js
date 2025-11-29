@@ -1,15 +1,16 @@
 // ============================================
 // PRODUCTO SERVICE - SOLID Principles
 // ============================================
-const { Producto } = require('../models');
+const Producto = require('../models/Producto');
+const logger = require('../utils/logger');
 
 /**
- * ProductoService - Responsabilidad única: Lógica de negocio de productos
+ * Responsabilidad única: Lógica de negocio de productos
  * Aplica Single Responsibility Principle (SRP) y Open/Closed Principle (OCP)
  */
 class ProductoService {
     constructor() {
-        this.productoModel = Producto;
+        this.productoModel = new Producto;
     }
 
     // ============================================
@@ -429,7 +430,7 @@ class ProductoService {
     }
 
     /**
-     * Aplicar descuento a un producto (funcionalidad futura)
+     * Aplicar descuento a un producto
      */
     applyDiscount(precio, descuentoPorcentaje) {
         const descuento = (precio * descuentoPorcentaje) / 100;
@@ -484,8 +485,6 @@ class ProductoService {
     // CREAR PRODUCTO (ADMIN)
     // ============================================
     async crearProducto(data) {
-        // COMENTARIO: Usamos una transacción para asegurar la integridad de datos
-        // al insertar en PRODUCTO, TALLA_PRODUCTO e IMAGEN_PRODUCTO.
         return await this.productoModel.executeInTransaction(async (connection) => {
             
             // 1. Insertar en la tabla PRODUCTO
@@ -506,20 +505,21 @@ class ProductoService {
                 descuento_porcentaje: data.descuento_porcentaje
             };
 
-            const queryProducto = `INSERT INTO PRODUCTO SET ?`;
-            const [resultProducto] = await connection.execute(queryProducto, [productoData]);
+            const campos = Object.keys(productoData);
+            const valores = Object.values(productoData);
+            const placeholders = campos.map(() => '?').join(', ');
+            
+            const queryProducto = `INSERT INTO PRODUCTO (${campos.join(', ')}) VALUES (${placeholders})`;
+            const [resultProducto] = await connection.execute(queryProducto, valores);
             const newProductoId = resultProducto.insertId;
 
             // 2. Insertar Stock en TALLA_PRODUCTO
-            // COMENTARIO: Si "tiene_tallas" es falso, se crea una entrada 'UNICA'.
             if (!data.tiene_tallas) {
                 const queryTalla = `INSERT INTO TALLA_PRODUCTO (id_producto, talla, stock_talla) VALUES (?, 'UNICA', ?)`;
                 await connection.execute(queryTalla, [newProductoId, data.stock_unica || 0]);
             }
-            // (Si tiene tallas, el admin debe gestionarlas en un módulo de inventario más avanzado)
 
             // 3. Insertar Imagen Principal en IMAGEN_PRODUCTO
-            // COMENTARIO: Se inserta la imagen principal.
             if (data.imagen_url) {
                 const queryImagen = `INSERT INTO IMAGEN_PRODUCTO (id_producto, url_imagen, es_principal) VALUES (?, ?, 1)`;
                 await connection.execute(queryImagen, [newProductoId, data.imagen_url]);
@@ -533,7 +533,6 @@ class ProductoService {
     // ACTUALIZAR PRODUCTO (ADMIN)
     // ============================================
     async actualizarProducto(id_producto, data) {
-        // COMENTARIO: Transacción para actualizar PRODUCTO y sus tablas relacionadas.
         return await this.productoModel.executeInTransaction(async (connection) => {
             
             // 1. Actualizar tabla PRODUCTO
@@ -554,10 +553,14 @@ class ProductoService {
                 descuento_porcentaje: data.descuento_porcentaje
             };
 
-            const queryProducto = `UPDATE PRODUCTO SET ? WHERE id_producto = ?`;
-            await connection.execute(queryProducto, [productoData, id_producto]);
+            const campos = Object.keys(productoData);
+            const valores = Object.values(productoData);
+            const setClause = campos.map(campo => `${campo} = ?`).join(', ');
+            
+            const queryProducto = `UPDATE PRODUCTO SET ${setClause} WHERE id_producto = ?`;
+            await connection.execute(queryProducto, [...valores, id_producto]);
 
-            // 2. Actualizar Stock en TALLA_PRODUCTO (Solo para 'UNICA')
+            // 2. Actualizar Stock en TALLA_PRODUCTO
             if (!data.tiene_tallas) {
                 const queryUpdateStock = `
                     INSERT INTO TALLA_PRODUCTO (id_producto, talla, stock_talla) 
@@ -569,11 +572,9 @@ class ProductoService {
 
             // 3. Actualizar Imagen Principal en IMAGEN_PRODUCTO
             if (data.imagen_url) {
-                // Borramos la imagen principal anterior
                 const queryDeleteImg = `DELETE FROM IMAGEN_PRODUCTO WHERE id_producto = ? AND es_principal = 1`;
                 await connection.execute(queryDeleteImg, [id_producto]);
                 
-                // Insertamos la nueva imagen principal
                 const queryInsertImg = `INSERT INTO IMAGEN_PRODUCTO (id_producto, url_imagen, es_principal) VALUES (?, ?, 1)`;
                 await connection.execute(queryInsertImg, [id_producto, data.imagen_url]);
             }
@@ -586,7 +587,6 @@ class ProductoService {
     // ACTUALIZAR ESTADO DE PRODUCTO (ADMIN)
     // ============================================
     async actualizarEstadoProducto(id_producto, estado) {
-        // COMENTARIO: Actualiza solo el estado (Activo/Inactivo).
         const query = `UPDATE PRODUCTO SET estado_producto = ? WHERE id_producto = ?`;
         const [result] = await this.productoModel.db.execute(query, [estado, id_producto]);
 

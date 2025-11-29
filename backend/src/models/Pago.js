@@ -19,14 +19,30 @@ class Pago extends BaseModel {
         try {
             const data = {
                 id_pedido: pagoData.id_pedido,
-                monto: pagoData.monto,
+                monto_pago: pagoData.monto,
                 metodo_pago: pagoData.metodo_pago,
-                estado_pago: pagoData.estado_pago || 'pendiente',
-                referencia_transaccion: pagoData.referencia_transaccion || null,
-                fecha_pago: new Date()
+                estado_pago: pagoData.estado_pago || 'Pendiente',
+                referencia_transaccion: pagoData.referencia_transaccion || null
             };
 
-            return await this.create(data);
+            const query = `
+                INSERT INTO PAGO 
+                (id_pedido, monto_pago, metodo_pago, estado_pago, referencia_transaccion, fecha_pago)
+                VALUES (?, ?, ?, ?, ?, NOW())
+            `;
+
+            const [result] = await this.db.execute(query, [
+                data.id_pedido,
+                data.monto_pago,
+                data.metodo_pago,
+                data.estado_pago,
+                data.referencia_transaccion
+            ]);
+
+            return {
+                success: true,
+                id: result.insertId
+            };
         } catch (error) {
             throw new Error(`Error creando pago: ${error.message}`);
         }
@@ -244,7 +260,6 @@ class Pago extends BaseModel {
                     throw new Error('Solo se pueden reembolsar pagos completados');
                 }
 
-                // Actualizar estado del pago
                 const updateQuery = `
                     UPDATE PAGO
                     SET estado_pago = 'reembolsado'
@@ -252,9 +267,6 @@ class Pago extends BaseModel {
                 `;
 
                 await connection.execute(updateQuery, [id_pago]);
-
-                // Crear registro de reembolso (si existe tabla)
-                // Aquí podrías agregar lógica adicional
 
                 return {
                     success: true,

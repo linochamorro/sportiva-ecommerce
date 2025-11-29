@@ -239,7 +239,6 @@ async function actualizarContadorCarrito() {
     const contadores = document.querySelectorAll('.cart-count');
     let cantidad = 0;
     
-    // Si el usuario está logueado Y hay API disponible, obtener del servidor
     if (typeof authService !== 'undefined' && typeof apiConfig !== 'undefined') {
         const usuario = obtenerUsuarioActual();
         
@@ -399,42 +398,93 @@ function mostrarToast(mensaje, tipo = 'success') {
 }
 
 function crearCardProducto(producto) {
-    const tieneTallas = producto.tiene_tallas;
-    const stockTotal = producto.tallas ? producto.tallas.reduce((sum, t) => sum + t.stock_talla, 0) : 0;
-    const agotado = stockTotal === 0;
+    // 1. Normalizar Precios
+    const precio = parseFloat(producto.precio || producto.precio_venta || 0);
+    const precioOriginal = producto.precio_original ? parseFloat(producto.precio_original) : null;
+    const descuento = precioOriginal ? Math.round(((precioOriginal - precio) / precioOriginal) * 100) : 0;
     
-    let imagenUrl = producto.imagen_principal || producto.imagen || '';
+    // 2. Normalizar ID
+    const idProducto = producto.id_producto || producto.producto_id || producto.id;
     
-    // Agregar prefijo ../ si la ruta no lo tiene (para funcionar desde /public/)
-    if (imagenUrl && !imagenUrl.startsWith('../') && !imagenUrl.startsWith('http')) {
-        imagenUrl = '../' + imagenUrl;
+    // 3. Normalizar Nombre
+    const nombreProducto = producto.nombre_producto || producto.nombre || 'Producto sin nombre';
+
+    // 4. Normalizar Categoría
+    let nombreCategoria = 'Sin categoría';
+    if (producto.categoria && typeof producto.categoria === 'object') {
+        nombreCategoria = producto.categoria.nombre_categoria || 'Sin categoría';
+    } else if (producto.categoria_nombre) {
+        nombreCategoria = producto.categoria_nombre;
+    } else if (typeof producto.categoria === 'string') {
+        nombreCategoria = producto.categoria;
+    }
+
+    // 5. Normalizar Imagen
+    let imagen = producto.imagen_principal || producto.imagen_url || producto.imagen || '';
+    if (imagen && !imagen.startsWith('http')) {
+        imagen = imagen.replace('frontend/', '').replace('public/', '');
+        if (imagen.startsWith('assets/')) {
+            imagen = '../' + imagen;
+        } else if (!imagen.startsWith('../')) {
+            imagen = '../assets/images/productos/' + imagen;
+        }
+    }
+    const imagenFallback = 'https://placehold.co/300x300?text=Sin+Imagen';
+    if (!imagen) imagen = imagenFallback;
+    
+    // 6. Calcular stock
+    let stock = 0;
+    if (producto.tallas && Array.isArray(producto.tallas)) {
+        stock = producto.tallas.reduce((sum, t) => sum + (parseInt(t.stock) || parseInt(t.stock_talla) || 0), 0);
+    } else {
+        stock = parseInt(producto.stock_total || producto.stock || 0);
+    }
+    const enStock = stock > 0;
+
+    // 7. Lógica de Badges
+    const esDestacado = producto.destacado == 1 || producto.destacado === true;
+    const esNuevo = producto.nuevo == 1 || producto.nuevo === true;
+    
+    let badgeHtml = '';
+    
+    if (!enStock) {
+        badgeHtml = '<span class="product-badge badge-agotado">Agotado</span>';
+    } 
+
+    else if (esDestacado) {
+        badgeHtml = '<span class="product-badge badge-destacado">Más Vendido</span>';
+    } 
+    else if (esNuevo) {
+        badgeHtml = '<span class="product-badge badge-nuevo">Nuevo</span>';
+    } else if (descuento > 0) {
+        badgeHtml = `<span class="product-badge badge-descuento">-${descuento}%</span>`;
     }
     
+    // 8. Retornar HTML
     return `
-        <div class="product-card" onclick="irAProducto(${producto.id_producto})">
+        <div class="producto-card" data-producto-id="${idProducto}" onclick="window.location.href='producto.html?id=${idProducto}'" style="cursor: pointer;">
             <div class="product-image-container">
-                <img src="${imagenUrl}" 
-                      alt="${producto.nombre_producto}"
-                      onerror="this.onerror=null; this.style.display='none'; this.parentElement.style.display='flex'; this.parentElement.style.alignItems='center'; this.parentElement.style.justifyContent='center'; this.parentElement.innerHTML='<span style=color:#CCC;font-size:14px;>Sin imagen</span>';">
-                ${producto.nuevo ? '<span class="product-badge">Nuevo</span>' : ''}
-                ${agotado ? '<span class="product-badge" style="background-color: var(--color-error)">Agotado</span>' : ''}
+                <img src="${imagen}" 
+                      alt="${nombreProducto}" 
+                      loading="lazy"
+                      onerror="this.onerror=null; this.src='${imagenFallback}';">
+                ${badgeHtml}
             </div>
-            <h3 class="product-title">${producto.nombre_producto}</h3>
-            <p class="product-category">${producto.categoria_nombre}</p>
-            <p class="product-price">${formatearPrecio(producto.precio)}</p>
+            <div class="producto-info" style="padding: 12px;">
+                <div class="product-category" style="font-size: 11px; color: #666; text-transform: uppercase;">${nombreCategoria}</div>
+                <h3 class="product-title" style="font-size: 14px; font-weight: 700; margin: 4px 0;">${nombreProducto}</h3>
+                <div class="product-price" style="font-weight: 700; color: #000;">${formatearPrecio(precio)}</div>
+            </div>
         </div>
     `;
 }
 
 function irAProducto(idProducto) {
-    // Detectar la ubicación actual para construir la ruta correcta
     const currentPath = window.location.pathname;
     
-    // Si ya estamos en /frontend/public/, usar ruta relativa
     if (currentPath.includes('/frontend/public/')) {
         window.location.href = `producto.html?id=${idProducto}`;
     } else {
-        // Si estamos en otra ubicación, usar ruta absoluta
         window.location.href = `/frontend/public/producto.html?id=${idProducto}`;
     }
 }
@@ -443,14 +493,12 @@ function irACatalogo(categoria = '') {
     const currentPath = window.location.pathname;
     
     if (currentPath.includes('/frontend/public/')) {
-        // Ya estamos en la carpeta correcta
         if (categoria) {
             window.location.href = `catalogo.html?categoria=${encodeURIComponent(categoria)}`;
         } else {
             window.location.href = 'catalogo.html';
         }
     } else {
-        // Estamos en otra ubicación
         if (categoria) {
             window.location.href = `/frontend/public/catalogo.html?categoria=${encodeURIComponent(categoria)}`;
         } else {
@@ -566,7 +614,7 @@ function validarFormulario(formulario) {
 }
 
 // ============================================
-// GESTIÓN DE SESIÓN (Compatible con authService)
+// GESTIÓN DE SESIÓN
 // ============================================
 
 function obtenerUsuarioActual() {
@@ -628,82 +676,95 @@ function verificarSesion() {
 
 function actualizarNavbarUsuario() {
     const usuario = obtenerUsuarioActual();
-    const navbarActions = document.querySelector('.navbar-actions');
     
-    if (!navbarActions) return;
-    
-    // Buscar si ya existe el dropdown de usuario
-    let userDropdown = document.querySelector('.user-dropdown');
-    
+    // Referencias a los elementos
+    const btnLogin = document.getElementById('btnLogin');
+    const userMenu = document.getElementById('userMenu');
+    const userName = document.getElementById('userName');
+    const userAvatar = document.getElementById('userAvatar');
+    const dropdownContent = document.querySelector('.user-dropdown-content');
+
     if (usuario) {
-        // Usuario logueado - Mostrar dropdown
-        if (!userDropdown) {
-            // Crear dropdown por primera vez
-            const searchButton = navbarActions.querySelector('button[onclick*="catalogo"]');
+        // Ocultar botón de login
+        if (btnLogin) btnLogin.style.display = 'none';
+
+        // Actualizar nombre y avatar
+        if (userName) {
+            let nombreMostrar = usuario.nombre || 'Usuario';
+            nombreMostrar = nombreMostrar.charAt(0).toUpperCase() + nombreMostrar.slice(1).toLowerCase();
+            userName.textContent = nombreMostrar; 
             
-            userDropdown = document.createElement('div');
-            userDropdown.className = 'user-dropdown';
-            userDropdown.style.cssText = 'position: relative; display: inline-block;';
-            
-            userDropdown.innerHTML = `
-                <button class="user-button navbar-link" onclick="toggleUserMenu()" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                    <span class="user-name">${usuario.nombre}</span>
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M3 4.5L6 7.5L9 4.5"></path>
-                    </svg>
+            if (authService.isTrabajador()) {
+                const rol = authService.getTrabajadorRol();
+            }
+        }
+
+        // Renderizar el menú dinámicamente según el ROL
+        if (dropdownContent) {
+            let menuHtml = '';
+
+            const perfilUrl = authService.isTrabajador() ? 'perfil.html' : 'perfil.html'; 
+            menuHtml += `
+                <button class="dropdown-item" onclick="window.location.href='${perfilUrl}'">
+                    👤 Mi Perfil
                 </button>
-                <div class="user-menu" style="display: none; position: absolute; right: 0; top: 100%; margin-top: 8px; background: white; border: 1px solid var(--color-gray-border); border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); min-width: 180px; z-index: 1000;">
-                    <div style="padding: 12px 16px; border-bottom: 1px solid var(--color-gray-border);">
-                        <div style="font-weight: 600; font-size: 14px;">${usuario.nombre} ${usuario.apellido || ''}</div>
-                        <div style="font-size: 12px; color: var(--color-gray-medium); margin-top: 4px;">${usuario.email}</div>
-                    </div>
-                    <a href="perfil.html" class="user-menu-item" style="display: block; padding: 12px 16px; text-decoration: none; color: var(--color-black); font-size: 14px; transition: background 150ms;" onmouseover="this.style.backgroundColor='var(--color-gray-light)'" onmouseout="this.style.backgroundColor='transparent'">
-                        Mi Cuenta
-                    </a>
-                    <a href="pedidos.html" class="user-menu-item" style="display: block; padding: 12px 16px; text-decoration: none; color: var(--color-black); font-size: 14px; transition: background 150ms;" onmouseover="this.style.backgroundColor='var(--color-gray-light)'" onmouseout="this.style.backgroundColor='transparent'">
-                        Mis Pedidos
-                    </a>
-                    <button onclick="cerrarSesion()" class="user-menu-item" style="width: 100%; text-align: left; padding: 12px 16px; background: none; border: none; border-top: 1px solid var(--color-gray-border); color: var(--color-error); font-size: 14px; cursor: pointer; transition: background 150ms;" onmouseover="this.style.backgroundColor='var(--color-gray-light)'" onmouseout="this.style.backgroundColor='transparent'">
-                        Cerrar Sesión
-                    </button>
-                </div>
             `;
-            
-            // Insertar antes del botón de búsqueda
-            if (searchButton) {
-                navbarActions.insertBefore(userDropdown, searchButton);
+
+            // Lógica: Trabajador vs Cliente
+            if (authService.isTrabajador()) {
+                // ES TRABAJADOR
+                const rol = authService.getTrabajadorRol();
+                let dashboardUrl = 'index.html'; // fallback
+
+                if (rol === 'Administrador') {
+                    dashboardUrl = 'admin-dashboard.html';
+                } else if (rol === 'Vendedor') {
+                    dashboardUrl = 'vendedor-dashboard.html';
+                }
+
+                menuHtml += `
+                    <button class="dropdown-item" onclick="window.location.href='${dashboardUrl}'">
+                        📊 Panel de Control
+                    </button>
+                `;
             } else {
-                navbarActions.insertBefore(userDropdown, navbarActions.firstChild);
-            }
-        } else {
-            // Actualizar nombre si ya existe
-            const userName = userDropdown.querySelector('.user-name');
-            if (userName) {
-                userName.textContent = usuario.nombre; // Solo nombre
-            }
-            // Actualizar info completa en el menú desplegable
-            const userInfo = userDropdown.querySelector('.user-menu > div:first-child');
-            if (userInfo) {
-                userInfo.innerHTML = `
-                    <div style="font-weight: 600; font-size: 14px;">${usuario.nombre} ${usuario.apellido || ''}</div>
-                    <div style="font-size: 12px; color: var(--color-gray-medium); margin-top: 4px;">${usuario.email}</div>
+                // ES CLIENTE
+                menuHtml += `
+                    <button class="dropdown-item" onclick="window.location.href='pedidos.html'">
+                        📦 Mis Pedidos
+                    </button>
                 `;
             }
+
+            // Footer común: Cerrar Sesión
+            menuHtml += `
+                <div class="dropdown-divider"></div>
+                <button class="dropdown-item" onclick="cerrarSesion()" style="color: #DC3545;">
+                    🚪 Cerrar Sesión
+                </button>
+            `;
+
+            dropdownContent.innerHTML = menuHtml;
         }
+
+        // Mostrar el menú de usuario
+        if (userMenu) {
+            userMenu.style.display = 'block';
+        }
+
     } else {
-        // Usuario NO logueado - Remover dropdown si existe
-        if (userDropdown) {
-            userDropdown.remove();
-        }
+        // --- USUARIO NO LOGUEADO --- 
+        // 1. Mostrar botón de login
+        if (btnLogin) btnLogin.style.display = 'inline-flex';
+
+        // 2. Ocultar menú de usuario
+        if (userMenu) userMenu.style.display = 'none';
     }
 }
 
 function toggleUserMenu() {
-    const menu = document.querySelector('.user-menu');
+    // Buscamos el contenido desplegable dentro del contenedor activo
+    const menu = document.querySelector('.user-dropdown-content');
     if (menu) {
         menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
     }
@@ -711,11 +772,11 @@ function toggleUserMenu() {
 
 // Cerrar menú al hacer clic fuera
 document.addEventListener('click', (e) => {
-    const userDropdown = document.querySelector('.user-dropdown');
-    if (userDropdown && !userDropdown.contains(e.target)) {
-        const menu = document.querySelector('.user-menu');
-        if (menu) {
-            menu.style.display = 'none';
+    const userMenu = document.querySelector('.user-menu'); // El contenedor
+    if (userMenu && !userMenu.contains(e.target)) {
+        const dropdown = document.querySelector('.user-dropdown-content'); // La lista
+        if (dropdown) {
+            dropdown.style.display = 'none';
         }
     }
 });

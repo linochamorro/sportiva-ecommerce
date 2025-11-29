@@ -16,8 +16,25 @@ class Producto extends BaseModel {
      * Obtener todos los productos con información completa
      * Incluye: categoría, imágenes, tallas disponibles
      */
-    async findAllWithDetails(filters = {}) {
+    async findAllWithDetails(filtros = {}) {
         try {
+            const {
+                categoria,
+                busqueda,
+                marca,
+                precioMin,
+                precioMax,
+                destacado,
+                nuevo,
+                excluir,
+                page = 1,
+                limit = 12
+            } = filtros;
+
+            const numLimit = parseInt(limit) || 12;
+            const numPage = parseInt(page) || 1;
+            const offset = (numPage - 1) * numLimit;
+
             let query = `
                 SELECT 
                     p.id_producto,
@@ -26,131 +43,119 @@ class Producto extends BaseModel {
                     p.precio,
                     p.marca,
                     p.sku,
-                    p.peso,
-                    p.dimensiones,
                     p.tiene_tallas,
-                    p.estado_producto,
                     p.destacado,
                     p.nuevo,
                     p.descuento_porcentaje,
-                    p.id_categoria,
+                    p.estado_producto,
+                    c.id_categoria,
                     c.nombre_categoria,
-                    c.descripcion as descripcion_categoria,
-                    p.fecha_creacion,
-                    (SELECT COUNT(*) FROM RESENA r WHERE r.id_producto = p.id_producto) as total_resenas,
-                    (SELECT AVG(r.calificacion) FROM RESENA r WHERE r.id_producto = p.id_producto) as calificacion_promedio,
-                    COALESCE(
-                        (SELECT url_imagen FROM IMAGEN_PRODUCTO 
-                          WHERE id_producto = p.id_producto AND es_principal = 1 
-                          LIMIT 1),
-                        (SELECT url_imagen FROM IMAGEN_PRODUCTO 
-                          WHERE id_producto = p.id_producto 
-                          ORDER BY orden_imagen ASC 
-                          LIMIT 1)
-                    ) as imagen_principal
+                    c.slug,
+                    GROUP_CONCAT(DISTINCT CONCAT(tp.id_talla, ':', tp.talla, ':', tp.stock_talla) SEPARATOR '|') as tallas_info,
+                    SUM(tp.stock_talla) as stock_total,
+                    (SELECT url_imagen 
+                    FROM IMAGEN_PRODUCTO 
+                    WHERE id_producto = p.id_producto 
+                    AND es_principal = TRUE 
+                    LIMIT 1) as imagen_principal
                 FROM PRODUCTO p
-                INNER JOIN CATEGORIA c ON p.id_categoria = c.id_categoria
+                LEFT JOIN CATEGORIA c ON p.id_categoria = c.id_categoria
+                LEFT JOIN TALLA_PRODUCTO tp ON p.id_producto = tp.id_producto
                 WHERE p.estado_producto = 'Activo'
             `;
 
             const params = [];
 
-    // Filtros opcionales
-            if (filters.id_categoria) {
-                query += ` AND p.id_categoria = ?`;
-                params.push(filters.id_categoria);
+            if (categoria) {
+                query += ' AND p.id_categoria = ?';
+                params.push(parseInt(categoria));
             }
 
-            if (filters.marca) {
-                query += ` AND p.marca = ?`;
-                params.push(filters.marca);
+            if (busqueda) {
+                query += ' AND (p.nombre_producto LIKE ? OR p.descripcion LIKE ? OR p.marca LIKE ?)';
+                const searchTerm = `%${busqueda}%`;
+                params.push(searchTerm, searchTerm, searchTerm);
             }
 
-            if (filters.precio_min) {
-                query += ` AND p.precio >= ?`;
-                params.push(filters.precio_min);
+            if (marca) {
+                query += ' AND p.marca = ?';
+                params.push(marca);
             }
 
-            if (filters.precio_max) {
-                query += ` AND p.precio <= ?`;
-                params.push(filters.precio_max);
+            if (precioMin) {
+                query += ' AND p.precio >= ?';
+                params.push(parseFloat(precioMin));
             }
 
-            if (filters.search) {
-                query += ` AND (p.nombre_producto LIKE ? OR p.descripcion LIKE ?)`;
-                params.push(`%${filters.search}%`, `%${filters.search}%`);
+            if (precioMax) {
+                query += ' AND p.precio <= ?';
+                params.push(parseFloat(precioMax));
             }
 
-            if (filters.destacado) {
-                query += ` AND p.destacado = 1`;
+            if (destacado !== undefined) {
+                query += ' AND p.destacado = ?';
+                params.push(destacado === 'true' || destacado === true ? 1 : 0);
             }
 
-            if (filters.nuevo) {
-                query += ` AND p.nuevo = 1`;
+            if (nuevo !== undefined) {
+                query += ' AND p.nuevo = ?';
+                params.push(nuevo === 'true' || nuevo === true ? 1 : 0);
             }
 
-            // Filtro para excluir producto específico (productos relacionados)
-            if (filters.excluir) {
-                query += ` AND p.id_producto != ?`;
-                params.push(parseInt(filters.excluir));
+            if (excluir) {
+                query += ' AND p.id_producto != ?';
+                params.push(parseInt(excluir));
             }
 
-            // Ordenamiento
-            const orderBy = filters.orderBy || 'p.fecha_creacion';
-            const orderDir = filters.orderDir || 'DESC';
-            query += ` ORDER BY ${orderBy} ${orderDir}`;
+            query += ' GROUP BY p.id_producto, p.nombre_producto, p.descripcion, p.precio, p.marca, p.sku, p.tiene_tallas, p.destacado, p.nuevo, p.descuento_porcentaje, p.estado_producto, p.fecha_creacion, c.id_categoria, c.nombre_categoria, c.slug';
+            query += ' ORDER BY p.fecha_creacion DESC';
+            query += ` LIMIT ${numLimit} OFFSET ${offset}`;
 
-            // Paginación
-            if (filters.limit) {
-                query += ` LIMIT ? OFFSET ?`;
-                params.push(
-                    parseInt(filters.limit),
-                    parseInt(filters.offset || 0)
-                );
-            }
+            const [rows] = params.length > 0 
+                ? await this.db.execute(query, params)
+                : await this.db.query(query);
 
-            const [rows] = await this.db.execute(query, params);
-            
-            // Obtener tallas con stock para cada producto
-            if (rows.length > 0) {
-                const productosIds = rows.map(p => p.id_producto);
-                
-                // Crear placeholders dinámicos para el IN clause
-                const placeholders = productosIds.map(() => '?').join(',');
-                
-                const tallasQuery = `
-                    SELECT 
-                        id_talla,
-                        id_producto,
-                        talla,
-                        stock_talla,
-                        medidas
-                    FROM TALLA_PRODUCTO
-                    WHERE id_producto IN (${placeholders})
-                    ORDER BY 
-                        id_producto,
-                        CASE talla
-                            WHEN 'XS' THEN 1
-                            WHEN 'S' THEN 2
-                            WHEN 'M' THEN 3
-                            WHEN 'L' THEN 4
-                            WHEN 'XL' THEN 5
-                            WHEN 'XXL' THEN 6
-                            ELSE 7
-                        END
-                `;
-                
-                const [tallas] = await this.db.execute(tallasQuery, productosIds);
-                
-                // Mapear tallas a cada producto
-                rows.forEach(producto => {
-                    producto.tallas = tallas.filter(t => t.id_producto === producto.id_producto);
-                });
-            }
-            
-            return rows;
+            const productos = rows.map(row => {
+                const producto = {
+                    id_producto: row.id_producto,
+                    nombre_producto: row.nombre_producto,
+                    descripcion: row.descripcion,
+                    precio: parseFloat(row.precio),
+                    marca: row.marca,
+                    sku: row.sku,
+                    tiene_tallas: Boolean(row.tiene_tallas),
+                    destacado: Boolean(row.destacado),
+                    nuevo: Boolean(row.nuevo),
+                    descuento_porcentaje: parseFloat(row.descuento_porcentaje || 0),
+                    estado_producto: row.estado_producto,
+                    categoria: {
+                        id_categoria: row.id_categoria,
+                        nombre_categoria: row.nombre_categoria,
+                        slug: row.slug
+                    },
+                    stock_total: parseInt(row.stock_total || 0),
+                    imagen_principal: row.imagen_principal || '/assets/images/placeholder.jpg',
+                    tallas: []
+                };
+
+                if (row.tallas_info) {
+                    producto.tallas = row.tallas_info.split('|').map(tallaStr => {
+                        const [id_talla, talla, stock_talla] = tallaStr.split(':');
+                        return {
+                            id_talla: parseInt(id_talla),
+                            talla: talla,
+                            stock_talla: parseInt(stock_talla)
+                        };
+                    });
+                }
+
+                return producto;
+            });
+
+            return productos;
         } catch (error) {
-            throw new Error(`Error obteniendo productos con detalles: ${error.message}`);
+            logger.error('Error en findAllWithDetails:', error);
+            throw error;
         }
     }
 
@@ -202,11 +207,7 @@ class Producto extends BaseModel {
 
             const producto = rows[0];
 
-            // Obtener imágenes del producto
             producto.imagenes = await this.getImagesByProductId(id_producto);
-
-            // Obtener TODAS las tallas (incluyendo 'UNICA') para este producto
-            // Se ignora el flag 'tiene_tallas' y se confía en TALLA_PRODUCTO como fuente de verdad
             const tallasQuery = `
                 SELECT 
                     id_talla,
@@ -351,6 +352,8 @@ class Producto extends BaseModel {
      */
     async getRelatedProducts(id_producto, id_categoria, limit = 4) {
         try {
+            const numLimit = parseInt(limit) || 4;
+
             const query = `
                 SELECT 
                     p.id_producto,
@@ -371,10 +374,10 @@ class Producto extends BaseModel {
                 AND p.id_producto != ? 
                 AND p.estado_producto = 'Activo'
                 ORDER BY RAND()
-                LIMIT ?
+                LIMIT ${numLimit}
             `;
 
-            const [rows] = await this.db.execute(query, [id_categoria, id_producto, limit]);
+            const [rows] = await this.db.execute(query, [id_categoria, id_producto]);
             return rows;
         } catch (error) {
             throw new Error(`Error obteniendo productos relacionados: ${error.message}`);
@@ -386,6 +389,7 @@ class Producto extends BaseModel {
      */
     async getFeaturedProducts(limit = 8) {
         try {
+            const numLimit = parseInt(limit) || 8;
             const query = `
                 SELECT 
                     p.id_producto,
@@ -396,6 +400,8 @@ class Producto extends BaseModel {
                     p.nuevo,
                     p.descuento_porcentaje,
                     c.nombre_categoria,
+                    /* CORRECCIÓN: Calculamos el stock total sumando las tallas */
+                    (SELECT COALESCE(SUM(stock_talla), 0) FROM TALLA_PRODUCTO WHERE id_producto = p.id_producto) as stock_total,
                     COALESCE(
                         (SELECT url_imagen FROM IMAGEN_PRODUCTO 
                           WHERE id_producto = p.id_producto AND es_principal = 1 
@@ -410,12 +416,12 @@ class Producto extends BaseModel {
                 FROM PRODUCTO p
                 INNER JOIN CATEGORIA c ON p.id_categoria = c.id_categoria
                 WHERE p.estado_producto = 'Activo'
-                AND (p.destacado = 1 OR p.nuevo = 1)
+                AND (p.destacado = 1)
                 ORDER BY p.destacado DESC, p.fecha_creacion DESC
-                LIMIT ?
+                LIMIT ${numLimit}
             `;
 
-            const [rows] = await this.db.execute(query, [limit]);
+            const [rows] = await this.db.query(query);
             return rows;
         } catch (error) {
             throw new Error(`Error obteniendo productos destacados: ${error.message}`);
@@ -574,6 +580,55 @@ class Producto extends BaseModel {
             throw new Error(`Error obteniendo reseñas: ${error.message}`);
         }
     }
-}
+
+    static async findRelated(id_producto, limit = 4) {
+        try {
+          const numIdProducto = parseInt(id_producto);
+          const numLimit = parseInt(limit) || 4;
+          const [productoCurrent] = await this.db.execute(
+            'SELECT id_categoria FROM PRODUCTO WHERE id_producto = ?',
+            [numIdProducto]
+          );
+
+          if (!productoCurrent || productoCurrent.length === 0) {
+            return [];
+          }
+
+          const id_categoria = parseInt(productoCurrent[0].id_categoria);
+          const query = `
+            SELECT 
+              p.id_producto,
+              p.nombre_producto,
+              p.precio,
+              p.descuento_porcentaje,
+              p.marca,
+              c.nombre_categoria,
+              c.slug as categoria_slug,
+              (SELECT url_imagen 
+              FROM IMAGEN_PRODUCTO 
+              WHERE id_producto = p.id_producto 
+              AND es_principal = 1
+              LIMIT 1) as imagen_principal,
+              COALESCE(SUM(tp.stock_talla), 0) as stock_total
+            FROM PRODUCTO p
+            LEFT JOIN CATEGORIA c ON p.id_categoria = c.id_categoria
+            LEFT JOIN TALLA_PRODUCTO tp ON p.id_producto = tp.id_producto
+            WHERE p.id_categoria = ${id_categoria}
+              AND p.id_producto != ${numIdProducto}
+              AND p.estado_producto = 'Activo'
+            GROUP BY p.id_producto
+            ORDER BY p.destacado DESC, p.fecha_creacion DESC
+            LIMIT ${numLimit}
+          `;
+
+          const [rows] = await this.db.query(query);
+          return rows;
+
+        } catch (error) {
+          logger.error('Error en findRelated:', error);
+          throw error;
+        }
+      }
+}      
 
 module.exports = Producto;

@@ -33,7 +33,6 @@ exports.register = async (req, res) => {
             telefono
         });
 
-        // Si el registro falló (email duplicado, etc)
         if (!resultado.success) {
             return res.status(409).json({
                 success: false,
@@ -43,7 +42,6 @@ exports.register = async (req, res) => {
 
         logger.info(`Nuevo cliente registrado: ${email}`);
 
-        // Respuesta exitosa con estructura que espera el frontend
         res.status(201).json({
             success: true,
             message: 'Cliente registrado exitosamente',
@@ -67,7 +65,6 @@ exports.register = async (req, res) => {
 
 exports.login = async (req, res) => {
     try {
-        // Validar errores de entrada
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({
@@ -91,7 +88,6 @@ exports.login = async (req, res) => {
 
         logger.info(`Cliente autenticado: ${email}`);
 
-        // Respuesta exitosa con estructura que espera el frontend
         res.json({
             success: true,
             message: 'Autenticación exitosa',
@@ -272,8 +268,6 @@ exports.updateProfile = async (req, res) => {
 
         const clienteId = req.cliente.id;
         const datosActualizar = req.body;
-
-        // Actualizar perfil usando el servicio
         const resultado = await authService.updateProfile(clienteId, datosActualizar);
 
         if (!resultado.success) {
@@ -355,7 +349,7 @@ exports.changePassword = async (req, res) => {
 
 exports.obtenerEstadisticasClientes = async (req, res) => {
     try {
-        const totalClientes = await authService.clienteModel.count({ activo: 1 });
+        const totalClientes = await authService.clienteModel.count({ estado: 'Activo' });
         res.json({
             success: true,
             data: {

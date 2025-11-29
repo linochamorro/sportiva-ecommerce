@@ -4,14 +4,19 @@
 
 const Carrito = require('../models/Carrito');
 const Producto = require('../models/Producto');
+const Pedido = require('../models/Pedido');
 const db = require('../config/database');
 const logger = require('../utils/logger');
-const { IGV, COSTO_ENVIO_LIMA } = require('../config/constants');
+
+// EXTRAER CUPONES
+const { BUSINESS_CONFIG } = require('../config/constants');
+const { IGV, COSTO_ENVIO_LIMA, ENVIO_GRATIS_MINIMO, CUPONES } = BUSINESS_CONFIG;
 
 class CarritoService {
     constructor() {
         this.carritoModel = new Carrito();
         this.productoModel = new Producto();
+        this.pedidoModel = new Pedido();
         this.db = db;
     }
 
@@ -243,8 +248,9 @@ class CarritoService {
 
     async updateItem(id_cliente, id_detalle, nuevaCantidad) {
         try {
-            // Verificar propiedad del item
-            const item = await this.carritoModel.findById('DETALLE_CARRITO', id_detalle);
+            const [rows] = await this.db.execute('SELECT * FROM DETALLE_CARRITO WHERE id_detalle_carrito = ?', [id_detalle]);
+            const item = rows[0];
+
             if (!item) {
                 return {
                     success: false,
@@ -301,7 +307,9 @@ class CarritoService {
 
     async removeItem(id_cliente, id_detalle) {
         try {
-            const item = await this.carritoModel.findById('DETALLE_CARRITO', id_detalle);
+            const [rows] = await this.db.execute('SELECT * FROM DETALLE_CARRITO WHERE id_detalle_carrito = ?', [id_detalle]);
+            const item = rows[0];
+
             if (!item) {
                 return {
                     success: false,
@@ -369,18 +377,25 @@ class CarritoService {
     async calculateDetailedTotals(id_carrito) {
         try {
             const totals = await this.carritoModel.calculateTotals(id_carrito);
+            let costoEnvioFinal = totals.costoEnvio;
             
+            if (totals.subtotal >= ENVIO_GRATIS_MINIMO) {
+                costoEnvioFinal = 0;
+            }
+
+            const totalFinal = totals.subtotal + totals.igv + costoEnvioFinal;
+
             return {
                 subtotal: totals.subtotal,
                 igv: totals.igv,
-                costo_envio: totals.costoEnvio,
-                total: totals.total,
+                costo_envio: costoEnvioFinal,
+                total: parseFloat(totalFinal.toFixed(2)),
                 total_items: totals.total_items,
                 total_productos: totals.total_productos,
                 subtotal_formateado: this.formatPrice(totals.subtotal),
                 igv_formateado: this.formatPrice(totals.igv),
-                costo_envio_formateado: this.formatPrice(totals.costoEnvio),
-                total_formateado: this.formatPrice(totals.total)
+                costo_envio_formateado: this.formatPrice(costoEnvioFinal),
+                total_formateado: this.formatPrice(totalFinal)
             };
         } catch (error) {
             logger.error(`Error calculando totales para carrito ${id_carrito}`, error);
@@ -394,39 +409,104 @@ class CarritoService {
 
     async getQuickSummary(id_cliente) {
         try {
-            const summary = await this.carritoModel.getSummary(id_cliente);
+            const carrito = await this.carritoModel.getCarritoWithItems(id_cliente);
             
+            if (!carrito || !carrito.items || carrito.items.length === 0) {
+                return {
+                    success: true,
+                    data: {
+                        items: [],
+                        total_items: 0,
+                        total_productos: 0,
+                        subtotal: 0,
+                        igv: 0,
+                        costoEnvio: 0,
+                        total: 0,
+                        subtotal_formateado: this.formatPrice(0),
+                        empty: true
+                    }
+                };
+            }
+
+            const totals = await this.calculateDetailedTotals(carrito.id_carrito);
+
             return {
                 success: true,
                 data: {
-                    items: summary?.items || [],
-                    total_items: summary?.total_items || 0,
-                    total_productos: summary?.total_productos || 0,
-                    subtotal: summary?.subtotal || 0,
-                    igv: summary?.igv || 0,
-                    costoEnvio: summary?.costoEnvio || 0,
-                    total: summary?.total || 0,
-                    subtotal_formateado: this.formatPrice(summary?.subtotal || 0),
-                    empty: summary?.empty ?? true
+                    items: carrito.items,
+                    total_items: totals.total_items,
+                    total_productos: totals.total_productos,
+                    subtotal: totals.subtotal,
+                    igv: totals.igv,
+                    costoEnvio: totals.costo_envio,
+                    total: totals.total,
+                    subtotal_formateado: totals.subtotal_formateado,
+                    empty: false
                 }
             };
         } catch (error) {
             logger.error(`Error obteniendo resumen rápido para cliente ${id_cliente}`, error);
             return {
                 success: false,
-                message: 'Error al obtener resumen del carrito.',
-                data: {
-                    items: [],
-                    total_items: 0,
-                    total_productos: 0,
-                    subtotal: 0,
-                    igv: 0,
-                    costoEnvio: 0,
-                    total: 0,
-                    subtotal_formateado: this.formatPrice(0),
-                    empty: true
+                message: 'Error al obtener resumen del carrito.'
+            };
+        }
+    }
+
+    // ============================================
+    // CUPONES
+    // ============================================
+
+    async validarCupon(id_cliente, codigoCupon) {
+        try {
+            const codigo = codigoCupon.toUpperCase().trim();
+            const configCupon = CUPONES[codigo];
+            
+            // 1. Validar existencia
+            if (!configCupon) {
+                return { valid: false, message: 'Cupón no válido' };
+            }
+
+            // 2. Validar uso único
+            if (configCupon.unico) {
+                const yaUsado = await this.pedidoModel.haUsadoCupon(id_cliente, codigo);
+                if (yaUsado) {
+                    return { valid: false, message: 'Este cupón es de uso único y ya lo has utilizado' };
+                }
+            }
+
+            // 3. Obtener subtotal actual
+            const carritoResumen = await this.getQuickSummary(id_cliente);
+            if (carritoResumen.data.empty) {
+                return { valid: false, message: 'El carrito está vacío' };
+            }
+            const subtotal = carritoResumen.data.subtotal;
+
+            // 4. Validar monto mínimo
+            if (configCupon.minimo && subtotal < configCupon.minimo) {
+                return { valid: false, message: `Compra mínima: S/ ${configCupon.minimo.toFixed(2)}` };
+            }
+
+            // 5. Calcular descuento
+            let descuento = 0;
+            if (configCupon.tipo === 'PORCENTAJE') {
+                descuento = subtotal * (configCupon.valor / 100);
+            } else {
+                descuento = configCupon.valor;
+            }
+            
+            return {
+                valid: true,
+                cupon: {
+                    codigo: codigo,
+                    descuento: parseFloat(descuento.toFixed(2)),
+                    mensaje: `Cupón aplicado: -S/ ${descuento.toFixed(2)}`
                 }
             };
+
+        } catch (error) {
+            logger.error(`Error validando cupón:`, error);
+            return { valid: false, message: 'Error al validar el cupón' };
         }
     }
 

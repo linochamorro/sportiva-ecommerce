@@ -25,12 +25,10 @@ exports.obtenerTodos = async (req, res) => {
 
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 12;
-        
-        // Parámetro para excluir producto específico (productos relacionados)
         const excluirProductoId = req.query.excluir ? parseInt(req.query.excluir) : null;
 
-const filtros = {
-            id_categoria: req.query.categoria ? parseInt(req.query.categoria) : null,
+        const filtros = {
+            categoria: req.query.categoria ? parseInt(req.query.categoria) : null,
             precioMin: req.query.precioMin,
             precioMax: req.query.precioMax,
             genero: req.query.genero,
@@ -290,7 +288,6 @@ exports.verificarStock = async (req, res) => {
         const { talla_id, cantidad } = req.query;
 
         if (talla_id && cantidad) {
-            // Verificar disponibilidad específica
             const resultado = await productoService.checkAvailability(
                 parseInt(productoId), 
                 parseInt(talla_id), 
@@ -452,13 +449,9 @@ exports.obtenerResenas = async (req, res) => {
 
 exports.obtenerEstadisticasCategorias = async (req, res) => {
     try {
-        // Se llama a 'getAvailableFilters' del servicio,
-        // que ya consulta la BD por categorías.
         const resultado = await productoService.getAvailableFilters();
 
         if (resultado.success) {
-            // Devolvemos el objeto 'data' completo del servicio.
-            // El frontend (admin-dashboard.html) espera la respuesta en 'response.data.categorias'.
             res.json({
                 success: true,
                 data: resultado.data 
@@ -570,7 +563,6 @@ exports.crearProducto = async (req, res) => {
             });
         }
 
-        // Se envían los datos del formulario al servicio.
         const resultado = await productoService.crearProducto(req.body);
 
         if (resultado.success) {
@@ -606,8 +598,6 @@ exports.actualizarProducto = async (req, res) => {
         }
 
         const productoId = req.params.id;
-        
-        // Se envían los datos y el ID al servicio.
         const resultado = await productoService.actualizarProducto(productoId, req.body);
 
         if (resultado.success) {
@@ -656,6 +646,66 @@ exports.actualizarEstadoProducto = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Error al actualizar estado de producto',
+            error: error.message
+        });
+    }
+};
+
+// ============================================
+// ACTUALIZAR STOCK DE TALLA
+// Endpoint: PATCH /api/productos/tallas/:id_talla/stock
+// ============================================
+
+exports.actualizarStockTalla = async (req, res) => {
+    try {
+        const idTalla = parseInt(req.params.id_talla);
+        const { stock_talla } = req.body;
+
+        if (isNaN(idTalla) || idTalla <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'ID de talla inválido'
+            });
+        }
+
+        if (stock_talla === undefined || stock_talla < 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Stock debe ser un número positivo o cero'
+            });
+        }
+        
+        const query = `
+            UPDATE TALLA_PRODUCTO
+            SET stock_talla = ?, fecha_actualizacion = NOW()
+            WHERE id_talla = ?
+        `;
+
+        const [result] = await Producto.db.execute(query, [stock_talla, idTalla]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Talla no encontrada'
+            });
+        }
+
+        logger.info(`Stock actualizado - Talla: ${idTalla}, Nuevo stock: ${stock_talla}`);
+
+        res.json({
+            success: true,
+            message: 'Stock actualizado correctamente',
+            data: {
+                id_talla: idTalla,
+                stock_talla: stock_talla
+            }
+        });
+
+    } catch (error) {
+        logger.error('Error al actualizar stock de talla:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al actualizar stock',
             error: error.message
         });
     }

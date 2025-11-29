@@ -273,7 +273,6 @@ exports.vaciarCarrito = async (req, res) => {
 
 exports.obtenerResumen = async (req, res) => {
     try {
-        // Si el usuario es un trabajador (admin/vendedor), no tiene carrito.
         if (req.trabajador) {
             logger.info('Solicitud de resumen de carrito por trabajador, devolviendo vacío.');
             return res.json({
@@ -348,32 +347,25 @@ exports.validarDisponibilidad = async (req, res) => {
 
 exports.aplicarCupon = async (req, res) => {
     try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({
-                success: false,
-                message: 'Errores de validación',
-                errors: errors.array()
-            });
+        const { codigoCupon } = req.body;
+        const clienteId = req.cliente.id;
+
+        if (!codigoCupon) return res.status(400).json({ success: false, message: 'Código requerido' });
+
+        const resultado = await carritoService.validarCupon(clienteId, codigoCupon);
+
+        if (!resultado.valid) {
+            return res.status(400).json({ success: false, message: resultado.message });
         }
 
-        const clienteId = req.cliente.id;
-        const { codigoCupon } = req.body;
-
-        logger.info(`Intento de aplicar cupón - Cliente: ${clienteId}, Código: ${codigoCupon}`);
-
-        res.status(501).json({
-            success: false,
-            message: 'Funcionalidad de cupones en desarrollo'
+        res.json({
+            success: true,
+            message: 'Cupón aplicado',
+            data: { cupon: resultado.cupon }
         });
-
     } catch (error) {
-        logger.error('Error al aplicar cupón:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error al aplicar cupón',
-            error: error.message
-        });
+        logger.error('Error aplicando cupón:', error);
+        res.status(500).json({ success: false, message: 'Error interno' });
     }
 };
 

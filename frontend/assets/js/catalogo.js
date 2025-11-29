@@ -10,7 +10,7 @@
 let productosActuales = [];
 let productosFiltrados = [];
 let paginaActual = 1;
-const productosPorPagina = 100; // Mostrar todos los productos
+const productosPorPagina = 100;
 let ordenActual = 'destacados';
 
 let filtrosActivos = {
@@ -31,7 +31,6 @@ let catalogoProductosCache = {
     ttl: 5 * 60 * 1000 // 5 minutos
 };
 
-// Mapeo de categorías (temporal hasta corregir backend)
 const CATEGORIAS_MAP = {
     1: 'Ropa Deportiva',
     2: 'Calzado Deportivo',
@@ -39,6 +38,22 @@ const CATEGORIAS_MAP = {
     4: 'Implementos de Entrenamiento',
     5: 'Accesorios'
 };
+
+function safeGetCategoriaNombre(producto) {
+    // Caso 1: Nueva estructura (Objeto anidado)
+    if (producto.categoria && typeof producto.categoria === 'object') {
+        return producto.categoria.nombre_categoria || 'Sin categoría';
+    }
+    // Caso 2: Estructura plana
+    if (producto.categoria_nombre) return producto.categoria_nombre;
+    if (typeof producto.categoria === 'string') return producto.categoria;
+    
+    // Caso 3: Fallback usando ID
+    const id = producto.id_categoria || (producto.categoria ? producto.categoria.id_categoria : null);
+    if (id) return obtenerNombreCategoria(id);
+    
+    return 'Sin categoría';
+}
 
 function obtenerNombreCategoria(idCategoria) {
     return CATEGORIAS_MAP[idCategoria] || 'Sin categoría';
@@ -111,6 +126,8 @@ async function cargarProductos() {
                 };
                 
                 console.log(`✅ ${productosActuales.length} productos cargados desde API`);
+                console.log('🔍 DEBUG - Primer producto:', productosActuales[0]);
+                console.log('🔍 DEBUG - Categoría primer producto:', productosActuales[0]?.categoria);
                 
                 // Cargar categorías inmediatamente después de tener productos
                 await cargarCategorias();
@@ -185,7 +202,6 @@ async function cargarCategorias() {
     try {
         console.log(`🔍 Intentando cargar categorías. Productos disponibles: ${productosActuales.length}`);
         
-        // Esperar a que haya productos cargados
         if (productosActuales.length === 0) {
             console.warn('⚠️ No hay productos para extraer categorías');
             const contenedor = document.getElementById('filtrosCategorias');
@@ -195,26 +211,17 @@ async function cargarCategorias() {
             return;
         }
         
-        // Debug: mostrar un producto de muestra
         console.log('📦 Producto de muestra:', productosActuales[0]);
         console.log('🔑 Propiedades disponibles:', Object.keys(productosActuales[0]));
         console.log('📌 categoria_nombre:', productosActuales[0].categoria_nombre);
         console.log('📌 categoria_id:', productosActuales[0].categoria_id);
         console.log('📌 id_categoria:', productosActuales[0].id_categoria);
-        
-        // Extraer categorías únicas con logging
         const categoriasUnicas = [...new Set(
-            productosActuales.map(p => {
-                const catNombre = p.categoria_nombre || p.categoria || obtenerNombreCategoria(p.id_categoria || p.categoria_id);
-                if (productosActuales.indexOf(p) < 3) { // Solo log primeros 3
-                    console.log(`  → ${p.nombre_producto}: categoria_nombre="${p.categoria_nombre}", categoria_id="${p.categoria_id}", id_categoria="${p.id_categoria}" → Resultado: "${catNombre}"`);
-                }
-                return catNombre;
-            })
+            productosActuales.map(p => safeGetCategoriaNombre(p))
         )].filter(cat => cat && cat !== 'Sin categoría');
-        
+
         console.log(`🏷️ Categorías extraídas:`, categoriasUnicas);
-        
+
         renderizarFiltrosCategorias(categoriasUnicas);
         
         console.log(`📁 ${categoriasUnicas.length} categorías disponibles`);
@@ -383,7 +390,7 @@ function aplicarFiltrosYOrden() {
     // Aplicar filtro de categoría
     if (filtrosActivos.categoria) {
         productosFiltrados = productosFiltrados.filter(p => {
-            const catNombre = p.categoria_nombre || p.categoria || obtenerNombreCategoria(p.id_categoria || p.categoria_id);
+            const catNombre = safeGetCategoriaNombre(p);
             return catNombre === filtrosActivos.categoria;
         });
     }
@@ -441,27 +448,27 @@ function aplicarFiltrosYOrden() {
 
 function aplicarOrden() {
     switch (ordenActual) {
-        case 'precio_asc':  // Cambiado de precio-asc a precio_asc
+        case 'precio_asc': 
             productosFiltrados.sort((a, b) => 
                 parseFloat(a.precio_venta || a.precio) - parseFloat(b.precio_venta || b.precio)
             );
             break;
-        case 'precio_desc':  // Cambiado de precio-desc a precio_desc
+        case 'precio_desc':
             productosFiltrados.sort((a, b) => 
                 parseFloat(b.precio_venta || b.precio) - parseFloat(a.precio_venta || a.precio)
             );
             break;
-        case 'nombre_asc':  // Cambiado de nombre-asc a nombre_asc
+        case 'nombre_asc':
             productosFiltrados.sort((a, b) => 
                 (a.nombre_producto || a.nombre || '').localeCompare(b.nombre_producto || b.nombre || '')
             );
             break;
-        case 'nombre_desc':  // Cambiado de nombre-desc a nombre_desc
+        case 'nombre_desc':
             productosFiltrados.sort((a, b) => 
                 (b.nombre_producto || b.nombre || '').localeCompare(a.nombre_producto || a.nombre || '')
             );
             break;
-        case 'nuevo':  // Cambiado de nuevos a nuevo (singular como en HTML)
+        case 'nuevo': 
             productosFiltrados.sort((a, b) => 
                 new Date(b.fecha_creacion || b.created_at || 0) - new Date(a.fecha_creacion || a.created_at || 0)
             );
@@ -537,72 +544,81 @@ function mostrarProductos() {
  * Crear HTML de card de producto
  */
 function crearCardProducto(producto) {
-    const precio = parseFloat(producto.precio_venta || producto.precio);
+    // 1. Normalizar Precios
+    const precio = parseFloat(producto.precio || producto.precio_venta || 0);
     const precioOriginal = producto.precio_original ? parseFloat(producto.precio_original) : null;
     const descuento = precioOriginal ? Math.round(((precioOriginal - precio) / precioOriginal) * 100) : 0;
     
-    
-    // Unificar el ID del producto
+    // 2. Normalizar ID
     const idProducto = producto.id_producto || producto.producto_id || producto.id;
     
-    // Obtener imagen y agregar prefijo ../ para rutas desde /public/
-    let imagen = producto.imagen_url || producto.imagen_principal || producto.imagen || '/assets/images/placeholder.jpg';
-    if (imagen && !imagen.startsWith('../') && !imagen.startsWith('http') && !imagen.startsWith('/')) {
-        imagen = '../' + imagen;
+    // 3. Normalizar Nombre
+    const nombreProducto = producto.nombre_producto || producto.nombre || 'Producto sin nombre';
+
+    // 4. Normalizar Categoría
+    let nombreCategoria = 'Sin categoría';
+    if (producto.categoria && typeof producto.categoria === 'object') {
+        nombreCategoria = producto.categoria.nombre_categoria || 'Sin categoría';
+    } else if (producto.categoria_nombre) {
+        nombreCategoria = producto.categoria_nombre;
+    } else if (typeof producto.categoria === 'string') {
+        nombreCategoria = producto.categoria;
+    }
+
+    // 5. Normalizar Imagen
+    let imagen = producto.imagen_principal || producto.imagen_url || producto.imagen || '';
+    if (imagen && !imagen.startsWith('http')) {
+        imagen = imagen.replace('frontend/', '').replace('public/', '');
+        if (imagen.startsWith('assets/')) {
+            imagen = '../' + imagen;
+        } else if (!imagen.startsWith('../')) {
+            imagen = '../assets/images/productos/' + imagen;
+        }
+    }
+    const imagenFallback = 'https://placehold.co/300x300?text=Sin+Imagen';
+    if (!imagen) imagen = imagenFallback;
+    
+    // 6. Calcular stock
+    let stock = 0;
+    if (producto.tallas && Array.isArray(producto.tallas)) {
+        stock = producto.tallas.reduce((sum, t) => sum + (parseInt(t.stock) || parseInt(t.stock_talla) || 0), 0);
+    } else {
+        stock = parseInt(producto.stock_total || producto.stock || 0);
+    }
+    const enStock = stock > 0;
+
+    // 7. Lógica de Badges
+    const esDestacado = producto.destacado == 1 || producto.destacado === true;
+    const esNuevo = producto.nuevo == 1 || producto.nuevo === true;
+    
+    let badgeHtml = '';
+    
+    if (!enStock) {
+        badgeHtml = '<span class="product-badge badge-agotado">Agotado</span>';
+    } 
+    else if (esDestacado) {
+        badgeHtml = '<span class="product-badge badge-destacado">MÁS VENDIDO</span>';
+    } 
+    else if (esNuevo) {
+        badgeHtml = '<span class="product-badge badge-nuevo">NUEVO</span>';
+    } else if (descuento > 0) {
+        badgeHtml = `<span class="product-badge badge-descuento">-${descuento}%</span>`;
     }
     
-    // Calcular stock desde tallas
-    const stock = producto.tallas && Array.isArray(producto.tallas)
-        ? producto.tallas.reduce((sum, t) => sum + (parseInt(t.stock) || parseInt(t.stock_talla) || 0), 0)
-        : (producto.stock_total || producto.stock || 0);
-    const enStock = stock > 0;
-    
+    // 8. Retornar HTML
     return `
-        <div class="producto-card" data-producto-id="${idProducto}">
-            ${descuento > 0 ? `<span class="badge-descuento">-${descuento}%</span>` : ''}
-            ${producto.destacado ? '<span class="badge-destacado">Destacado</span>' : ''}
-            ${!enStock ? '<span class="badge-agotado">Agotado</span>' : ''}
-            
-            <div class="producto-imagen">
-                <img src="${imagen}" alt="${producto.nombre}" loading="lazy">
-                <div class="producto-overlay">
-                    <button class="btn-icon" onclick="irAProducto(${idProducto})" 
-                            title="Ver detalle">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    ${enStock ? `
-                        <button class="btn-icon" onclick="agregarAlCarritoRapido(${idProducto})" 
-                                title="Agregar al carrito">
-                            <i class="fas fa-shopping-cart"></i>
-                        </button>
-                    ` : ''}
-                </div>
+        <div class="producto-card" data-producto-id="${idProducto}" onclick="window.location.href='producto.html?id=${idProducto}'" style="cursor: pointer;">
+            <div class="product-image-container">
+                <img src="${imagen}" 
+                      alt="${nombreProducto}" 
+                      loading="lazy"
+                      onerror="this.onerror=null; this.src='${imagenFallback}';">
+                ${badgeHtml}
             </div>
-            
-            <div class="producto-info">
-                <div class="producto-categoria">${producto.categoria_nombre || obtenerNombreCategoria(producto.id_categoria) || 'Sin categoría'}</div>
-                <h3 class="producto-nombre">${producto.nombre_producto || producto.nombre}</h3>
-                
-                ${producto.marca ? `<div class="producto-marca">${producto.marca}</div>` : ''}
-                
-                <div class="producto-precios">
-                    <span class="precio-actual">S/ ${precio.toFixed(2)}</span>
-                    ${precioOriginal ? `
-                        <span class="precio-original">S/ ${precioOriginal.toFixed(2)}</span>
-                    ` : ''}
-                </div>
-                
-                ${enStock ? `
-                    <div class="producto-stock">
-                        ${stock < 5 ? `<span class="stock-bajo">¡Solo ${stock} disponibles!</span>` : ''}
-                    </div>
-                ` : ''}
-                
-                <button class="btn btn-primary" style="width: 100%; margin-top: 16px; padding: 14px 24px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;" ${!enStock ? 'disabled' : ''}" 
-                        onclick="irAProducto(${idProducto})"
-                        ${!enStock ? 'disabled' : ''}>
-                    ${enStock ? 'Ver producto' : 'Agotado'}
-                </button>
+            <div class="producto-info" style="padding: 12px;">
+                <div class="product-category" style="font-size: 11px; color: #666; text-transform: uppercase;">${nombreCategoria}</div>
+                <h3 class="product-title" style="font-size: 14px; font-weight: 700; margin: 4px 0;">${nombreProducto}</h3>
+                <div class="product-price" style="font-weight: 700; color: #000;">${formatearPrecio(precio)}</div>
             </div>
         </div>
     `;
@@ -613,11 +629,9 @@ function crearCardProducto(producto) {
  */
 
 function agregarEventListenersProductos() {
-    // Event listeners para hover effects, lazy loading, etc.
     const cards = document.querySelectorAll('.producto-card');
     
     cards.forEach(card => {
-        // Lazy loading de imágenes
         const img = card.querySelector('img');
         if (img && img.loading === 'lazy') {
             observarImagen(img);
@@ -824,7 +838,6 @@ async function agregarAlCarritoRapido(productoId) {
             if (response.success) {
                 mostrarNotificacion('Producto agregado al carrito', 'success');
                 
-                // Actualizar contador del carrito si existe la función
                 if (typeof actualizarCantidadCarrito === 'function') {
                     actualizarCantidadCarrito();
                 }

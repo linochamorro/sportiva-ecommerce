@@ -151,10 +151,40 @@
             </ul>
             
             <div class="navbar-actions">
-                <button onclick="window.location.href='catalogo.html'" class="navbar-link">Buscar</button>
+                <button class="login-button" onclick="window.location.href='login.html'" id="btnLogin" style="display: inline-flex; align-items:center; gap:6px; padding:8px 16px; background-color:#FF6B35; color:white; border:none; border-radius:4px; cursor:pointer;">
+                    <span>👤</span>
+                    <span>Ingresar</span>
+                </button>
+                
+                <div class="user-menu" id="userMenu" style="display: none;">
+                    <button class="user-menu-button" onclick="toggleUserMenu()">
+                        <div class="user-avatar" id="userAvatar" style="background: transparent; color: #000;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </div>
+                        <span class="user-name" id="userName" style="text-transform: capitalize;">Usuario</span>
+                        <span>▾</span>
+                    </button>
+                    
+                    <div class="user-dropdown-content">
+                        <button class="dropdown-item" onclick="window.location.href='perfil.html'">
+                            👤 Mi Perfil
+                        </button>
+                        <button class="dropdown-item" onclick="window.location.href='pedidos.html'">
+                            📦 Mis Pedidos
+                        </button>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item" onclick="cerrarSesion()" style="color: #DC3545;">
+                            🚪 Cerrar Sesión
+                        </button>
+                    </div>
+                </div>
+                
                 <button class="cart-button" onclick="window.location.href='carrito.html'">
                     🛒
-                    <span class="cart-count">0</span>
+                    <span class="cart-count" id="cartCount">0</span>
                 </button>
             </div>
         </div>
@@ -185,77 +215,105 @@
                 
                 <!-- FORMULARIO -->
                 <div>
-                    <!-- PASO 1: DATOS DE ENVÍO -->
+                    <!-- DATOS DE ENVÍO -->
                     <div id="paso1" class="checkout-section active">
                         <h2 style="margin-bottom: 24px;">Datos de Envío</h2>
 
                         <form id="formDatosEnvio">
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label class="form-label">Nombre *</label>
-                                    <input type="text" name="nombre" class="form-input" required>
+                                    <label class="form-label">Nombres *</label>
+                                    <input type="text" id="nombres" name="nombre" class="form-input" required>
                                 </div>
 
                                 <div class="form-group">
-                                    <label class="form-label">Apellido *</label>
-                                    <input type="text" name="apellido" class="form-input" required>
+                                    <label class="form-label">Apellidos *</label>
+                                    <input type="text" id="apellidos" name="apellido" class="form-input" required>
                                 </div>
                             </div>
 
                             <div class="form-row">
                                 <div class="form-group">
                                     <label class="form-label">Email *</label>
-                                    <input type="email" name="email" class="form-input" required>
+                                    <input type="email" id="email" name="email" class="form-input" required>
                                 </div>
 
                                 <div class="form-group">
                                     <label class="form-label">Teléfono *</label>
-                                    <input type="tel" name="telefono" class="form-input" placeholder="987654321" required>
+                                    <input type="tel" id="telefono" name="telefono" class="form-input" placeholder="987654321" required>
                                 </div>
                             </div>
 
-                            <div class="form-group">
-                                <label class="form-label">DNI *</label>
-                                <input type="text" name="dni" class="form-input" placeholder="12345678" maxlength="8" required>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Tipo Doc.</label>
+                                    <select id="documento_tipo" class="form-select">
+                                        <option value="DNI">DNI</option>
+                                        <option value="CE">CE</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="flex: 2;">
+                                    <label class="form-label">Número de Documento *</label>
+                                    <input type="text" id="documento_numero" name="dni" class="form-input" placeholder="12345678" maxlength="15" required>
+                                </div>
                             </div>
 
                             <h3 style="margin: 32px 0 16px;">Dirección de Entrega</h3>
 
                             <div class="form-group">
                                 <label class="form-label">Dirección *</label>
-                                <input type="text" name="direccion" class="form-input" placeholder="Av. Los Álamos 456" required>
+                                <input type="text" id="direccion" name="direccion" class="form-input" placeholder="Av. Los Álamos 456" required>
                             </div>
 
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label class="form-label">Distrito *</label>
-                                    <input type="text" name="distrito" class="form-input" placeholder="San Isidro" required>
+                                    <label class="form-label">Departamento *</label>
+                                    <select id="departamento" class="form-select" onchange="cargarProvincias()" required>
+                                        <option value="">Selecciona</option>
+                                        <option value="Lima">Lima</option>
+                                        <option value="Arequipa">Arequipa</option>
+                                        <option value="Cusco">Cusco</option>
+                                        <option value="Cusco">Piura</option>
+                                        <option value="Cusco">La Libertad</option>
+                                        <option value="Cusco">Tacna</option>
+                                    </select>
                                 </div>
 
                                 <div class="form-group">
                                     <label class="form-label">Provincia *</label>
-                                    <select name="provincia" class="form-select" required>
+                                    <select id="provincia" name="provincia" class="form-select" onchange="cargarDistritos()" required>
                                         <option value="Lima">Lima</option>
-                                        <option value="Callao">Callao</option>
-                                        <option value="Arequipa">Arequipa</option>
-                                        <option value="Cusco">Cusco</option>
-                                        <option value="Trujillo">Trujillo</option>
+                                        </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">Distrito *</label>
+                                    <select id="distrito" name="distrito" class="form-select" required>
+                                        <option value="">Selecciona</option>
+                                        <option value="Miraflores">Miraflores</option>
+                                        <option value="San Isidro">San Isidro</option>
+                                        <option value="Surco">Surco</option>
+                                        <option value="La Molina">La Molina</option>
+                                        <option value="Lince">Lince</option>
+                                        <option value="Barranco">Barranco</option>
+                                        <option value="Magdalena">Magdalena</option>
                                     </select>
                                 </div>
                             </div>
 
                             <div class="form-group">
                                 <label class="form-label">Referencia (Opcional)</label>
-                                <textarea name="referencia" class="form-input" rows="3" placeholder="Ej: Edificio azul, tercer piso"></textarea>
+                                <textarea id="referencia" name="referencia" class="form-input" rows="3" placeholder="Ej: Edificio azul, tercer piso"></textarea>
                             </div>
 
                             <button type="button" class="btn btn-primary btn-full" onclick="irPaso2()">
                                 Continuar al Pago →
                             </button>
                         </form>
+                        
                     </div>
 
-                    <!-- PASO 2: MÉTODO DE PAGO -->
+                    <!-- MÉTODO DE PAGO -->
                     <div id="paso2" class="checkout-section">
                         <h2 style="margin-bottom: 24px;">Método de Pago</h2>
 
@@ -332,7 +390,7 @@
                         </div>
                     </div>
 
-                    <!-- PASO 3: CONFIRMACIÓN -->
+                    <!-- CONFIRMACIÓN -->
                     <div id="paso3" class="checkout-section">
                         <h2 style="margin-bottom: 24px;">Confirmar Pedido</h2>
 
@@ -450,6 +508,8 @@
         </div>
     </footer>
 
+    <script src="../assets/js/apiConfig.js"></script>
+    <script src="../assets/js/authService.js"></script>
     <script src="../assets/js/main.js"></script>
     <script src="../assets/js/checkout.js"></script>
 </body>

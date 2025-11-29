@@ -9,7 +9,6 @@ const logger = require('../utils/logger');
 // ============================================
 
 exports.errorHandler = (err, req, res, next) => {
-    // Log del error
     logger.error('Error capturado:', {
         message: err.message,
         stack: err.stack,
@@ -21,7 +20,6 @@ exports.errorHandler = (err, req, res, next) => {
         query: req.query
     });
 
-    // Error de validación de express-validator
     if (err.name === 'ValidationError') {
         return res.status(400).json({
             success: false,

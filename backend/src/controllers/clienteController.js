@@ -10,12 +10,10 @@ const { validationResult } = require('express-validator');
  */
 exports.getAllClientes = async (req, res) => {
     try {
-        // Usamos la función findAll (de BaseModel) para obtener todos
         const clientes = await Cliente.findAll();
         res.json({
             success: true,
             data: clientes.map(c => {
-                // Quitamos el password hash de la lista
                 const { password_hash, ...safeData } = c;
                 return safeData;
             })
@@ -64,7 +62,7 @@ exports.getClienteById = async (req, res) => {
 exports.updateCliente = async (req, res) => {
     try {
         const { id } = req.params;
-        const { nombre, apellido, telefono, email } = req.body;
+        const { nombre, apellido, telefono, email, estado, verificado } = req.body;
 
         // Validar que el email no esté duplicado
         if (email) {
@@ -77,7 +75,7 @@ exports.updateCliente = async (req, res) => {
             }
         }
 
-        const updateData = { nombre, apellido, telefono, email };
+        const updateData = { nombre, apellido, telefono, email, estado, verificado };
 
         // Limpiar datos undefined
         Object.keys(updateData).forEach(key => updateData[key] === undefined && delete updateData[key]);
@@ -111,7 +109,7 @@ exports.updateCliente = async (req, res) => {
 exports.updateEstadoCliente = async (req, res) => {
     try {
         const { id } = req.params;
-        const { estado } = req.body; // Espera { "estado": 1 } o { "estado": 0 }
+        const { estado } = req.body;
 
         if (estado === undefined || (estado !== 0 && estado !== 1)) {
             return res.status(400).json({

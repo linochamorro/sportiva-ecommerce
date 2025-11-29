@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Pedidos - Sportiva</title>
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .badge { padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; display: inline-block; }
+        .badge-pendiente { background: #FEF3C7; color: #D97706; }
+        .badge-procesando { background: #DBEAFE; color: #1E40AF; }
+        .badge-enviado { background: #E0E7FF; color: #4338CA; }
+        .badge-entregado { background: #D1FAE5; color: #065F46; }
+        .badge-cancelado { background: #FEE2E2; color: #991B1B; }
+        
+        .order-card { border: 1px solid #eee; border-radius: 8px; padding: 20px; margin-bottom: 16px; transition: 0.2s; background: white; }
+        .order-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-color: #ddd; }
+        .order-header { display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding-bottom: 12px; margin-bottom: 12px; }
+        .order-items { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; }
+        .order-item-img { width: 60px; height: 60px; object-fit: cover; border-radius: 4px; background: #f3f4f6; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="index.html" class="navbar-logo">SPORTIVA</a>
+            <ul class="navbar-menu">
+                <li><a href="catalogo.html" class="navbar-link">Catálogo</a></li>
+            </ul>
+            <div class="navbar-actions">
+                <div class="user-menu" style="display: block;">
+                    <button class="user-menu-button" onclick="window.location.href='index.html'">
+                        <i class="fas fa-arrow-left"></i> Volver
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <section class="section">
+        <div class="container">
+            <h1 style="margin-bottom: 32px;">MIS PEDIDOS</h1>
+
+            <div style="margin-bottom: 24px; display: flex; gap: 12px;">
+                <button class="btn btn-outline btn-sm active" onclick="filtrarPedidos('todos')">Todos</button>
+                <button class="btn btn-outline btn-sm" onclick="filtrarPedidos('activos')">En Curso</button>
+                <button class="btn btn-outline btn-sm" onclick="filtrarPedidos('historial')">Historial</button>
+            </div>
+
+            <div id="listaPedidos">
+                <p class="text-center text-gray-500 py-8">Cargando tus pedidos...</p>
+            </div>
+        </div>
+    </section>
+
+    <div id="modalDetalle" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center" style="z-index: 10000;">
+        <div class="bg-white rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto shadow-xl">
+            <div class="p-6 border-b flex justify-between items-center bg-gray-50 rounded-t-lg">
+                <div>
+                    <h3 class="text-xl font-bold" id="modalTitulo">Detalles del Pedido</h3>
+                    <span id="modalFecha" class="text-sm text-gray-500"></span>
+                </div>
+                <button onclick="cerrarModal()" class="text-gray-400 hover:text-gray-700 text-3xl font-bold">&times;</button>
+            </div>
+            <div class="p-6" id="modalContenido">Cargando...</div>
+            <div class="p-6 border-t bg-gray-50 rounded-b-lg text-right">
+                <button onclick="cerrarModal()" class="px-6 py-2 bg-gray-200 text-gray-700 rounded font-bold hover:bg-gray-300">Cerrar</button>
+            </div>
+        </div>
+    </div>    
+
+    <script src="../assets/js/apiConfig.js"></script>
+    <script src="../assets/js/authService.js"></script>
+    <script src="../assets/js/main.js"></script>
+    
+    <script>
+        let todosLosPedidos = [];
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!authService.isLoggedIn()) {
+                window.location.href = 'login.html';
+                return;
+            }
+            await cargarPedidos();
+        });
+
+        async function cargarPedidos() {
+            try {
+                const response = await apiGet(ENDPOINTS.PEDIDOS.LISTAR);
+                if (response.success) {
+                    todosLosPedidos = response.data.pedidos || [];
+                    renderizarPedidos(todosLosPedidos);
+                }
+            } catch (error) {
+                console.error(error);
+                document.getElementById('listaPedidos').innerHTML = '<p class="text-center text-red-500">Error al cargar pedidos</p>';
+            }
+        }
+
+        function renderizarPedidos(pedidos) {
+            const container = document.getElementById('listaPedidos');
+            
+            if (pedidos.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 bg-gray-50 rounded-lg">
+                        <i class="fas fa-shopping-bag text-4xl text-gray-300 mb-4"></i>
+                        <p class="text-gray-500">No tienes pedidos aún.</p>
+                        <a href="catalogo.html" class="btn btn-primary mt-4 inline-block">Ir a Comprar</a>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = pedidos.map(p => {
+                const fecha = new Date(p.fecha_pedido).toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' });
+                const estadoClass = `badge-${p.estado.toLowerCase()}`;
+                const total = parseFloat(p.total).toFixed(2);
+
+                return `
+                    <div class="order-card">
+                        <div class="order-header">
+                            <div>
+                                <h3 class="font-bold">Pedido #${p.numero_pedido}</h3>
+                                <p class="text-sm text-gray-500">${fecha}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-bold text-lg">S/ ${total}</p>
+                                <span class="badge ${estadoClass}">${p.estado}</span>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center mt-4">
+                            <p class="text-sm text-gray-600">Método de pago: <strong>${p.metodo_pago}</strong></p>
+                            
+                            <button onclick="verDetalle(${p.id_pedido})" class="text-sm font-bold text-[#FF6B35] hover:text-[#e55a2b] border border-[#FF6B35] px-4 py-2 rounded hover:bg-orange-50 transition">
+                                Ver Detalles >
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function verDetalle(idPedido) {
+            const modal = document.getElementById('modalDetalle');
+            const contenido = document.getElementById('modalContenido');
+            const titulo = document.getElementById('modalTitulo');
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            contenido.innerHTML = '<div class="text-center py-12"><i class="fas fa-spinner fa-spin text-3xl text-gray-300"></i><p class="mt-2 text-gray-500">Cargando detalles...</p></div>';
+
+            try {
+                const response = await apiGet(ENDPOINTS.PEDIDOS.DETALLE(idPedido));
+                if (response.success) {
+                    const p = response.data.pedido;
+                    titulo.textContent = `Pedido #${p.numero_pedido}`;
+                    
+                    const itemsHtml = p.items.map(item => {
+                        let imgPath = item.imagen || '';
+                        
+                        if (imgPath && !imgPath.startsWith('http')) {
+                            imgPath = imgPath.replace(/^frontend\//, '').replace(/^public\//, '');
+                            
+                            if (imgPath.startsWith('assets/')) {
+                                imgPath = '../' + imgPath;
+                            }
+                        }
+                        
+                        // Fallback si no hay imagen
+                        if (!imgPath) imgPath = '../assets/images/placeholder.jpg';
+                        // -------------------------------------
+
+                        return `
+                        <div class="flex gap-4 border-b border-gray-100 py-4 last:border-0">
+                            <img src="${imgPath}" 
+                                onerror="this.src='../assets/images/placeholder.jpg'" 
+                                class="w-16 h-16 object-cover rounded bg-gray-100">
+                            <div class="flex-1">
+                                <p class="font-bold text-sm">${item.nombre_producto}</p>
+                                <p class="text-xs text-gray-500">Marca: ${item.marca || 'N/A'} | Talla: ${item.talla || 'Única'}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm font-medium">Cant: ${item.cantidad}</p>
+                                <p class="font-bold text-sm">S/ ${parseFloat(item.subtotal).toFixed(2)}</p>
+                            </div>
+                        </div>
+                    `}).join('');
+
+                    contenido.innerHTML = `
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div class="bg-gray-50 p-4 rounded">
+                                <h4 class="font-bold text-sm mb-2 text-gray-700">📍 Dirección de Envío</h4>
+                                <p class="text-sm text-gray-600">${p.direccion}</p>
+                                <p class="text-sm text-gray-600">${p.ciudad}, ${p.departamento}</p>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded">
+                                <h4 class="font-bold text-sm mb-2 text-gray-700">💳 Pago</h4>
+                                <p class="text-sm text-gray-600">Método: ${(p.pagos[0]?.metodo_pago || 'N/A').replace('_', ' ')}</p>
+                                <p class="text-sm text-gray-600">Estado: ${p.estado}</p>
+                            </div>
+                        </div>
+                        <h4 class="font-bold text-sm mb-2 border-b pb-2">Productos</h4>
+                        <div class="mb-6">${itemsHtml}</div>
+                        <div class="flex justify-end">
+                            <div class="w-full md:w-1/2 bg-gray-50 p-4 rounded space-y-2">
+                                <div class="flex justify-between text-sm"><span>Subtotal:</span><span>S/ ${parseFloat(p.subtotal).toFixed(2)}</span></div>
+                                <div class="flex justify-between text-sm"><span>Envío:</span><span>S/ ${parseFloat(p.costo_envio).toFixed(2)}</span></div>
+                                <div class="flex justify-between font-bold text-lg border-t pt-2 mt-2"><span>Total:</span><span>S/ ${parseFloat(p.total_pedido).toFixed(2)}</span></div>
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                contenido.innerHTML = `<p class="text-center text-red-500 py-8">Error: ${error.message}</p>`;
+            }
+        }
+
+        function cerrarModal() {
+            const modal = document.getElementById('modalDetalle');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+
+        function filtrarPedidos(tipo) {
+            let filtrados = [];
+            if (tipo === 'todos') {
+                filtrados = todosLosPedidos;
+            } else if (tipo === 'activos') {
+                filtrados = todosLosPedidos.filter(p => ['Pendiente', 'Procesando', 'Enviado'].includes(p.estado));
+            } else if (tipo === 'historial') {
+                filtrados = todosLosPedidos.filter(p => ['Entregado', 'Cancelado'].includes(p.estado));
+            }
+            renderizarPedidos(filtrados);
+        }
+    </script>
+</body>
+</html>

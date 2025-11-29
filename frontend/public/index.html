@@ -130,22 +130,27 @@
             </ul>
             
             <div class="navbar-actions">
-                <button onclick="window.location.href='catalogo.html'" class="navbar-link">Buscar</button>
-                
-                <!-- Botón de Login (visible cuando NO está autenticado) -->
-                <button class="login-button" onclick="window.location.href='login.html'" id="btnLogin">
-                    <span>👤</span>
+                <button class="btn-login-minimal" onclick="window.location.href='login.html'" id="btnLogin">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
                     <span>Ingresar</span>
                 </button>
                 
-                <!-- Menú de Usuario (visible cuando SÍ está autenticado) -->
-                <div class="user-menu" id="userMenu">
-                    <button class="user-menu-button" onclick="toggleUserDropdown()">
-                        <div class="user-avatar" id="userAvatar">U</div>
-                        <span class="user-name" id="userName">Usuario</span>
+                <div class="user-menu" id="userMenu" style="display: none;">
+                    <button class="user-menu-button" onclick="toggleUserMenu()">
+                        <div class="user-avatar" id="userAvatar" style="background: transparent; color: #000;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </div>
+                        <span class="user-name" id="userName" style="text-transform: capitalize;">Usuario</span>
                         <span>▾</span>
                     </button>
-                    <div class="user-dropdown" id="userDropdown">
+                    
+                    <div class="user-dropdown-content">
                         <button class="dropdown-item" onclick="window.location.href='perfil.html'">
                             👤 Mi Perfil
                         </button>
@@ -153,7 +158,7 @@
                             📦 Mis Pedidos
                         </button>
                         <div class="dropdown-divider"></div>
-                        <button class="dropdown-item" onclick="cerrarSesion()">
+                        <button class="dropdown-item" onclick="cerrarSesion()" style="color: #DC3545;">
                             🚪 Cerrar Sesión
                         </button>
                     </div>
@@ -365,10 +370,6 @@
                     
                     const nombreCompleto = `${user.nombre || ''} ${user.apellido || ''}`.trim();
                     userName.textContent = nombreCompleto || user.email;
-                    
-                    // Avatar con inicial
-                    const inicial = (user.nombre || user.email || 'U')[0].toUpperCase();
-                    userAvatar.textContent = inicial;
                 }
             } else {
                 // Usuario NO autenticado: mostrar botón de login
@@ -376,7 +377,7 @@
                 userMenu.style.display = 'none';
             }
         }
-        
+
         /**
          * Toggle del dropdown del menú de usuario
          */
@@ -400,10 +401,85 @@
         /**
          * Cerrar sesión
          */
-        async function cerrarSesion() {
-            if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+        function cerrarSesion() {
+            const modal = document.createElement('div');
+            modal.id = 'modalLogout';
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(2px);
+                display: flex; align-items: center; justify-content: center;
+                z-index: 10000; opacity: 0; transition: opacity 0.2s ease;
+            `;
+
+            modal.innerHTML = `
+                <div style="
+                    background: white; padding: 32px; border-radius: 16px; width: 90%; max-width: 400px;
+                    text-align: center; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+                    transform: scale(0.95); transition: transform 0.2s ease;
+                ">
+                    <div style="
+                        width: 64px; height: 64px; background: #FFF5EB; border-radius: 50%;
+                        display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;
+                    ">
+                        <i class="fas fa-sign-out-alt" style="font-size: 28px; color: #FF6B35;"></i>
+                    </div>
+                    
+                    <h3 style="font-size: 20px; font-weight: 800; color: #111827; margin-bottom: 8px;">
+                        Cerrar Sesión
+                    </h3>
+                    <p style="color: #6B7280; font-size: 15px; margin-bottom: 24px; line-height: 1.5;">
+                        ¿Estás seguro de que deseas salir de tu cuenta?
+                    </p>
+                    
+                    <div style="display: flex; gap: 12px;">
+                        <button id="btnCancelarLogout" style="
+                            flex: 1; padding: 12px; background: white; border: 1px solid #E5E7EB;
+                            border-radius: 8px; color: #374151; font-weight: 600; cursor: pointer;
+                            transition: all 0.2s;
+                        ">Cancelar</button>
+                        
+                        <button id="btnConfirmarLogout" style="
+                            flex: 1; padding: 12px; background: #FF6B35; border: none;
+                            border-radius: 8px; color: white; font-weight: 600; cursor: pointer;
+                            box-shadow: 0 4px 6px -1px rgba(255, 107, 53, 0.3); transition: all 0.2s;
+                        ">Sí, salir</button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+
+            // Animación de entrada
+            requestAnimationFrame(() => {
+                modal.style.opacity = '1';
+                modal.firstElementChild.style.transform = 'scale(1)';
+            });
+
+            // Funcionalidad de los botones
+            const cerrar = () => {
+                modal.style.opacity = '0';
+                setTimeout(() => modal.remove(), 200);
+            };
+
+            // Botón Cancelar
+            const btnCancel = modal.querySelector('#btnCancelarLogout');
+            btnCancel.onmouseover = () => btnCancel.style.backgroundColor = '#F9FAFB';
+            btnCancel.onmouseout = () => btnCancel.style.backgroundColor = 'white';
+            btnCancel.onclick = cerrar;
+
+            // Botón Confirmar
+            const btnConfirm = modal.querySelector('#btnConfirmarLogout');
+            btnConfirm.onmouseover = () => btnConfirm.style.backgroundColor = '#e55a2b'; // Hover más oscuro
+            btnConfirm.onmouseout = () => btnConfirm.style.backgroundColor = '#FF6B35';
+            btnConfirm.onclick = async () => {
+                btnConfirm.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
                 await authService.logout();
-            }
+                cerrar();
+            };
+
+            modal.onclick = (e) => {
+                if (e.target === modal) cerrar();
+            };
         }
         
         // ============================================

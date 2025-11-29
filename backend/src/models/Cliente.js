@@ -18,15 +18,17 @@ class Cliente extends BaseModel {
      */
     async createWithHashedPassword(data) {
         try {
-            // Hashear password
             const salt = await bcrypt.genSalt(10);
             const hashedPassword = await bcrypt.hash(data.password_hash, salt);
 
             const clienteData = {
-                ...data,
-                password_hash: hashedPassword,
-                fecha_registro: new Date(),
-                activo: 1
+                nombre: data.nombre,
+                apellido: data.apellido,
+                email: data.email.toLowerCase(),
+                password: hashedPassword,
+                telefono: data.telefono || null,
+                estado: 'Activo',
+                verificado: 0
             };
 
             return await this.create(clienteData);
@@ -46,13 +48,16 @@ class Cliente extends BaseModel {
                     nombre,
                     apellido,
                     email,
-                    password_hash,
+                    password,
                     telefono,
                     fecha_registro,
-                    ultimo_acceso,
-                    activo
+                    fecha_ultima_sesion,
+                    estado,
+                    token_recuperacion,
+                    fecha_token,
+                    verificado
                 FROM CLIENTE
-                WHERE email = ? AND activo = 1
+                WHERE email = ? AND estado = 'Activo'
             `;
 
             const [rows] = await this.db.execute(query, [email]);
@@ -67,6 +72,9 @@ class Cliente extends BaseModel {
      */
     async verifyPassword(plainPassword, hashedPassword) {
         try {
+            if (!hashedPassword) {
+                throw new Error('Hash de password no proporcionado');
+            }
             return await bcrypt.compare(plainPassword, hashedPassword);
         } catch (error) {
             throw new Error(`Error verificando password: ${error.message}`);
@@ -80,7 +88,7 @@ class Cliente extends BaseModel {
         try {
             const query = `
                 UPDATE CLIENTE
-                SET ultimo_acceso = NOW()
+                SET fecha_ultima_sesion = NOW()
                 WHERE id_cliente = ?
             `;
 
@@ -101,7 +109,7 @@ class Cliente extends BaseModel {
 
             const query = `
                 UPDATE CLIENTE
-                SET password_hash = ?
+                SET password = ?
                 WHERE id_cliente = ?
             `;
 
@@ -133,11 +141,12 @@ class Cliente extends BaseModel {
                     email,
                     telefono,
                     fecha_registro,
-                    ultimo_acceso,
+                    fecha_ultima_sesion,
+                    estado,
                     (SELECT COUNT(*) FROM PEDIDO WHERE id_cliente = c.id_cliente) as total_pedidos,
                     (SELECT COUNT(*) FROM DIRECCION_ENVIO WHERE id_cliente = c.id_cliente) as total_direcciones
                 FROM CLIENTE c
-                WHERE id_cliente = ? AND activo = 1
+                WHERE id_cliente = ? AND estado = 'Activo'
             `;
 
             const [rows] = await this.db.execute(query, [id_cliente]);
@@ -194,11 +203,10 @@ class Cliente extends BaseModel {
             const query = `
                 SELECT 
                     id_direccion,
-                    direccion,
-                    ciudad,
-                    departamento,
+                    direccion_linea1 as direccion,
+                    distrito as ciudad,
+                    provincia,
                     codigo_postal,
-                    pais,
                     es_principal,
                     referencia
                 FROM DIRECCION_ENVIO
@@ -209,7 +217,8 @@ class Cliente extends BaseModel {
             const [rows] = await this.db.execute(query, [id_cliente]);
             return rows;
         } catch (error) {
-            throw new Error(`Error obteniendo direcciones: ${error.message}`);
+            console.warn("Advertencia al obtener direcciones:", error.message);
+            return []; 
         }
     }
 
@@ -220,30 +229,32 @@ class Cliente extends BaseModel {
         try {
             const data = {
                 id_cliente,
-                ...direccionData,
-                pais: direccionData.pais || 'Perú'
+                direccion_linea1: direccionData.direccion || direccionData.direccion_linea1,
+                distrito: direccionData.distrito || direccionData.ciudad,
+                provincia: direccionData.provincia || 'Lima', 
+                codigo_postal: direccionData.codigo_postal || '',
+                referencia: direccionData.referencia || null,
+                es_principal: direccionData.es_principal || 0
             };
 
-            // Si es principal, desmarcar otras
             if (data.es_principal) {
                 await this.unsetPrincipalDireccion(id_cliente);
             }
 
             const query = `
                 INSERT INTO DIRECCION_ENVIO 
-                (id_cliente, direccion, ciudad, departamento, codigo_postal, pais, es_principal, referencia)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                (id_cliente, direccion_linea1, distrito, provincia, codigo_postal, referencia, es_principal, fecha_creacion)
+                VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
             `;
 
             const [result] = await this.db.execute(query, [
                 data.id_cliente,
-                data.direccion,
-                data.ciudad,
-                data.departamento,
+                data.direccion_linea1,
+                data.distrito,
+                data.provincia,
                 data.codigo_postal,
-                data.pais,
-                data.es_principal || 0,
-                data.referencia || null
+                data.referencia,
+                data.es_principal
             ]);
 
             return {
@@ -251,6 +262,7 @@ class Cliente extends BaseModel {
                 id: result.insertId
             };
         } catch (error) {
+            console.error("SQL Error en addDireccion:", error.sqlMessage);
             throw new Error(`Error agregando dirección: ${error.message}`);
         }
     }
@@ -278,10 +290,7 @@ class Cliente extends BaseModel {
      */
     async setPrincipalDireccion(id_cliente, id_direccion) {
         try {
-            // Primero desmarcar todas
             await this.unsetPrincipalDireccion(id_cliente);
-
-            // Marcar la nueva principal
             const query = `
                 UPDATE DIRECCION_ENVIO
                 SET es_principal = 1
@@ -421,12 +430,18 @@ class Cliente extends BaseModel {
      */
     async updateEstado(id_cliente, estado) {
         try {
-            // El estado debe ser 0 (Inactivo) o 1 (Activo)
-            const nuevoEstado = (estado === 1 || estado === 'Activo' || estado === true) ? 1 : 0;
+            let nuevoEstado;
+            if (estado === 1 || estado === 'Activo' || estado === true) {
+                nuevoEstado = 'Activo';
+            } else if (estado === 'Bloqueado') {
+                nuevoEstado = 'Bloqueado';
+            } else {
+                nuevoEstado = 'Inactivo';
+            }
 
             const query = `
                 UPDATE CLIENTE
-                SET activo = ?
+                SET estado = ?
                 WHERE id_cliente = ?
             `;
 

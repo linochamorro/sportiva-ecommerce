@@ -12,15 +12,6 @@ const { validationResult } = require('express-validator');
 
 exports.obtenerPedidos = async (req, res) => {
     try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({
-                success: false,
-                message: 'Errores de validación',
-                errors: errors.array()
-            });
-        }
-
         const clienteId = req.cliente.id;
         const { estado, fechaInicio, fechaFin, page = 1, limit = 10 } = req.query;
 
@@ -31,8 +22,9 @@ exports.obtenerPedidos = async (req, res) => {
         };
 
         const offset = (page - 1) * limit;
-        const pedidos = await Pedido.findByClienteId(clienteId, filtros, limit, offset);
-        const total = await Pedido.countByClienteId(clienteId, filtros);
+
+        const pedidos = await Pedido.findByCliente(clienteId, { ...filtros, limit, offset });
+        const total = await Pedido.countByCliente(clienteId, filtros);
 
         res.json({
             success: true,
@@ -82,7 +74,9 @@ exports.crearPedido = async (req, res) => {
             datos_pago: req.body.datos_pago || {},
             requiere_factura: req.body.requiere_factura || false,
             datos_facturacion: req.body.datos_facturacion || null,
-            notas: req.body.notas || null
+            notas: req.body.notas || null,
+            codigo_cupon: req.body.codigo_cupon,
+            descuento: req.body.descuento
         };
 
         // Usar el servicio para crear el pedido
@@ -142,30 +136,29 @@ exports.obtenerPedidoPorId = async (req, res) => {
             });
         }
 
-        // Verificar que el pedido pertenece al cliente autenticado
-        if (pedido.cliente_id !== clienteId) {
-            return res.status(403).json({
-                success: false,
-                message: 'No tienes permiso para ver este pedido'
-            });
-        }
+        if (pedido.id_cliente !== clienteId) {
+                    return res.status(403).json({
+                        success: false,
+                        message: 'No tienes permiso para ver este pedido'
+                    });
+                }
 
-        res.json({
-            success: true,
-            data: {
-                pedido
+                res.json({
+                    success: true,
+                    data: {
+                        pedido
+                    }
+                });
+
+            } catch (error) {
+                logger.error('Error al obtener pedido:', error);
+                res.status(500).json({
+                    success: false,
+                    message: 'Error al obtener pedido',
+                    error: error.message
+                });
             }
-        });
-
-    } catch (error) {
-        logger.error('Error al obtener pedido:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error al obtener pedido',
-            error: error.message
-        });
-    }
-};
+        };
 
 // ============================================
 // CANCELAR PEDIDO
@@ -465,7 +458,6 @@ exports.descargarFactura = async (req, res) => {
 
         const pedidoId = req.params.id;
         const clienteId = req.cliente.id;
-
         const pedido = await Pedido.findByIdWithDetails(pedidoId);
 
         if (!pedido) {

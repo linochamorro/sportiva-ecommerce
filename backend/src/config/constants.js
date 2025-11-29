@@ -5,7 +5,7 @@
 require('dotenv').config();
 
 // ============================================
-// CONFIGURACIÓN JWT (NUEVO)
+// CONFIGURACIÓN JWT
 // ============================================
 const JWT_SECRET = process.env.JWT_SECRET || 'sportiva-secret-key-development-2024';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
@@ -42,7 +42,15 @@ const BUSINESS_CONFIG = {
     COSTO_ENVIO_LIMA: parseFloat(process.env.COSTO_ENVIO_LIMA) || 15.00,
     COSTO_ENVIO_PROVINCIAS: parseFloat(process.env.COSTO_ENVIO_PROVINCIAS) || 25.00,
     MONEDA: process.env.MONEDA || 'S/',
-    ENVIO_GRATIS_MINIMO: 200.00
+    ENVIO_GRATIS_MINIMO: 150.00,
+    CUPONES: {
+        'PRIMERACOMPRA': { 
+            tipo: 'PORCENTAJE', 
+            valor: 20,     // 20%
+            minimo: 100.00, // Mínimo S/ 100
+            unico: true    // Uso único por cliente
+        }
+    }
 };
 
 // Roles de usuario
@@ -112,3 +120,4 @@ module.exports = {
     MENSAJES_ERROR,
     MENSAJES_EXITO
 };
+

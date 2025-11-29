@@ -20,7 +20,6 @@ async function login(email, password) {
             password
         });
 
-        // 🔍 DEBUG: Ver respuesta completa del backend
         console.log('📦 Respuesta del backend en login:', response);
         console.log('   - ¿Tiene token?', !!response.token);
         console.log('   - ¿Tiene usuario?', !!response.usuario);
@@ -284,12 +283,22 @@ async function getProfile() {
     try {
         const response = await apiGet(ENDPOINTS.AUTH.PROFILE);
 
-        // Actualizar usuario en localStorage
+        let usuarioData = null;
+        
         if (response.usuario) {
-            localStorage.setItem(API_CONFIG.USER_KEY, JSON.stringify(response.usuario));
+            usuarioData = response.usuario;
+        } else if (response.data && response.data.cliente) {
+            usuarioData = response.data.cliente;
+        } else if (response.data) {
+            usuarioData = response.data;
         }
 
-        return response.usuario || response;
+        if (usuarioData) {
+            localStorage.setItem(API_CONFIG.USER_KEY, JSON.stringify(usuarioData));
+            return usuarioData;
+        }
+
+        return response;
 
     } catch (error) {
         console.error('Error obteniendo perfil:', error);
@@ -327,11 +336,12 @@ async function updateProfile(userData) {
  * @param {string} newPassword - Nueva contraseña
  * @returns {Promise<Object>} Respuesta del servidor
  */
-async function changePassword(oldPassword, newPassword) {
+async function changePassword(currentPassword, newPassword) {
     try {
         const response = await apiPut(ENDPOINTS.AUTH.CHANGE_PASSWORD, {
-            oldPassword,
-            newPassword
+            currentPassword: currentPassword,
+            newPassword: newPassword,
+            confirmPassword: newPassword
         });
 
         if (typeof mostrarToast === 'function') mostrarToast('Contraseña actualizada correctamente', 'success');
@@ -465,7 +475,6 @@ function isVendedor() {
 function requireAuthentication() {
     if (!isLoggedIn()) {
         if (typeof mostrarToast === 'function') mostrarToast('Debes iniciar sesión para continuar', 'warning');
-        // Guardar URL actual para redirigir después del login
         localStorage.setItem('sportiva_redirect_after_login', window.location.pathname + window.location.search);
 
         setTimeout(() => {
@@ -544,20 +553,17 @@ function initAuthState() {
     const user = getCurrentUser();
 
     if (user && isLoggedIn()) {
-        // Actualizar UI con datos del usuario
         updateNavbarUserInfo(user);
 
         console.log('👤 Usuario autenticado:', user.email);
         
-        // Mostrar información adicional si es trabajador
         if (isTrabajador()) {
             console.log('👔 Trabajador - Rol:', getTrabajadorRol());
         }
     } else {
-        // Limpiar cualquier dato de sesión inválida
-        if (user || getToken()) {
-            console.warn('⚠️ Sesión inválida detectada, limpiando...');
-            removeToken();
+        const token = getToken();
+        if (!token && user) {
+            console.warn('⚠️ Datos de usuario sin token, limpiando...');
             localStorage.removeItem(API_CONFIG.USER_KEY);
         }
     }

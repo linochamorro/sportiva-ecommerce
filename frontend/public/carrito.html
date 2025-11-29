@@ -6,6 +6,7 @@
     <title>Carrito - Sportiva</title>
     
     <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -116,14 +117,40 @@
             </ul>
             
             <div class="navbar-actions">
-                <button onclick="window.location.href='catalogo.html'" class="navbar-link">Buscar</button>
+                <button class="login-button" onclick="window.location.href='login.html'" id="btnLogin" style="display: inline-flex; align-items:center; gap:6px; padding:8px 16px; background-color:#FF6B35; color:white; border:none; border-radius:4px; cursor:pointer;">
+                    <span>👤</span>
+                    <span>Ingresar</span>
+                </button>
+                
+                <div class="user-menu" id="userMenu" style="display: none;">
+                    <button class="user-menu-button" onclick="toggleUserMenu()">
+                        <div class="user-avatar" id="userAvatar" style="background: transparent; color: #000;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </div>
+                        <span class="user-name" id="userName" style="text-transform: capitalize;">Usuario</span>
+                        <span>▾</span>
+                    </button>
+                    
+                    <div class="user-dropdown-content">
+                        <button class="dropdown-item" onclick="window.location.href='perfil.html'">
+                            👤 Mi Perfil
+                        </button>
+                        <button class="dropdown-item" onclick="window.location.href='pedidos.html'">
+                            📦 Mis Pedidos
+                        </button>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item" onclick="cerrarSesion()" style="color: #DC3545;">
+                            🚪 Cerrar Sesión
+                        </button>
+                    </div>
+                </div>
+                
                 <button class="cart-button" onclick="window.location.href='carrito.html'">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="9" cy="21" r="1"></circle>
-                        <circle cx="20" cy="21" r="1"></circle>
-                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-                    </svg>
-                    <span class="cart-count">0</span>
+                    🛒
+                    <span class="cart-count" id="cartCount">0</span>
                 </button>
             </div>
         </div>
@@ -164,7 +191,7 @@
 
                         <div style="margin-top: 24px;">
                             <button class="btn btn-outline" onclick="window.location.href='catalogo.html'">
-                                â† Seguir Comprando
+                                Seguir Comprando
                             </button>
                         </div>
                     </div>
@@ -186,6 +213,11 @@
                         <div class="resumen-linea">
                             <span class="text-secondary">Envío estimado</span>
                             <span id="envioCarrito">S/ 15.00</span>
+                        </div>
+
+                        <div id="filaDescuento" class="resumen-linea" style="display: none; color: var(--color-success); font-weight: 600;">
+                            <span>Descuento</span>
+                            <span id="descuentoCarrito">- S/ 0.00</span>
                         </div>
 
                         <div class="resumen-total">
@@ -211,7 +243,7 @@
                                     class="form-input" 
                                     placeholder="Código de cupón"
                                     style="flex: 1;">
-                                <button class="btn btn-primary" onclick="aplicarCuponCarrito()">Aplicar</button>
+                                <button class="btn btn-primary" onclick="aplicarCupon()">Aplicar</button>
                             </div>
                             <div id="mensajeCupon" style="margin-top: 8px; font-size: 12px;"></div>
                         </div>
@@ -219,11 +251,27 @@
                         <!-- MÉTODOS DE PAGO -->
                         <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--color-gray-border);">
                             <p class="text-small text-secondary" style="margin-bottom: 12px;">Métodos de pago aceptados:</p>
-                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                <span style="padding: 4px 8px; background-color: white; border: 1px solid var(--color-gray-border); font-size: 11px; font-weight: 700;">VISA</span>
-                                <span style="padding: 4px 8px; background-color: white; border: 1px solid var(--color-gray-border); font-size: 11px; font-weight: 700;">MASTERCARD</span>
-                                <span style="padding: 4px 8px; background-color: white; border: 1px solid var(--color-gray-border); font-size: 11px; font-weight: 700;">YAPE</span>
-                                <span style="padding: 4px 8px; background-color: white; border: 1px solid var(--color-gray-border); font-size: 11px; font-weight: 700;">PLIN</span>
+                            
+                            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+                                <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; border: 1px solid #eee; padding: 8px; border-radius: 4px;">
+                                    <i class="fab fa-cc-visa" style="font-size: 28px; color: #1A1F71;"></i>
+                                    <span style="font-size: 10px; font-weight: 600;">VISA</span>
+                                </div>
+
+                                <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; border: 1px solid #eee; padding: 8px; border-radius: 4px;">
+                                    <i class="fab fa-cc-mastercard" style="font-size: 28px; color: #EB001B;"></i>
+                                    <span style="font-size: 10px; font-weight: 600;">MASTERCARD</span>
+                                </div>
+
+                                <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; border: 1px solid #eee; padding: 8px; border-radius: 4px;">
+                                    <img src="https://placehold.co/28x28/742284/ffffff?text=Y" style="border-radius: 4px;">
+                                    <span style="font-size: 10px; font-weight: 600;">YAPE</span>
+                                </div>
+
+                                <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; border: 1px solid #eee; padding: 8px; border-radius: 4px;">
+                                    <img src="https://placehold.co/28x28/00C8F8/ffffff?text=P" style="border-radius: 4px;">
+                                    <span style="font-size: 10px; font-weight: 600;">PLIN</span>
+                                </div>
                             </div>
                         </div>
                     </div>

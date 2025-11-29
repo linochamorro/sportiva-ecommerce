@@ -1,7 +1,12 @@
 -- =====================================================
 -- SPORTIVA E-COMMERCE - BASE DE DATOS
--- Version compatible con MariaDB 10.4 (XAMPP)
--- Sin COMMENT ni CHECK que causan conflictos
+-- Versión: 2.0 - FINAL
+-- Compatible con: MySQL 8.0+, MariaDB 10.4+
+-- Fecha: Noviembre 2025
+-- =====================================================
+-- CAMBIOS EN ESTA VERSIÓN:
+-- - numero_pedido: VARCHAR(20) → VARCHAR(30)
+-- - Optimizado para MySQL Workbench
 -- =====================================================
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
@@ -10,14 +15,13 @@ SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS=0;
 
 DROP DATABASE IF EXISTS sportiva_db;
-CREATE DATABASE sportiva_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS sportiva_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE sportiva_db;
 
 -- =====================================================
 -- TABLA: CATEGORIA
 -- =====================================================
 
-DROP TABLE IF EXISTS CATEGORIA;
 CREATE TABLE CATEGORIA (
     id_categoria INT AUTO_INCREMENT PRIMARY KEY,
     nombre_categoria VARCHAR(50) NOT NULL UNIQUE,
@@ -34,7 +38,6 @@ CREATE TABLE CATEGORIA (
 -- TABLA: CLIENTE
 -- =====================================================
 
-DROP TABLE IF EXISTS CLIENTE;
 CREATE TABLE CLIENTE (
     id_cliente INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(50) NOT NULL,
@@ -57,7 +60,6 @@ CREATE TABLE CLIENTE (
 -- TABLA: PRODUCTO
 -- =====================================================
 
-DROP TABLE IF EXISTS PRODUCTO;
 CREATE TABLE PRODUCTO (
     id_producto INT AUTO_INCREMENT PRIMARY KEY,
     nombre_producto VARCHAR(100) NOT NULL,
@@ -91,7 +93,6 @@ CREATE TABLE PRODUCTO (
 -- TABLA: TALLA_PRODUCTO
 -- =====================================================
 
-DROP TABLE IF EXISTS TALLA_PRODUCTO;
 CREATE TABLE TALLA_PRODUCTO (
     id_talla INT AUTO_INCREMENT PRIMARY KEY,
     id_producto INT NOT NULL,
@@ -108,7 +109,6 @@ CREATE TABLE TALLA_PRODUCTO (
 -- TABLA: IMAGEN_PRODUCTO
 -- =====================================================
 
-DROP TABLE IF EXISTS IMAGEN_PRODUCTO;
 CREATE TABLE IMAGEN_PRODUCTO (
     id_imagen INT AUTO_INCREMENT PRIMARY KEY,
     id_producto INT NOT NULL,
@@ -129,7 +129,6 @@ CREATE TABLE IMAGEN_PRODUCTO (
 -- TABLA: CARRITO
 -- =====================================================
 
-DROP TABLE IF EXISTS CARRITO;
 CREATE TABLE CARRITO (
     id_carrito INT AUTO_INCREMENT PRIMARY KEY,
     id_cliente INT NOT NULL,
@@ -146,7 +145,6 @@ CREATE TABLE CARRITO (
 -- TABLA: DETALLE_CARRITO
 -- =====================================================
 
-DROP TABLE IF EXISTS DETALLE_CARRITO;
 CREATE TABLE DETALLE_CARRITO (
     id_detalle_carrito INT AUTO_INCREMENT PRIMARY KEY,
     id_carrito INT NOT NULL,
@@ -163,7 +161,6 @@ CREATE TABLE DETALLE_CARRITO (
 -- TABLA: DIRECCION_ENVIO
 -- =====================================================
 
-DROP TABLE IF EXISTS DIRECCION_ENVIO;
 CREATE TABLE DIRECCION_ENVIO (
     id_direccion INT AUTO_INCREMENT PRIMARY KEY,
     id_cliente INT NOT NULL,
@@ -185,14 +182,14 @@ CREATE TABLE DIRECCION_ENVIO (
 
 -- =====================================================
 -- TABLA: PEDIDO
+-- ⭐ CAMBIO: numero_pedido VARCHAR(30) - Ampliado de 20 a 30
 -- =====================================================
 
-DROP TABLE IF EXISTS PEDIDO;
 CREATE TABLE PEDIDO (
     id_pedido INT AUTO_INCREMENT PRIMARY KEY,
     id_cliente INT NOT NULL,
     id_direccion INT NOT NULL,
-    numero_pedido VARCHAR(20) NOT NULL UNIQUE,
+    numero_pedido VARCHAR(30) NOT NULL UNIQUE,
     fecha_pedido TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     estado_pedido ENUM('Pendiente', 'Procesando', 'Enviado', 'Entregado', 'Cancelado') DEFAULT 'Pendiente',
     subtotal DECIMAL(10,2) NOT NULL,
@@ -219,129 +216,115 @@ CREATE TABLE PEDIDO (
 -- TABLA: DETALLE_PEDIDO
 -- =====================================================
 
-DROP TABLE IF EXISTS DETALLE_PEDIDO;
 CREATE TABLE DETALLE_PEDIDO (
-    id_detalle INT AUTO_INCREMENT PRIMARY KEY,
+    id_detalle_pedido INT AUTO_INCREMENT PRIMARY KEY,
     id_pedido INT NOT NULL,
-    id_producto INT NOT NULL,
-    id_talla INT,
-    nombre_producto VARCHAR(100) NOT NULL,
-    talla_nombre VARCHAR(10) NOT NULL,
+    id_talla INT NOT NULL,
     cantidad INT NOT NULL,
     precio_unitario DECIMAL(10,2) NOT NULL,
     subtotal DECIMAL(10,2) NOT NULL,
-    fecha_agregado TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_pedido) REFERENCES PEDIDO(id_pedido) ON DELETE CASCADE,
-    FOREIGN KEY (id_producto) REFERENCES PRODUCTO(id_producto),
-    FOREIGN KEY (id_talla) REFERENCES TALLA_PRODUCTO(id_talla) ON DELETE SET NULL,
+    FOREIGN KEY (id_talla) REFERENCES TALLA_PRODUCTO(id_talla),
     INDEX idx_pedido (id_pedido),
-    INDEX idx_producto (id_producto)
+    INDEX idx_talla (id_talla)
 ) ENGINE=InnoDB;
 
 -- =====================================================
 -- TABLA: PAGO
 -- =====================================================
 
-DROP TABLE IF EXISTS PAGO;
 CREATE TABLE PAGO (
     id_pago INT AUTO_INCREMENT PRIMARY KEY,
-    id_pedido INT NOT NULL UNIQUE,
-    metodo_pago ENUM('Tarjeta_Credito', 'Tarjeta_Debito', 'Yape', 'Plin', 'Transferencia', 'Contraentrega') NOT NULL,
+    id_pedido INT NOT NULL,
+    metodo_pago ENUM('Tarjeta', 'Yape', 'Plin', 'Transferencia') NOT NULL,
+    estado_pago ENUM('Pendiente', 'Completado', 'Fallido', 'Reembolsado') DEFAULT 'Pendiente',
     monto_pago DECIMAL(10,2) NOT NULL,
-    estado_pago ENUM('Pendiente', 'Procesando', 'Completado', 'Rechazado', 'Reembolsado') DEFAULT 'Pendiente',
-    referencia_externa VARCHAR(100),
-    datos_pago JSON,
+    referencia_transaccion VARCHAR(100) UNIQUE,
     fecha_pago TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    fecha_confirmacion DATETIME,
-    mensaje_respuesta TEXT,
-    FOREIGN KEY (id_pedido) REFERENCES PEDIDO(id_pedido) ON DELETE CASCADE,
+    detalles_pago JSON,
+    FOREIGN KEY (id_pedido) REFERENCES PEDIDO(id_pedido),
     INDEX idx_pedido (id_pedido),
     INDEX idx_estado (estado_pago),
-    INDEX idx_metodo (metodo_pago)
+    INDEX idx_metodo (metodo_pago),
+    INDEX idx_referencia (referencia_transaccion)
 ) ENGINE=InnoDB;
 
 -- =====================================================
 -- TABLA: RESENA
 -- =====================================================
 
-DROP TABLE IF EXISTS RESENA;
 CREATE TABLE RESENA (
     id_resena INT AUTO_INCREMENT PRIMARY KEY,
-    id_cliente INT NOT NULL,
     id_producto INT NOT NULL,
+    id_cliente INT NOT NULL,
     calificacion TINYINT NOT NULL,
-    titulo VARCHAR(100),
+    titulo_resena VARCHAR(100),
     comentario TEXT,
     fecha_resena TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    estado_resena ENUM('Activa', 'Oculta', 'Reportada') DEFAULT 'Activa',
+    verificado BOOLEAN DEFAULT FALSE,
     util_count INT DEFAULT 0,
-    FOREIGN KEY (id_cliente) REFERENCES CLIENTE(id_cliente) ON DELETE CASCADE,
     FOREIGN KEY (id_producto) REFERENCES PRODUCTO(id_producto) ON DELETE CASCADE,
-    UNIQUE KEY idx_cliente_producto (id_cliente, id_producto),
-    INDEX idx_producto (id_producto),
-    INDEX idx_calificacion (calificacion),
-    INDEX idx_estado (estado_resena)
-) ENGINE=InnoDB;
-
--- =====================================================
--- TABLA: SESION
--- =====================================================
-
-DROP TABLE IF EXISTS SESION;
-CREATE TABLE SESION (
-    id_sesion INT AUTO_INCREMENT PRIMARY KEY,
-    id_cliente INT NOT NULL,
-    token VARCHAR(500) NOT NULL UNIQUE,
-    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    fecha_expiracion DATETIME,
-    ip_address VARCHAR(45),
-    user_agent VARCHAR(255),
-    esta_activa BOOLEAN DEFAULT TRUE,
     FOREIGN KEY (id_cliente) REFERENCES CLIENTE(id_cliente) ON DELETE CASCADE,
-    INDEX idx_cliente (id_cliente, esta_activa),
-    INDEX idx_token (token),
-    INDEX idx_expiracion (fecha_expiracion)
+    INDEX idx_producto (id_producto),
+    INDEX idx_cliente (id_cliente),
+    INDEX idx_calificacion (calificacion),
+    INDEX idx_fecha (fecha_resena)
 ) ENGINE=InnoDB;
 
 -- =====================================================
 -- TABLA: AUDITORIA_STOCK
 -- =====================================================
 
-DROP TABLE IF EXISTS AUDITORIA_STOCK;
 CREATE TABLE AUDITORIA_STOCK (
     id_auditoria INT AUTO_INCREMENT PRIMARY KEY,
     id_producto INT NOT NULL,
-    id_talla INT,
-    tipo_movimiento ENUM('Entrada', 'Salida', 'Ajuste', 'Reserva', 'Liberacion') NOT NULL,
+    id_talla INT NOT NULL,
+    tipo_movimiento ENUM('Entrada', 'Salida', 'Ajuste') NOT NULL,
     cantidad_anterior INT NOT NULL,
     cantidad_movimiento INT NOT NULL,
     cantidad_nueva INT NOT NULL,
     motivo VARCHAR(100),
-    referencia_documento VARCHAR(50),
     usuario_responsable VARCHAR(50),
     fecha_movimiento TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_producto) REFERENCES PRODUCTO(id_producto),
-    FOREIGN KEY (id_talla) REFERENCES TALLA_PRODUCTO(id_talla) ON DELETE SET NULL,
+    FOREIGN KEY (id_talla) REFERENCES TALLA_PRODUCTO(id_talla),
     INDEX idx_producto (id_producto),
     INDEX idx_talla (id_talla),
-    INDEX idx_tipo (tipo_movimiento),
     INDEX idx_fecha (fecha_movimiento),
-    INDEX idx_referencia (referencia_documento)
+    INDEX idx_tipo (tipo_movimiento)
+) ENGINE=InnoDB;
+
+-- =====================================================
+-- TABLA: SESION
+-- =====================================================
+
+CREATE TABLE SESION (
+    id_sesion INT AUTO_INCREMENT PRIMARY KEY,
+    id_cliente INT NOT NULL,
+    token_sesion VARCHAR(255) NOT NULL UNIQUE,
+    fecha_inicio TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_expiracion DATETIME NOT NULL,
+    ip_address VARCHAR(45),
+    user_agent TEXT,
+    activo BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (id_cliente) REFERENCES CLIENTE(id_cliente) ON DELETE CASCADE,
+    INDEX idx_token (token_sesion),
+    INDEX idx_cliente (id_cliente),
+    INDEX idx_expiracion (fecha_expiracion),
+    INDEX idx_activo (activo)
 ) ENGINE=InnoDB;
 
 -- =====================================================
 -- TABLA: CONFIGURACION_SISTEMA
 -- =====================================================
 
-DROP TABLE IF EXISTS CONFIGURACION_SISTEMA;
 CREATE TABLE CONFIGURACION_SISTEMA (
     id_config INT AUTO_INCREMENT PRIMARY KEY,
     clave_config VARCHAR(50) NOT NULL UNIQUE,
     valor_config TEXT NOT NULL,
-    descripcion TEXT,
+    descripcion VARCHAR(200),
     tipo_dato ENUM('STRING', 'INTEGER', 'DECIMAL', 'BOOLEAN', 'JSON') DEFAULT 'STRING',
     fecha_modificacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    modificado_por VARCHAR(50),
     INDEX idx_clave (clave_config)
 ) ENGINE=InnoDB;
 
@@ -351,36 +334,6 @@ CREATE TABLE CONFIGURACION_SISTEMA (
 
 DELIMITER $$
 
-DROP TRIGGER IF EXISTS ValidarEmailUnicoCliente$$
-CREATE TRIGGER ValidarEmailUnicoCliente 
-BEFORE INSERT ON CLIENTE 
-FOR EACH ROW
-BEGIN
-    IF NEW.email NOT REGEXP '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$' THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Email invalido';
-    END IF;
-    SET NEW.email = LOWER(NEW.email);
-END$$
-
-DROP TRIGGER IF EXISTS ActualizarFechaUltimaSesion$$
-CREATE TRIGGER ActualizarFechaUltimaSesion 
-AFTER INSERT ON SESION 
-FOR EACH ROW
-BEGIN
-    UPDATE CLIENTE SET fecha_ultima_sesion = NOW() WHERE id_cliente = NEW.id_cliente;
-END$$
-
-DROP TRIGGER IF EXISTS AsegurarTallaUnica$$
-CREATE TRIGGER AsegurarTallaUnica 
-AFTER INSERT ON PRODUCTO 
-FOR EACH ROW
-BEGIN
-    IF NEW.tiene_tallas = FALSE THEN
-        INSERT INTO TALLA_PRODUCTO (id_producto, talla, stock_talla) 
-        VALUES (NEW.id_producto, 'UNICA', 0);
-    END IF;
-END$$
-
 DROP TRIGGER IF EXISTS GenerarNumeroTracking$$
 CREATE TRIGGER GenerarNumeroTracking 
 BEFORE INSERT ON PEDIDO 
@@ -388,7 +341,7 @@ FOR EACH ROW
 BEGIN
     IF NEW.numero_tracking IS NULL OR NEW.numero_tracking = '' THEN
         SET NEW.numero_tracking = CONCAT('SPT-', DATE_FORMAT(NOW(), '%Y%m%d'), '-', 
-            LPAD(CONNECTION_ID(), 6, '0'), '-', LPAD(FLOOR(RAND() * 1000), 3, '0'));
+            LPAD(FLOOR(RAND() * 10000), 4, '0'));
     END IF;
     IF NEW.numero_pedido IS NULL OR NEW.numero_pedido = '' THEN
         SET NEW.numero_pedido = CONCAT('SPT-', DATE_FORMAT(NOW(), '%Y%m%d'), '-', 
@@ -606,6 +559,11 @@ HAVING stock_disponible > 0;
 
 SET FOREIGN_KEY_CHECKS=1;
 
+-- =====================================================
+-- MENSAJES DE CONFIRMACIÓN
+-- =====================================================
+
 SELECT 'Base de datos SPORTIVA creada exitosamente' AS mensaje;
-SELECT 'Compatible con MariaDB 10.4 (XAMPP)' AS version;
+SELECT 'Version 2.0 - Actualizada con numero_pedido VARCHAR(30)' AS version;
+SELECT 'Compatible con MySQL Workbench y MariaDB' AS compatibilidad;
 SELECT 'Listo para insertar los 55 productos' AS siguiente_paso;

@@ -1,6 +1,5 @@
 const trabajadorAuthService = require('../services/trabajadorAuthService');
 const Trabajador = require('../models/Trabajador');
-
 const trabajadorModel = new Trabajador();
 
 exports.login = async (req, res) => {
@@ -19,8 +18,6 @@ exports.login = async (req, res) => {
         if (!result.success) {
             return res.status(401).json(result);
         }
-
-        // El frontend espera: { success, token, trabajador }
         const response = {
             success: true,
             message: result.message || 'Login exitoso',

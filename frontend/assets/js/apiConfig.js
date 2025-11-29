@@ -1,6 +1,6 @@
 // ============================================
 // SPORTIVA - API CONFIGURATION & JWT MANAGER
-// Sistema de integraciÃ³n Frontend-Backend
+// Sistema de integración Frontend-Backend
 // ============================================
 
 // ============================================
@@ -8,7 +8,7 @@
 // ============================================
 
 const API_CONFIG = {
-    BASE_URL: 'http://localhost:3000/api',
+    BASE_URL: 'http://127.0.0.1:3000/api',
     TIMEOUT: 10000,
     RETRY_ATTEMPTS: 1,
     TOKEN_KEY: 'sportiva_token',
@@ -75,7 +75,14 @@ const ENDPOINTS = {
         CREAR_RESENA: (id) => `/pedidos/${id}/resena`,
         FACTURA: (id) => `/pedidos/${id}/factura`,
         ESTADISTICAS: '/pedidos/resumen/estadisticas',
-        STATS_ADMIN: '/pedidos/stats/admin'
+        STATS_ADMIN: '/pedidos/stats/admin',
+        // Endpoints Admin
+        LISTAR_ADMIN: '/pedidos/admin/list',
+        DETALLE_ADMIN: (id) => `/pedidos/admin/${id}`,
+        CAMBIAR_ESTADO_ADMIN: (id) => `/pedidos/admin/${id}/estado`,
+        ANULAR_ADMIN: (id) => `/pedidos/admin/${id}/anular`,
+        ACTUALIZAR_DIRECCION_ADMIN: (id) => `/pedidos/admin/${id}/direccion`,
+        EXPORTAR_CSV: '/pedidos/admin/export/csv'
     },
     
     CLIENTES: {
@@ -271,7 +278,7 @@ async function handleResponse(response) {
             
             if (response.status === 400) {
                 if (data.errors && Array.isArray(data.errors)) {
-                    const errorsText = data.errors.map(e => e.msg).join(', ');
+                    const errorsText = data.errors.map(e => e.message || e.msg).join(', ');
                     throw new Error(errorsText);
                 }
                 throw new Error(errorMessage);
@@ -407,6 +414,7 @@ window.apiGet = apiGet;
 window.apiPost = apiPost;
 window.apiPut = apiPut;
 window.apiDelete = apiDelete;
+window.apiPatch = apiPatch;
 window.getToken = getToken;
 window.setToken = setToken;
 window.removeToken = removeToken;
