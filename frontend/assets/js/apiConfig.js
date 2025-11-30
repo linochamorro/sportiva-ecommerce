@@ -8,7 +8,9 @@
 // ============================================
 
 const API_CONFIG = {
-    BASE_URL: 'http://127.0.0.1:3000/api',
+    BASE_URL: window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost'
+        ? 'http://127.0.0.1:3000/api'
+        : 'https://sportiva-ecommerce-production.up.railway.app',
     TIMEOUT: 10000,
     RETRY_ATTEMPTS: 1,
     TOKEN_KEY: 'sportiva_token',
