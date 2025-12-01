@@ -36,8 +36,8 @@ const validateCrearPedido = [
   body('metodo_pago')
     .trim()
     .notEmpty().withMessage('El método de pago es obligatorio')
-    .isIn(['tarjeta', 'yape', 'plin', 'efectivo', 'transferencia'])
-    .withMessage('Método de pago inválido. Opciones: tarjeta, yape, plin, efectivo, transferencia'),
+    .isIn(['Tarjeta', 'Yape', 'Plin', 'Transferencia', 'Efectivo']) 
+    .withMessage('Método de pago inválido...'),
 
   body('telefono_contacto')
     .trim()

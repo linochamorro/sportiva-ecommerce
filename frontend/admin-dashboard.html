@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administrador - Sportiva</title>
     
-    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="assets/css/styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -563,7 +563,7 @@
                         
                         <a href="#" class="quick-action-card-minimal dark" onclick="event.preventDefault(); showSection('productos'); mostrarModalProducto();">
                             <div class="quick-action-icon-container">
-                                <img src="../assets/images/icons/icon-box-plus.png" alt="">
+                                <img src="assets/images/icons/icon-box-plus.png" alt="">
                             </div>
                             <div class="quick-action-text">
                                 <div class="quick-action-title">Agregar Producto</div>
@@ -572,7 +572,7 @@
 
                         <a href="#" class="quick-action-card-minimal blue" onclick="event.preventDefault(); showSection('pedidos');">
                             <div class="quick-action-icon-container">
-                                <img src="../assets/images/icons/icon-clipboard-list.png" alt="">
+                                <img src="assets/images/icons/icon-clipboard-list.png" alt="">
                             </div>
                             <div class="quick-action-text">
                                 <div class="quick-action-title">Ver Pedidos</div>
@@ -581,7 +581,7 @@
 
                         <a href="#" class="quick-action-card-minimal light" onclick="event.preventDefault(); showSection('trabajadores');">
                             <div class="quick-action-icon-container">
-                                <img src="../assets/images/icons/icon-users-group.png" alt="">
+                                <img src="assets/images/icons/icon-users-group.png" alt="">
                             </div>
                             <div class="quick-action-text">
                                 <div class="quick-action-title">Gestionar Personal</div>
@@ -590,7 +590,7 @@
 
                         <a href="#" class="quick-action-card-minimal light" onclick="event.preventDefault(); showSection('reportes');">
                             <div class="quick-action-icon-container">
-                                <img src="../assets/images/icons/icon-chart-bar.png" alt="">
+                                <img src="assets/images/icons/icon-chart-bar.png" alt="">
                             </div>
                             <div class="quick-action-text">
                                 <div class="quick-action-title">Ver Reportes</div>
@@ -1343,9 +1343,9 @@
     </div>
 
     <!-- JavaScript -->
-    <script src="../assets/js/apiConfig.js"></script>
-    <script src="../assets/js/authService.js"></script>
-    <script src="../assets/js/main.js"></script>
+    <script src="assets/js/apiConfig.js"></script>
+    <script src="assets/js/authService.js"></script>
+    <script src="assets/js/main.js"></script>
 
     <script>
         // ============================================
@@ -1865,15 +1865,16 @@
                     let imgPath = item.imagen || '';
                     
                     if (imgPath && !imgPath.startsWith('http')) {
-                        imgPath = imgPath.replace(/^frontend\//, '').replace(/^public\//, '');
+                        imgPath = imgPath.replace('frontend/', '').replace('public/', '')
+                                      .replace(/^\.\.\//, '')
+                                      .replace(/^\.\//, '');
                         
-                        if (imgPath.startsWith('assets/')) {
-                            imgPath = '../' + imgPath;
+                        if (!imgPath.startsWith('assets/')) {
+                            imgPath = 'assets/images/productos/' + imgPath;
                         }
                     }
                     
-                    if (!imgPath) imgPath = '../assets/images/placeholder.jpg';
-                    // --------------------------------------
+                    if (!imgPath) imgPath = 'assets/images/placeholder.jpg';
 
                     html += `
                         <tr>

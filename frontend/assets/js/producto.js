@@ -139,10 +139,19 @@ async function cargarProductoLocal(productoId) {
 function normalizarProducto(producto) {
     if (!producto) return null;
 
-    let imagenPath = producto.imagen_principal || producto.imagen || producto.imagen_url || producto.url_imagen || 'assets/images/placeholder.jpg';
+    let imagenPath = producto.imagen_principal || producto.imagen || producto.imagen_url || producto.url_imagen || '';
+    const imagenFallback = 'assets/images/placeholder.jpg'; // Ruta relativa directa
 
-    if (imagenPath.includes('assets/images/productos/') && !imagenPath.startsWith('../') && !imagenPath.startsWith('/')) {
-        imagenPath = '../' + imagenPath.replace('frontend/', '');
+    if (!imagenPath) {
+        imagenPath = imagenFallback;
+    } else if (!imagenPath.startsWith('http')) {
+        imagenPath = imagenPath.replace('frontend/', '').replace('public/', '')
+                              .replace(/^\.\.\//, '') 
+                              .replace(/^\.\//, ''); 
+
+        if (!imagenPath.startsWith('assets/')) {
+            imagenPath = 'assets/images/productos/' + imagenPath;
+        }
     }
 
     return {
@@ -281,25 +290,38 @@ function renderizarGaleria() {
  */
 function obtenerImagenesProducto() {
     const imagenes = [];
+    const limpiarRuta = (ruta) => {
+        if (!ruta) return null;
+        if (ruta.startsWith('http')) return ruta;
+        
+        let limpia = ruta.replace('frontend/', '').replace('public/', '')
+                        .replace(/^\.\.\//, '') 
+                        .replace(/^\.\//, '');  
+        
+        if (!limpia.startsWith('assets/')) {
+            limpia = 'assets/images/productos/' + limpia;
+        }
+        
+        return limpia;
+    };
 
-    if (productoActual.imagen_url || productoActual.imagen) {
-        imagenes.push(productoActual.imagen_url || productoActual.imagen);
+    const imgPrincipal = productoActual.imagen_principal || productoActual.imagen || productoActual.imagen_url;
+    if (imgPrincipal) {
+        const rutaLimpia = limpiarRuta(imgPrincipal);
+        if (rutaLimpia) imagenes.push(rutaLimpia);
     }
 
     if (productoActual.imagenes && Array.isArray(productoActual.imagenes)) {
         productoActual.imagenes.forEach(img => {
             let path = img.url_imagen || '';
-            if (path.includes('assets/images/productos/') && !path.startsWith('../') && !path.startsWith('/')) {
-                path = '../' + path.replace('frontend/', '');
-            }
-            imagenes.push(path);
+            const rutaLimpia = limpiarRuta(path);
+            if (rutaLimpia) imagenes.push(rutaLimpia);
         });
     }
 
     if (imagenes.length === 0) {
-        imagenes.push('../assets/images/placeholder.jpg');
+        imagenes.push('assets/images/placeholder.jpg');
     }
-
     return [...new Set(imagenes)];
 }
 
@@ -414,7 +436,7 @@ function renderizarSelectorTallas() {
                 const isDisabled = talla.stock === 0;
                 const defaultBorderColor = 'var(--color-gray-border)';
                 const selectedBorderColor = 'var(--color-black)';
-                const hoverBorderColor = 'var(--color-black)'; // Siempre negro en hover
+                const hoverBorderColor = 'var(--color-black)';
                 const defaultBgColor = 'white';
                 const selectedBgColor = 'var(--color-black)';
                 const hoverBgColor = 'var(--color-black)';
@@ -575,31 +597,33 @@ function renderizarProductosRelacionados() {
  */
 function crearCardProductoRelacionado(producto) {
     const precio = parseFloat(producto.precio_venta || producto.precio);
-    let imagen = producto.imagen_principal || producto.imagen || 'assets/images/placeholder.jpg';
+    let imagen = producto.imagen_principal || producto.imagen || '';
+    const imagenFallback = 'assets/images/placeholder.jpg';
 
-    if (imagen.includes('assets/images/productos/') && !imagen.startsWith('../') && !imagen.startsWith('/')) {
-        imagen = '../' + imagen.replace('frontend/', '');
-    } else if (imagen.startsWith('/')) {
-        imagen = '..' + imagen;
+    if (!imagen) {
+        imagen = imagenFallback;
+    } else if (!imagen.startsWith('http')) {
+        imagen = imagen.replace('frontend/', '').replace('public/', '')
+                      .replace(/^\.\.\//, '')
+                      .replace(/^\.\//, '');
+
+        if (!imagen.startsWith('assets/')) {
+            imagen = 'assets/images/productos/' + imagen;
+        }
     }
     
-    // Obtener la ruta correcta para navegación
     const productoIdUrl = producto.id_producto || producto.producto_id || producto.id;
-    const currentPath = window.location.pathname;
-    
-    // Determinar si estamos en /frontend/public/ o en raíz
-    let linkHref;
-    if (currentPath.includes('/frontend/public/')) {
-        linkHref = `producto.html?id=${productoIdUrl}`;
-    } else {
-        linkHref = `/frontend/public/producto.html?id=${productoIdUrl}`;
-    }
+    const linkHref = `producto.html?id=${productoIdUrl}`;
 
     return `
         <div class="producto-card-mini" style="border: 1px solid var(--color-gray-border); padding: 16px;">
             <a href="${linkHref}" style="display: block; text-decoration: none; color: inherit;">
                 <div style="background-color: var(--color-gray-light); aspect-ratio: 1; margin-bottom: 12px;">
-                    <img src="${imagen}" alt="${producto.nombre_producto || producto.nombre}" style="width: 100%; height: 100%; object-fit: cover;">
+                    <img src="${imagen}" 
+                        alt="${producto.nombre_producto || producto.nombre}" 
+                        style="width: 100%; height: 100%; object-fit: cover;"
+                        loading="lazy"
+                        onerror="this.onerror=null; this.src='${imagenFallback}';">
                 </div>
                 <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 4px; color: var(--color-black);">${producto.nombre_producto || producto.nombre}</h4>
                 <div class="precio" style="font-weight: 700; color: var(--color-black);">S/ ${precio.toFixed(2)}</div>
@@ -613,7 +637,7 @@ function crearCardProductoRelacionado(producto) {
 // ===========================
 
 /**
- * Seleccionar talla - CORREGIDO
+ * Seleccionar talla
  */
 function seleccionarTalla(tallaNombre, stock) {
     if (stock === 0) return; // No permitir seleccionar tallas sin stock
@@ -774,7 +798,7 @@ async function agregarAlCarritoClick() {
                 if (typeof mostrarToast === 'function') mostrarToast('Inicia sesión para agregar productos', 'warning');
                 
                 setTimeout(() => {
-                    window.location.href = '/frontend/public/login.html?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
+                    window.location.href = '/frontend/login.html?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
                 }, 1500);
                 
                 if (btnAgregar) {
@@ -981,7 +1005,7 @@ function inicializarEventListeners() {
 }
 
 // ===========================
-// 9. FUNCIONES ADICIONALES (Placeholder para Reseñas si se implementan)
+// 9. FUNCIONES ADICIONALES
 // ===========================
 
 async function cargarResenas(productoId) {

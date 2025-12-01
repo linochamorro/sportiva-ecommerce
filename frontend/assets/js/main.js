@@ -17,7 +17,7 @@ const CONFIG = {
         'PRIMERACOMPRA': { descuento: 15, tipo: 'monto_fijo' }
     },
     TIEMPO_TOAST: 3000,
-    PRODUCTOS_JSON: '../assets/data/productos.json',
+    PRODUCTOS_JSON: 'assets/data/productos.json',
     USE_API: true
 };
 
@@ -421,16 +421,19 @@ function crearCardProducto(producto) {
 
     // 5. Normalizar Imagen
     let imagen = producto.imagen_principal || producto.imagen_url || producto.imagen || '';
-    if (imagen && !imagen.startsWith('http')) {
-        imagen = imagen.replace('frontend/', '').replace('public/', '');
-        if (imagen.startsWith('assets/')) {
-            imagen = '../' + imagen;
-        } else if (!imagen.startsWith('../')) {
-            imagen = '../assets/images/productos/' + imagen;
-        }
-    }
     const imagenFallback = 'https://placehold.co/300x300?text=Sin+Imagen';
-    if (!imagen) imagen = imagenFallback;
+
+    if (!imagen) {
+        imagen = imagenFallback;
+    } else if (!imagen.startsWith('http')) {
+        imagen = imagen.replace('frontend/', '').replace('public/', '')
+                        .replace(/^\.\.\//, '')
+                        .replace(/^\.\//, '');
+
+        if (!imagen.startsWith('assets/')) {
+            imagen = 'assets/images/productos/' + imagen;
+        }
+      }
     
     // 6. Calcular stock
     let stock = 0;
@@ -482,17 +485,17 @@ function crearCardProducto(producto) {
 function irAProducto(idProducto) {
     const currentPath = window.location.pathname;
     
-    if (currentPath.includes('/frontend/public/')) {
+    if (currentPath.includes('/frontend/')) {
         window.location.href = `producto.html?id=${idProducto}`;
     } else {
-        window.location.href = `/frontend/public/producto.html?id=${idProducto}`;
+        window.location.href = `/frontend/producto.html?id=${idProducto}`;
     }
 }
 
 function irACatalogo(categoria = '') {
     const currentPath = window.location.pathname;
     
-    if (currentPath.includes('/frontend/public/')) {
+    if (currentPath.includes('/frontend/')) {
         if (categoria) {
             window.location.href = `catalogo.html?categoria=${encodeURIComponent(categoria)}`;
         } else {
@@ -500,9 +503,9 @@ function irACatalogo(categoria = '') {
         }
     } else {
         if (categoria) {
-            window.location.href = `/frontend/public/catalogo.html?categoria=${encodeURIComponent(categoria)}`;
+            window.location.href = `/frontend/catalogo.html?categoria=${encodeURIComponent(categoria)}`;
         } else {
-            window.location.href = '/frontend/public/catalogo.html';
+            window.location.href = '/frontend/catalogo.html';
         }
     }
 }

@@ -182,28 +182,25 @@ function renderizarCarrito() {
  * Crear HTML de item del carrito
  */
 function crearItemCarrito(item, index) {
-    // Mapear propiedades
     const precio = parseFloat(item.precio_unitario || item.precio || item.precio_venta || 0);
     const cantidad = parseInt(item.cantidad || 1);
     const subtotal = parseFloat(item.subtotal || (precio * cantidad));
     const nombre = item.nombre_producto || item.nombre || 'Producto';
     const idProducto = item.id_producto || item.producto_id || 0;
-    
     let rawImg = item.imagen || item.imagen_url || item.url_imagen || '';
-    
-    if (rawImg && !rawImg.startsWith('http')) {
-        rawImg = rawImg.replace(/^frontend\//, '').replace(/^public\//, '');
-        
-        if (rawImg.startsWith('/')) rawImg = rawImg.substring(1);
+    const imagenFallback = 'assets/images/placeholder.jpg';
 
-        if (rawImg.startsWith('assets/')) {
-            rawImg = '../' + rawImg;
+    if (!rawImg) {
+        rawImg = imagenFallback;
+    } else if (!rawImg.startsWith('http')) {
+        rawImg = rawImg.replace('frontend/', '').replace('public/', '')
+                        .replace(/^\.\.\//, '')
+                        .replace(/^\.\//, '');  
+
+        if (!rawImg.startsWith('assets/')) {
+            rawImg = 'assets/images/productos/' + rawImg;
         }
-    }
-    // Fallback final
-    if (!rawImg) rawImg = '../assets/images/placeholder.jpg';
-    // ------------------------------------
-    
+    }  
     const stockDisponible = item.stock_disponible || item.stock || 99;
     
     return `
@@ -211,7 +208,8 @@ function crearItemCarrito(item, index) {
             <div class="carrito-imagen">
                 <img src="${rawImg}" alt="${nombre}" 
                     style="width: 100%; height: 100%; object-fit: cover;"
-                    onerror="this.onerror=null; this.src='../assets/images/placeholder.jpg';">
+                    loading="lazy"
+                    onerror="this.onerror=null; this.src='${imagenFallback}';">
             </div>
             
             <div style="flex: 1; padding: 0 16px;">
@@ -231,7 +229,7 @@ function crearItemCarrito(item, index) {
                 <div class="cantidad-control" style="margin-top: 12px;">
                     <button onclick="cambiarCantidad(${index}, -1)" ${cantidad <= 1 ? 'disabled' : ''}>-</button>
                     <input type="number" value="${cantidad}" min="1" max="${stockDisponible}" 
-                          data-index="${index}" onchange="actualizarCantidadInput(${index}, this.value)">
+                            data-index="${index}" onchange="actualizarCantidadInput(${index}, this.value)">
                     <button onclick="cambiarCantidad(${index}, 1)" ${cantidad >= stockDisponible ? 'disabled' : ''}>+</button>
                 </div>
             </div>

@@ -107,19 +107,19 @@ async function verificarCarrito() {
             datosCheckout.carrito = {
                 items: itemsBackend.map(item => {
                     let rawImg = item.imagen || item.imagen_url || item.url_imagen || '';
+                    const imagenFallback = 'assets/images/placeholder.jpg';
 
-                    if (rawImg && !rawImg.startsWith('http')) {
-                        rawImg = rawImg.replace(/^frontend\//, '').replace(/^public\//, '');
-                        
-                        if (rawImg.startsWith('/')) rawImg = rawImg.substring(1);
+                    if (!rawImg) {
+                        rawImg = imagenFallback;
+                    } else if (!rawImg.startsWith('http')) {
+                        rawImg = rawImg.replace('frontend/', '').replace('public/', '')
+                                        .replace(/^\.\.\//, '') 
+                                        .replace(/^\.\//, ''); 
 
-                        if (rawImg.startsWith('assets/')) {
-                            rawImg = '../' + rawImg;
+                        if (!rawImg.startsWith('assets/')) {
+                            rawImg = 'assets/images/productos/' + rawImg;
                         }
                     }
-                    
-                    // Si no hay imagen, usar placeholder
-                    if (!rawImg) rawImg = '../assets/images/placeholder.jpg';
 
                     return {
                         ...item,
@@ -1063,7 +1063,6 @@ async function finalizarCompra() {
         btnFinalizar.disabled = true;
         btnFinalizar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
     }
-    
     mostrarLoader(true);
     
     try {
@@ -1073,16 +1072,16 @@ async function finalizarCompra() {
             
             switch (datosCheckout.metodo_pago) {
                 case 'Tarjeta_Credito':
-                    metodoBackend = 'tarjeta';
+                    metodoBackend = 'Tarjeta';
                     break;
                 case 'Transferencia':
-                    metodoBackend = 'transferencia';
+                    metodoBackend = 'Transferencia';
                     break;
                 case 'Yape':
-                    metodoBackend = 'yape';
+                    metodoBackend = 'Yape';
                     break;
                 case 'Contra_Entrega':
-                    metodoBackend = 'efectivo';
+                    metodoBackend = 'Efectivo';
                     break;
             }
 
@@ -1104,16 +1103,16 @@ async function finalizarCompra() {
                     razon_social: datosCheckout.datos_facturacion.razon_social,
                     direccion_fiscal: datosCheckout.datos_facturacion.direccion_fiscal
                 } : null,
-                codigo_cupon: datosCheckout.codigo_cupon || null,
+                
+                codigo_cupon: datosCheckout.codigo_cupon || undefined,
+                
                 descuento: datosCheckout.carrito ? datosCheckout.carrito.descuento : 0,
                 monto_total: datosCheckout.carrito ? datosCheckout.carrito.total : 0,
                 notas: datosCheckout.notas || ''
             };
             
             console.log('📦 Enviando pedido al backend:', datosPedido);
-            
             const response = await apiConfig.apiPost('/pedidos', datosPedido);
-            
             console.log('✅ Respuesta del backend:', response);
             
             if (response.success && response.data) {
@@ -1127,7 +1126,7 @@ async function finalizarCompra() {
                 localStorage.removeItem('sportiva_cupon_checkout');
                 
                 // Redirigir
-                window.location.href = `/confirmacion.html?pedido=${datosCheckout.numero_pedido}&tracking=${numeroTracking}`;
+                window.location.href = `confirmacion.html?pedido=${datosCheckout.numero_pedido}&tracking=${numeroTracking}`;
             } else {
                 throw new Error(response.message || 'Error desconocido al crear el pedido');
             }

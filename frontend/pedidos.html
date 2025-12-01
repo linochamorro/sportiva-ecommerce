@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mis Pedidos - Sportiva</title>
-    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="assets/css/styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -73,9 +73,9 @@
         </div>
     </div>    
 
-    <script src="../assets/js/apiConfig.js"></script>
-    <script src="../assets/js/authService.js"></script>
-    <script src="../assets/js/main.js"></script>
+    <script src="assets/js/apiConfig.js"></script>
+    <script src="assets/js/authService.js"></script>
+    <script src="assets/js/main.js"></script>
     
     <script>
         let todosLosPedidos = [];
@@ -156,27 +156,28 @@
                 const response = await apiGet(ENDPOINTS.PEDIDOS.DETALLE(idPedido));
                 if (response.success) {
                     const p = response.data.pedido;
-                    titulo.textContent = `Pedido #${p.numero_pedido}`;
-                    
+                    titulo.textContent = `Pedido #${p.numero_pedido}`;         
                     const itemsHtml = p.items.map(item => {
                         let imgPath = item.imagen || '';
-                        
-                        if (imgPath && !imgPath.startsWith('http')) {
-                            imgPath = imgPath.replace(/^frontend\//, '').replace(/^public\//, '');
-                            
-                            if (imgPath.startsWith('assets/')) {
-                                imgPath = '../' + imgPath;
+                        const imagenFallback = 'assets/images/placeholder.jpg';
+
+                        if (!imgPath) {
+                            imgPath = imagenFallback;
+                        } else if (!imgPath.startsWith('http')) {
+                            imgPath = imgPath.replace('frontend/', '').replace('public/', '')
+                                          .replace(/^\.\.\//, '')
+                                          .replace(/^\.\//, ''); 
+
+                            if (!imgPath.startsWith('assets/')) {
+                                imgPath = 'assets/images/productos/' + imgPath;
                             }
                         }
-                        
-                        // Fallback si no hay imagen
-                        if (!imgPath) imgPath = '../assets/images/placeholder.jpg';
                         // -------------------------------------
 
                         return `
                         <div class="flex gap-4 border-b border-gray-100 py-4 last:border-0">
                             <img src="${imgPath}" 
-                                onerror="this.src='../assets/images/placeholder.jpg'" 
+                                onerror="this.src='assets/images/placeholder.jpg'" 
                                 class="w-16 h-16 object-cover rounded bg-gray-100">
                             <div class="flex-1">
                                 <p class="font-bold text-sm">${item.nombre_producto}</p>

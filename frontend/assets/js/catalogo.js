@@ -160,7 +160,7 @@ async function cargarProductos() {
 async function cargarProductosLocal() {
 
     try {
-        const response = await fetch('../assets/data/productos.json');
+        const response = await fetch('assets/data/productos.json');
         if (!response.ok) throw new Error('Error al cargar productos locales');
         
         const data = await response.json();
@@ -567,14 +567,17 @@ function crearCardProducto(producto) {
 
     // 5. Normalizar Imagen
     let imagen = producto.imagen_principal || producto.imagen_url || producto.imagen || '';
-    if (imagen && !imagen.startsWith('http')) {
+    
+    if (imagen) {
         imagen = imagen.replace('frontend/', '').replace('public/', '');
-        if (imagen.startsWith('assets/')) {
-            imagen = '../' + imagen;
-        } else if (!imagen.startsWith('../')) {
-            imagen = '../assets/images/productos/' + imagen;
+        
+        if (imagen.startsWith('http')) {
+        } else if (imagen.startsWith('assets/')) {
+        } else {
+            imagen = 'assets/images/productos/' + imagen;
         }
     }
+    
     const imagenFallback = 'https://placehold.co/300x300?text=Sin+Imagen';
     if (!imagen) imagen = imagenFallback;
     
@@ -804,7 +807,7 @@ async function agregarAlCarritoRapido(productoId) {
         if (!isAuthenticated) {
             mostrarNotificacion('Por favor inicia sesión para agregar productos', 'warning');
             setTimeout(() => {
-                window.location.href = '/login.html?redirect=' + encodeURIComponent(window.location.pathname);
+                window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.pathname);
             }, 1500);
             return;
         }
