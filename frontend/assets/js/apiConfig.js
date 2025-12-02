@@ -7,10 +7,25 @@
 // CONFIGURACIÓN GLOBAL API
 // ============================================
 
+let API_BASE_URL;
+const hostname = window.location.hostname;
+
+// Lógica para decidir qué backend usar
+if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.includes('192.168.')) {
+    // Entorno Local
+    console.log('🏠 Modo Local detectado. Usando backend local.');
+    API_BASE_URL = 'http://localhost:3000/api';
+} else {
+    // Entorno de Producción (Vercel)
+    console.log('☁️ Modo Producción detectado. Usando backend de Railway.');
+    API_BASE_URL = 'https://sportiva-ecommerce-production.up.railway.app/api'; 
+}
+
+// Exportar para uso global
+window.API_BASE_URL = API_BASE_URL;
+
 const API_CONFIG = {
-    BASE_URL: window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost'
-        ? 'http://127.0.0.1:3000/api'
-        : 'https://sportiva-ecommerce-production.up.railway.app/api',
+    BASE_URL: API_BASE_URL,
     TIMEOUT: 10000,
     RETRY_ATTEMPTS: 1,
     TOKEN_KEY: 'sportiva_token',
