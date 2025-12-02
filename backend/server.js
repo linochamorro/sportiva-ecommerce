@@ -22,7 +22,7 @@ const PORT = process.env.PORT || 3000;
 // MIDDLEWARES GLOBALES
 // ============================================
 
-// CORS - Permitir solicitudes desde el frontend
+// CORS - Permitir solicitudes desde el Frontend
 const allowedOrigins = [
     'http://localhost:5500',
     'http://127.0.0.1:5500',
