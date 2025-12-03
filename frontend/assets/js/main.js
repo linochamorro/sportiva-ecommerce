@@ -483,30 +483,14 @@ function crearCardProducto(producto) {
 }
 
 function irAProducto(idProducto) {
-    const currentPath = window.location.pathname;
-    
-    if (currentPath.includes('/frontend/')) {
-        window.location.href = `producto.html?id=${idProducto}`;
-    } else {
-        window.location.href = `/frontend/producto.html?id=${idProducto}`;
-    }
+    window.location.href = `producto.html?id=${idProducto}`;
 }
 
 function irACatalogo(categoria = '') {
-    const currentPath = window.location.pathname;
-    
-    if (currentPath.includes('/frontend/')) {
-        if (categoria) {
-            window.location.href = `catalogo.html?categoria=${encodeURIComponent(categoria)}`;
-        } else {
-            window.location.href = 'catalogo.html';
-        }
+    if (categoria) {
+        window.location.href = `catalogo.html?categoria=${encodeURIComponent(categoria)}`;
     } else {
-        if (categoria) {
-            window.location.href = `/frontend/catalogo.html?categoria=${encodeURIComponent(categoria)}`;
-        } else {
-            window.location.href = '/frontend/catalogo.html';
-        }
+        window.location.href = 'catalogo.html';
     }
 }
 
