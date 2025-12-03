@@ -7,17 +7,24 @@ require('dotenv').config();
 
 // Pool de conexiones
 const pool = mysql.createPool({
-    host: process.env.DB_HOST || 'localhost',
+    host: process.env.DB_HOST,
     port: process.env.DB_PORT || 3306,
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'sportiva_db',
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
     enableKeepAlive: true,
     keepAliveInitialDelay: 0
 });
+
+// Validar configuración en producción
+if (process.env.NODE_ENV === 'production') {
+    if (!process.env.DB_HOST || !process.env.DB_USER || !process.env.DB_NAME) {
+        console.error('❌ ERROR: Variables de BD requeridas: DB_HOST, DB_USER, DB_NAME');
+    }
+}
 
 // Verificar conexión
 const verificarConexion = async () => {

@@ -24,9 +24,11 @@ const PORT = process.env.PORT || 3000;
 
 // CORS - Permitir solicitudes desde el Frontend
 const allowedOrigins = [
-    'http://localhost:5500',
-    'http://127.0.0.1:5500',
-    'http://localhost:3000',
+    // URLs de desarrollo (comentadas en producción)
+    // 'http://localhost:5500',
+    // 'http://127.0.0.1:5500',
+    // 'http://localhost:3000',
+    // URL de producción
     'https://sportiva-ecommerce.vercel.app',    
     process.env.FRONTEND_URL
 ].filter(Boolean);

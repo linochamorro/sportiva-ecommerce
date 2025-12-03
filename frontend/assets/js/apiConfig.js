@@ -13,11 +13,11 @@ const hostname = window.location.hostname;
 // Lógica para decidir qué backend usar
 if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.includes('192.168.')) {
     // Entorno Local
-    console.log('🏠 Modo Local detectado. Usando backend local.');
+    // console.log('🏠 Modo Local detectado. Usando backend local.');
     API_BASE_URL = 'http://localhost:3000/api';
 } else {
     // Entorno de Producción (Vercel)
-    console.log('☁️ Modo Producción detectado. Usando backend de Railway.');
+    // console.log('☁️ Modo Producción detectado. Usando backend de Railway.');
     API_BASE_URL = 'https://sportiva-ecommerce-production.up.railway.app/api'; 
 }
 
@@ -162,7 +162,7 @@ function isTokenValid() {
         const fiveMinutes = 5 * 60 * 1000;
         return (expiration - now) > fiveMinutes;
     } catch (error) {
-        console.error('Error validando token:', error);
+        // console.error('Error validando token:', error);
         return false;
     }
 }
@@ -268,7 +268,7 @@ async function apiRequest(endpoint, options = {}) {
         return await handleResponse(response);
         
     } catch (error) {
-        console.error('API Request Error:', error);
+        // console.error('API Request Error:', error);
         
         if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
             if (typeof mostrarToast === 'function') {
@@ -439,6 +439,6 @@ window.isAuthenticated = isAuthenticated;
 window.requireAuth = requireAuth;
 window.isTokenValid = isTokenValid;
 
-console.log('API Config cargado correctamente', 'color: #4CAF50; font-weight: bold;');
-console.log('Base URL:', API_CONFIG.BASE_URL);
-console.log('Endpoints disponibles:', Object.keys(ENDPOINTS).length * 10, 'aprox.');
+// console.log('API Config cargado correctamente', 'color: #4CAF50; font-weight: bold;');
+// console.log('Base URL:', API_CONFIG.BASE_URL);
+// console.log('Endpoints disponibles:', Object.keys(ENDPOINTS).length * 10, 'aprox.');

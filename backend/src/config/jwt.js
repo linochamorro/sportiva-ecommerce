@@ -5,8 +5,13 @@
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
-const JWT_SECRET = process.env.JWT_SECRET || 'sportiva_secret_key_2025';
+const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
+
+// Validar JWT_SECRET en producción
+if (!JWT_SECRET && process.env.NODE_ENV === 'production') {
+    console.error('❌ ERROR: JWT_SECRET es requerido en producción');
+}
 
 // Generar token
 const generarToken = (payload) => {
