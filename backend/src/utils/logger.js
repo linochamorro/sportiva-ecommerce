@@ -7,8 +7,12 @@ const fs = require('fs');
 
 // Crear directorio de logs si no existe
 const logsDir = path.join(__dirname, '../../logs');
-if (!fs.existsSync(logsDir)) {
-    fs.mkdirSync(logsDir, { recursive: true });
+const isProduction = process.env.NODE_ENV === 'production';
+
+if (!isProduction) {
+    if (!fs.existsSync(logsDir)) {
+        fs.mkdirSync(logsDir, { recursive: true });
+    }
 }
 
 // ============================================
@@ -139,13 +143,11 @@ const logger = winston.createLogger({
         service: 'sportiva-backend',
         environment: process.env.NODE_ENV || 'development'
     },
-    transports: [
-        errorFileTransport,
-        combinedFileTransport,
-        httpFileTransport
-    ],
-    exitOnError: false
-});
+    transports: isProduction 
+        ? [consoleTransport]  // En producción solo consola
+        : [errorFileTransport, combinedFileTransport, httpFileTransport],
+        exitOnError: false
+    });
 
 // Agregar consola solo en desarrollo
 if (process.env.NODE_ENV !== 'production') {
