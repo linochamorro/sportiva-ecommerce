@@ -5,13 +5,21 @@
 const mysql = require('mysql2/promise');
 require('dotenv').config();
 
-// Pool de conexiones
+// Logging de configuración (para debug)
+console.log('=== DATABASE CONFIG ===');
+console.log('DB_HOST:', process.env.DB_HOST || process.env.MYSQLHOST || 'NOT SET');
+console.log('DB_PORT:', process.env.DB_PORT || process.env.MYSQLPORT || 'NOT SET');
+console.log('DB_USER:', process.env.DB_USER || process.env.MYSQLUSER || 'NOT SET');
+console.log('DB_NAME:', process.env.DB_NAME || process.env.MYSQLDATABASE || 'NOT SET');
+console.log('=======================');
+
+// Pool de conexiones - acepta tanto DB_* como MYSQL*
 const pool = mysql.createPool({
-    host: process.env.DB_HOST || 'localhost',
-    port: process.env.DB_PORT || 3306,
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'sportiva_db',
+    host: process.env.DB_HOST || process.env.MYSQLHOST || 'localhost',
+    port: parseInt(process.env.DB_PORT || process.env.MYSQLPORT || '3306'),
+    user: process.env.DB_USER || process.env.MYSQLUSER || 'root',
+    password: process.env.DB_PASSWORD || process.env.MYSQLPASSWORD || '',
+    database: process.env.DB_NAME || process.env.MYSQLDATABASE || 'sportiva_db',
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
@@ -19,7 +27,7 @@ const pool = mysql.createPool({
     keepAliveInitialDelay: 0
 });
 
-// Verificar conexión
+// Verificar conexión al iniciar
 const verificarConexion = async () => {
     try {
         const connection = await pool.getConnection();
@@ -28,12 +36,15 @@ const verificarConexion = async () => {
         return true;
     } catch (error) {
         console.error('❌ Error al conectar con la base de datos:', error.message);
+        console.error('Error code:', error.code);
+        console.error('Error errno:', error.errno);
         return false;
     }
 };
 
-// Exportar directamente el pool para this.db.execute()
-module.exports = pool;
+// Verificar conexión inmediatamente
+verificarConexion();
 
-// Mantener función de verificación disponible
+// Exportar
+module.exports = pool;
 module.exports.verificarConexion = verificarConexion;
