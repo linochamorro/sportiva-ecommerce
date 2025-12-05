@@ -17,11 +17,6 @@ class ProductoService {
     // NORMALIZACIÓN DE RUTAS
     // ============================================
 
-    /**
-     * Normalizar ruta de imagen
-     * Remueve 'frontend/' del inicio si existe, ya que el navegador
-     * ya está sirviendo desde /frontend/
-     */
     normalizarRutaImagen(urlImagen) {
         if (!urlImagen) return null;
         
