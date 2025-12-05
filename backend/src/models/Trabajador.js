@@ -43,7 +43,7 @@ class Trabajador extends BaseModel {
                     fecha_registro,
                     fecha_ultima_sesion,
                     creado_por
-                FROM TRABAJADOR
+                FROM trabajador
                 WHERE email = ? AND estado = 'Activo'
             `;
 
@@ -65,7 +65,7 @@ class Trabajador extends BaseModel {
     async updateLastAccess(id_trabajador) {
         try {
             const query = `
-                UPDATE TRABAJADOR
+                UPDATE trabajador
                 SET fecha_ultima_sesion = NOW()
                 WHERE id_trabajador = ?
             `;
@@ -83,7 +83,7 @@ class Trabajador extends BaseModel {
             const hashedPassword = await bcrypt.hash(newPassword, salt);
 
             const query = `
-                UPDATE TRABAJADOR
+                UPDATE trabajador
                 SET password = ?
                 WHERE id_trabajador = ?
             `;
@@ -101,7 +101,7 @@ class Trabajador extends BaseModel {
 
     async emailExists(email, excludeTrabajadorId = null) {
         try {
-            let query = `SELECT id_trabajador FROM TRABAJADOR WHERE email = ?`;
+            let query = `SELECT id_trabajador FROM trabajador WHERE email = ?`;
             const params = [email];
 
             if (excludeTrabajadorId) {
@@ -130,8 +130,8 @@ class Trabajador extends BaseModel {
                     t.fecha_registro,
                     t.fecha_ultima_sesion,
                     CONCAT(c.nombre, ' ', c.apellido) as creado_por_nombre
-                FROM TRABAJADOR t
-                LEFT JOIN TRABAJADOR c ON t.creado_por = c.id_trabajador
+                FROM trabajador t
+                LEFT JOIN trabajador c ON t.creado_por = c.id_trabajador
                 WHERE 1=1
             `;
 
@@ -165,7 +165,7 @@ class Trabajador extends BaseModel {
     async updateEstado(id_trabajador, estado) {
         try {
             const query = `
-                UPDATE TRABAJADOR
+                UPDATE trabajador
                 SET estado = ?
                 WHERE id_trabajador = ?
             `;
@@ -183,7 +183,7 @@ class Trabajador extends BaseModel {
     async updateRol(id_trabajador, rol) {
         try {
             const query = `
-                UPDATE TRABAJADOR
+                UPDATE trabajador
                 SET rol = ?
                 WHERE id_trabajador = ?
             `;

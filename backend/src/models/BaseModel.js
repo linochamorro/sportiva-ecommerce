@@ -5,7 +5,7 @@ const db = require('../config/database');
 
 class BaseModel {
     constructor(tableName) {
-        this.tableName = tableName;
+        this.tableName = tableName.toLowerCase();
         this.db = db;
     }
 

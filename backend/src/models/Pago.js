@@ -26,7 +26,7 @@ class Pago extends BaseModel {
             };
 
             const query = `
-                INSERT INTO PAGO 
+                INSERT INTO pago 
                 (id_pedido, monto_pago, metodo_pago, estado_pago, referencia_transaccion, fecha_pago)
                 VALUES (?, ?, ?, ?, ?, NOW())
             `;
@@ -62,7 +62,7 @@ class Pago extends BaseModel {
                     estado_pago,
                     referencia_transaccion,
                     fecha_pago
-                FROM PAGO
+                FROM pago
                 WHERE id_pedido = ?
                 ORDER BY fecha_pago DESC
             `;
@@ -80,7 +80,7 @@ class Pago extends BaseModel {
     async findByReferencia(referencia_transaccion) {
         try {
             const query = `
-                SELECT * FROM PAGO
+                SELECT * FROM pago
                 WHERE referencia_transaccion = ?
             `;
 
@@ -103,7 +103,7 @@ class Pago extends BaseModel {
             }
 
             const query = `
-                UPDATE PAGO
+                UPDATE pago
                 SET estado_pago = ?
                 WHERE id_pago = ?
             `;
@@ -128,8 +128,8 @@ class Pago extends BaseModel {
                 SELECT 
                     p.total as total_pedido,
                     COALESCE(SUM(CASE WHEN pg.estado_pago = 'completado' THEN pg.monto ELSE 0 END), 0) as total_pagado
-                FROM PEDIDO p
-                LEFT JOIN PAGO pg ON p.id_pedido = pg.id_pedido
+                FROM pedido p
+                LEFT JOIN pago pg ON p.id_pedido = pg.id_pedido
                 WHERE p.id_pedido = ?
                 GROUP BY p.id_pedido
             `;
@@ -165,7 +165,7 @@ class Pago extends BaseModel {
                     SUM(CASE WHEN estado_pago = 'completado' THEN monto ELSE 0 END) as monto_completado,
                     SUM(CASE WHEN estado_pago = 'pendiente' THEN monto ELSE 0 END) as monto_pendiente,
                     SUM(CASE WHEN estado_pago = 'rechazado' THEN monto ELSE 0 END) as monto_rechazado
-                FROM PAGO
+                FROM pago
                 WHERE 1=1
             `;
 
@@ -207,9 +207,9 @@ class Pago extends BaseModel {
                     c.nombre as cliente_nombre,
                     c.apellido as cliente_apellido,
                     c.email as cliente_email
-                FROM PAGO pg
-                INNER JOIN PEDIDO p ON pg.id_pedido = p.id_pedido
-                INNER JOIN CLIENTE c ON p.id_cliente = c.id_cliente
+                FROM pago pg
+                INNER JOIN pedido p ON pg.id_pedido = p.id_pedido
+                INNER JOIN cliente c ON p.id_cliente = c.id_cliente
                 WHERE pg.estado_pago = 'completado'
                 AND pg.fecha_pago BETWEEN ? AND ?
                 ORDER BY pg.fecha_pago DESC
@@ -246,7 +246,7 @@ class Pago extends BaseModel {
                 // Verificar que el pago esté completado
                 const checkQuery = `
                     SELECT estado_pago, monto, id_pedido
-                    FROM PAGO
+                    FROM pago
                     WHERE id_pago = ?
                 `;
 
@@ -261,7 +261,7 @@ class Pago extends BaseModel {
                 }
 
                 const updateQuery = `
-                    UPDATE PAGO
+                    UPDATE pago
                     SET estado_pago = 'reembolsado'
                     WHERE id_pago = ?
                 `;
@@ -293,7 +293,7 @@ class Pago extends BaseModel {
                     COUNT(CASE WHEN estado_pago = 'reembolsado' THEN 1 END) as pagos_reembolsados,
                     COALESCE(SUM(CASE WHEN estado_pago = 'completado' THEN monto ELSE 0 END), 0) as ingresos_totales,
                     COALESCE(AVG(CASE WHEN estado_pago = 'completado' THEN monto END), 0) as ticket_promedio
-                FROM PAGO
+                FROM pago
                 WHERE 1=1
             `;
 
@@ -325,8 +325,8 @@ class Pago extends BaseModel {
                 SELECT 
                     total,
                     COALESCE(SUM(pg.monto), 0) as total_pagado
-                FROM PEDIDO p
-                LEFT JOIN PAGO pg ON p.id_pedido = pg.id_pedido 
+                FROM pedido p
+                LEFT JOIN pago pg ON p.id_pedido = pg.id_pedido 
                     AND pg.estado_pago = 'completado'
                 WHERE p.id_pedido = ?
                 GROUP BY p.id_pedido

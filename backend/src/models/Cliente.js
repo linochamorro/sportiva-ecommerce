@@ -56,7 +56,7 @@ class Cliente extends BaseModel {
                     token_recuperacion,
                     fecha_token,
                     verificado
-                FROM CLIENTE
+                FROM cliente
                 WHERE email = ? AND estado = 'Activo'
             `;
 
@@ -87,7 +87,7 @@ class Cliente extends BaseModel {
     async updateLastAccess(id_cliente) {
         try {
             const query = `
-                UPDATE CLIENTE
+                UPDATE cliente
                 SET fecha_ultima_sesion = NOW()
                 WHERE id_cliente = ?
             `;
@@ -108,7 +108,7 @@ class Cliente extends BaseModel {
             const hashedPassword = await bcrypt.hash(newPassword, salt);
 
             const query = `
-                UPDATE CLIENTE
+                UPDATE cliente
                 SET password = ?
                 WHERE id_cliente = ?
             `;
@@ -143,9 +143,9 @@ class Cliente extends BaseModel {
                     fecha_registro,
                     fecha_ultima_sesion,
                     estado,
-                    (SELECT COUNT(*) FROM PEDIDO WHERE id_cliente = c.id_cliente) as total_pedidos,
-                    (SELECT COUNT(*) FROM DIRECCION_ENVIO WHERE id_cliente = c.id_cliente) as total_direcciones
-                FROM CLIENTE c
+                    (SELECT COUNT(*) FROM pedido WHERE id_cliente = c.id_cliente) as total_pedidos,
+                    (SELECT COUNT(*) FROM direccion_envio WHERE id_cliente = c.id_cliente) as total_direcciones
+                FROM cliente c
                 WHERE id_cliente = ? AND estado = 'Activo'
             `;
 
@@ -209,7 +209,7 @@ class Cliente extends BaseModel {
                     codigo_postal,
                     es_principal,
                     referencia
-                FROM DIRECCION_ENVIO
+                FROM direccion_envio
                 WHERE id_cliente = ?
                 ORDER BY es_principal DESC, id_direccion DESC
             `;
@@ -242,7 +242,7 @@ class Cliente extends BaseModel {
             }
 
             const query = `
-                INSERT INTO DIRECCION_ENVIO 
+                INSERT INTO direccion_envio 
                 (id_cliente, direccion_linea1, distrito, provincia, codigo_postal, referencia, es_principal, fecha_creacion)
                 VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
             `;
@@ -273,7 +273,7 @@ class Cliente extends BaseModel {
     async unsetPrincipalDireccion(id_cliente) {
         try {
             const query = `
-                UPDATE DIRECCION_ENVIO
+                UPDATE direccion_envio
                 SET es_principal = 0
                 WHERE id_cliente = ?
             `;
@@ -292,7 +292,7 @@ class Cliente extends BaseModel {
         try {
             await this.unsetPrincipalDireccion(id_cliente);
             const query = `
-                UPDATE DIRECCION_ENVIO
+                UPDATE direccion_envio
                 SET es_principal = 1
                 WHERE id_cliente = ? AND id_direccion = ?
             `;
@@ -313,7 +313,7 @@ class Cliente extends BaseModel {
     async deleteDireccion(id_cliente, id_direccion) {
         try {
             const query = `
-                DELETE FROM DIRECCION_ENVIO
+                DELETE FROM direccion_envio
                 WHERE id_cliente = ? AND id_direccion = ?
             `;
 
@@ -345,8 +345,8 @@ class Cliente extends BaseModel {
                     p.total,
                     p.metodo_pago,
                     COUNT(dp.id_detalle) as total_items
-                FROM PEDIDO p
-                LEFT JOIN DETALLE_PEDIDO dp ON p.id_pedido = dp.id_pedido
+                FROM pedido p
+                LEFT JOIN detalle_pedido dp ON p.id_pedido = dp.id_pedido
                 WHERE p.id_cliente = ?
                 GROUP BY p.id_pedido
                 ORDER BY p.fecha_pedido DESC
@@ -372,8 +372,8 @@ class Cliente extends BaseModel {
                     COALESCE(AVG(p.total), 0) as promedio_pedido,
                     COUNT(DISTINCT dp.id_producto) as productos_comprados,
                     MAX(p.fecha_pedido) as ultima_compra
-                FROM PEDIDO p
-                LEFT JOIN DETALLE_PEDIDO dp ON p.id_pedido = dp.id_pedido
+                FROM pedido p
+                LEFT JOIN detalle_pedido dp ON p.id_pedido = dp.id_pedido
                 WHERE p.id_cliente = ?
             `;
 
@@ -389,7 +389,7 @@ class Cliente extends BaseModel {
      */
     async emailExists(email, excludeClienteId = null) {
         try {
-            let query = `SELECT id_cliente FROM CLIENTE WHERE email = ?`;
+            let query = `SELECT id_cliente FROM cliente WHERE email = ?`;
             const params = [email];
 
             if (excludeClienteId) {
@@ -410,7 +410,7 @@ class Cliente extends BaseModel {
     async deactivate(id_cliente) {
         try {
             const query = `
-                UPDATE CLIENTE
+                UPDATE cliente
                 SET activo = 0
                 WHERE id_cliente = ?
             `;
@@ -440,7 +440,7 @@ class Cliente extends BaseModel {
             }
 
             const query = `
-                UPDATE CLIENTE
+                UPDATE cliente
                 SET estado = ?
                 WHERE id_cliente = ?
             `;

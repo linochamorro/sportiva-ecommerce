@@ -23,7 +23,7 @@ class Pedido extends BaseModel {
 
                 // Crear pedido principal
                 const pedidoInsert = `
-                    INSERT INTO PEDIDO 
+                    INSERT INTO pedido 
                     (id_cliente, id_direccion, numero_pedido, fecha_pedido, estado_pedido, 
                       subtotal, descuento, codigo_cupon, impuestos, costo_envio, total_pedido, observaciones)
                     VALUES (?, ?, ?, NOW(), 'Pendiente', ?, ?, ?, ?, ?, ?, ?)
@@ -47,7 +47,7 @@ class Pedido extends BaseModel {
                 // Crear detalles del pedido
                 for (const item of carritoItems) {
                     const detalleInsert = `
-                        INSERT INTO DETALLE_PEDIDO 
+                        INSERT INTO detalle_pedido 
                         (id_pedido, id_talla, cantidad, precio_unitario, subtotal)
                         VALUES (?, ?, ?, ?, ?)
                     `;
@@ -62,7 +62,7 @@ class Pedido extends BaseModel {
 
                     // Actualizar stock
                     const stockUpdate = `
-                        UPDATE TALLA_PRODUCTO
+                        UPDATE talla_producto
                         SET stock_talla = stock_talla - ?
                         WHERE id_talla = ? AND stock_talla >= ?
                     `;
@@ -106,7 +106,7 @@ class Pedido extends BaseModel {
             // Obtener último número del día
             const query = `
                 SELECT numero_pedido 
-                FROM PEDIDO 
+                FROM pedido 
                 WHERE numero_pedido LIKE ?
                 ORDER BY id_pedido DESC 
                 LIMIT 1
@@ -159,9 +159,9 @@ class Pedido extends BaseModel {
                     d.provincia as departamento,
                     d.codigo_postal,
                     d.referencia
-                FROM PEDIDO p
-                INNER JOIN CLIENTE c ON p.id_cliente = c.id_cliente
-                LEFT JOIN DIRECCION_ENVIO d ON p.id_direccion = d.id_direccion
+                FROM pedido p
+                INNER JOIN cliente c ON p.id_cliente = c.id_cliente
+                LEFT JOIN direccion_envio d ON p.id_direccion = d.id_direccion
                 WHERE p.id_pedido = ?
             `;
 
@@ -200,12 +200,12 @@ class Pedido extends BaseModel {
                     p.nombre_producto,
                     p.marca,
                     tp.talla,
-                    (SELECT url_imagen FROM IMAGEN_PRODUCTO 
+                    (SELECT url_imagen FROM imagen_producto 
                       WHERE id_producto = p.id_producto AND es_principal = 1 
                       LIMIT 1) as imagen
-                FROM DETALLE_PEDIDO dp
-                INNER JOIN TALLA_PRODUCTO tp ON dp.id_talla = tp.id_talla
-                INNER JOIN PRODUCTO p ON tp.id_producto = p.id_producto
+                FROM detalle_pedido dp
+                INNER JOIN talla_producto tp ON dp.id_talla = tp.id_talla
+                INNER JOIN producto p ON tp.id_producto = p.id_producto
                 WHERE dp.id_pedido = ?
                 ORDER BY dp.id_detalle_pedido
             `;
@@ -231,7 +231,7 @@ class Pedido extends BaseModel {
                     estado_pago,
                     referencia_transaccion,
                     fecha_pago
-                FROM PAGO
+                FROM pago
                 WHERE id_pedido = ?
                 ORDER BY fecha_pago DESC
             `;
@@ -264,8 +264,8 @@ class Pedido extends BaseModel {
                     CONCAT(c.nombre, ' ', c.apellido) as cliente_nombre,
                     c.email as cliente_email,
                     c.telefono as cliente_telefono
-                FROM PEDIDO p
-                INNER JOIN CLIENTE c ON p.id_cliente = c.id_cliente
+                FROM pedido p
+                INNER JOIN cliente c ON p.id_cliente = c.id_cliente
                 WHERE 1=1
             `;
 
@@ -320,8 +320,8 @@ class Pedido extends BaseModel {
         try {
             let query = `
                 SELECT COUNT(*) as total
-                FROM PEDIDO p
-                INNER JOIN CLIENTE c ON p.id_cliente = c.id_cliente
+                FROM pedido p
+                INNER JOIN cliente c ON p.id_cliente = c.id_cliente
                 WHERE 1=1
             `;
 
@@ -375,10 +375,10 @@ class Pedido extends BaseModel {
                     p.fecha_pedido,
                     p.estado_pedido as estado,
                     p.total_pedido as total,
-                    (SELECT metodo_pago FROM PAGO WHERE id_pedido = p.id_pedido LIMIT 1) as metodo_pago,
+                    (SELECT metodo_pago FROM pago WHERE id_pedido = p.id_pedido LIMIT 1) as metodo_pago,
                     COUNT(dp.id_detalle_pedido) as total_items
-                FROM PEDIDO p
-                LEFT JOIN DETALLE_PEDIDO dp ON p.id_pedido = dp.id_pedido
+                FROM pedido p
+                LEFT JOIN detalle_pedido dp ON p.id_pedido = dp.id_pedido
                 WHERE p.id_cliente = ?
             `;
 
@@ -423,7 +423,7 @@ class Pedido extends BaseModel {
      */
     async countByCliente(id_cliente, filters = {}) {
         try {
-            let query = `SELECT COUNT(*) as total FROM PEDIDO WHERE id_cliente = ?`;
+            let query = `SELECT COUNT(*) as total FROM pedido WHERE id_cliente = ?`;
             const params = [id_cliente];
 
             if (filters.estado) {
@@ -454,7 +454,7 @@ class Pedido extends BaseModel {
     async findByNumeroPedido(numero_pedido) {
         try {
             const query = `
-                SELECT * FROM PEDIDO
+                SELECT * FROM pedido
                 WHERE numero_pedido = ?
             `;
 
@@ -487,7 +487,7 @@ class Pedido extends BaseModel {
             }
 
             const query = `
-                UPDATE PEDIDO
+                UPDATE pedido
                 SET estado_pedido = ?
                 WHERE id_pedido = ?
             `;
@@ -510,7 +510,7 @@ class Pedido extends BaseModel {
         try {
             const pedidoQuery = `
                 SELECT id_direccion 
-                FROM PEDIDO 
+                FROM pedido 
                 WHERE id_pedido = ?
             `;
             
@@ -545,7 +545,7 @@ class Pedido extends BaseModel {
 
             // Actualizar la dirección
             const updateQuery = `
-                UPDATE DIRECCION_ENVIO
+                UPDATE direccion_envio
                 SET 
                     direccion_linea1 = ?,
                     direccion_linea2 = ?,
@@ -585,7 +585,7 @@ class Pedido extends BaseModel {
         try {
             return await this.executeInTransaction(async (connection) => {
                 const updateQuery = `
-                    UPDATE PEDIDO
+                    UPDATE pedido
                     SET estado_pedido = 'Cancelado',
                         observaciones = CONCAT(COALESCE(observaciones, ''), '\nMotivo cancelación: ', ?)
                     WHERE id_pedido = ? AND estado_pedido NOT IN ('Enviado', 'Entregado', 'Cancelado')
@@ -603,7 +603,7 @@ class Pedido extends BaseModel {
                 // 2. Devolver stock
                 const itemsQuery = `
                     SELECT id_talla, cantidad
-                    FROM DETALLE_PEDIDO
+                    FROM detalle_pedido
                     WHERE id_pedido = ?
                 `;
 
@@ -611,7 +611,7 @@ class Pedido extends BaseModel {
 
                 for (const item of items) {
                     const stockQuery = `
-                        UPDATE TALLA_PRODUCTO
+                        UPDATE talla_producto
                         SET stock_talla = stock_talla + ?
                         WHERE id_talla = ?
                     `;
@@ -641,7 +641,7 @@ class Pedido extends BaseModel {
     async registrarPago(pagoData) {
         try {
             const query = `
-                INSERT INTO PAGO 
+                INSERT INTO pago 
                 (id_pedido, monto, metodo_pago, estado_pago, referencia_transaccion, fecha_pago)
                 VALUES (?, ?, ?, ?, ?, NOW())
             `;
@@ -684,7 +684,7 @@ class Pedido extends BaseModel {
                     COUNT(*) as total_pedidos,
                     COALESCE(SUM(CASE WHEN estado_pedido != 'Cancelado' THEN total_pedido ELSE 0 END), 0) as total_ventas,
                     COALESCE(AVG(CASE WHEN estado_pedido != 'Cancelado' THEN total_pedido END), 0) as ticket_promedio
-                FROM PEDIDO
+                FROM pedido
                 WHERE fecha_pedido BETWEEN ? AND ?
             `;
 
@@ -694,7 +694,7 @@ class Pedido extends BaseModel {
                 SELECT 
                     estado_pedido,
                     COUNT(*) as cantidad
-                FROM PEDIDO
+                FROM pedido
                 WHERE fecha_pedido BETWEEN ? AND ?
                 GROUP BY estado_pedido
                 ORDER BY cantidad DESC
@@ -714,7 +714,7 @@ class Pedido extends BaseModel {
                     DATE_FORMAT(fecha_pedido, '%Y-%m') as mes,
                     COUNT(*) as pedidos,
                     COALESCE(SUM(CASE WHEN estado_pedido != 'Cancelado' THEN total_pedido ELSE 0 END), 0) as total
-                FROM PEDIDO
+                FROM pedido
                 WHERE fecha_pedido BETWEEN ? AND ?
                 GROUP BY DATE_FORMAT(fecha_pedido, '%Y-%m')
                 ORDER BY mes ASC
@@ -759,10 +759,10 @@ class Pedido extends BaseModel {
                     COUNT(dp.id_detalle) as veces_comprado,
                     SUM(dp.cantidad) as total_vendido,
                     SUM(dp.subtotal) as ingresos_generados
-                FROM DETALLE_PEDIDO dp
-                INNER JOIN PRODUCTO p ON dp.id_producto = p.id_producto
-                INNER JOIN PEDIDO ped ON dp.id_pedido = ped.id_pedido
-                WHERE ped.estado NOT IN ('cancelado')
+                FROM detalle_pedido dp
+                INNER JOIN producto p ON dp.id_producto = p.id_producto
+                INNER JOIN pedido ped ON dp.id_pedido = ped.id_pedido
+                WHERE ped.estado_pedido NOT IN ('Cancelado')
                 GROUP BY p.id_producto
                 ORDER BY total_vendido DESC
                 LIMIT ?
@@ -794,8 +794,8 @@ class Pedido extends BaseModel {
                     p.metodo_pago,
                     CONCAT(c.nombre, ' ', c.apellido) as cliente_nombre,
                     c.email as cliente_email
-                FROM PEDIDO p
-                INNER JOIN CLIENTE c ON p.id_cliente = c.id_cliente
+                FROM pedido p
+                INNER JOIN cliente c ON p.id_cliente = c.id_cliente
                 ORDER BY p.fecha_pedido DESC
                 LIMIT ?
             `;
@@ -817,7 +817,7 @@ class Pedido extends BaseModel {
                     metodo_pago,
                     COUNT(*) as cantidad_pedidos,
                     COALESCE(SUM(total), 0) as total_ventas
-                FROM PEDIDO
+                FROM pedido
                 WHERE estado_pedido != 'Cancelado'
             `;
 
@@ -849,7 +849,7 @@ class Pedido extends BaseModel {
         try {
             const query = `
                 SELECT COUNT(*) as total 
-                FROM PEDIDO 
+                FROM pedido 
                 WHERE id_cliente = ? 
                 AND codigo_cupon = ? 
                 AND estado_pedido != 'Cancelado'

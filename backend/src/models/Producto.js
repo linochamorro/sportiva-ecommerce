@@ -54,16 +54,15 @@ class Producto extends BaseModel {
                     GROUP_CONCAT(DISTINCT CONCAT(tp.id_talla, ':', tp.talla, ':', tp.stock_talla) SEPARATOR '|') as tallas_info,
                     SUM(tp.stock_talla) as stock_total,
                     (SELECT url_imagen 
-                    FROM IMAGEN_PRODUCTO 
+                    FROM imagen_producto
                     WHERE id_producto = p.id_producto 
                     AND es_principal = TRUE 
                     LIMIT 1) as imagen_principal
-                FROM PRODUCTO p
-                LEFT JOIN CATEGORIA c ON p.id_categoria = c.id_categoria
-                LEFT JOIN TALLA_PRODUCTO tp ON p.id_producto = tp.id_producto
+                FROM producto p
+                LEFT JOIN categoria c ON p.id_categoria = c.id_categoria
+                LEFT JOIN talla_producto tp ON p.id_producto = tp.id_producto
                 WHERE p.estado_producto = 'Activo'
             `;
-
             const params = [];
 
             if (categoria) {
@@ -183,19 +182,19 @@ class Producto extends BaseModel {
                     c.nombre_categoria,
                     c.descripcion as descripcion_categoria,
                     p.fecha_creacion,
-                    (SELECT COUNT(*) FROM RESENA r WHERE r.id_producto = p.id_producto) as total_resenas,
-                    (SELECT AVG(r.calificacion) FROM RESENA r WHERE r.id_producto = p.id_producto) as calificacion_promedio,
+                    (SELECT COUNT(*) FROM resena r WHERE r.id_producto = p.id_producto) as total_resenas,
+                    (SELECT AVG(r.calificacion) FROM resena r WHERE r.id_producto = p.id_producto) as calificacion_promedio,
                     COALESCE(
-                        (SELECT url_imagen FROM IMAGEN_PRODUCTO 
+                        (SELECT url_imagen FROM imagen_producto 
                           WHERE id_producto = p.id_producto AND es_principal = 1 
                           LIMIT 1),
-                        (SELECT url_imagen FROM IMAGEN_PRODUCTO 
+                        (SELECT url_imagen FROM imagen_producto 
                           WHERE id_producto = p.id_producto 
                           ORDER BY orden_imagen ASC 
                           LIMIT 1)
                     ) as imagen_principal
-                FROM PRODUCTO p
-                INNER JOIN CATEGORIA c ON p.id_categoria = c.id_categoria
+                FROM producto p
+                INNER JOIN categoria c ON p.id_categoria = c.id_categoria
                 WHERE p.id_producto = ? AND p.estado_producto = 'Activo'
             `;
 
@@ -215,7 +214,7 @@ class Producto extends BaseModel {
                     talla,
                     stock_talla,
                     medidas
-                FROM TALLA_PRODUCTO
+                FROM talla_producto
                 WHERE id_producto = ?
                 ORDER BY 
                     CASE talla
@@ -249,7 +248,7 @@ class Producto extends BaseModel {
                     url_imagen,
                     es_principal,
                     orden_imagen
-                FROM IMAGEN_PRODUCTO
+                FROM imagen_producto
                 WHERE id_producto = ?
                 ORDER BY es_principal DESC, orden_imagen ASC
             `;
@@ -272,7 +271,7 @@ class Producto extends BaseModel {
                     talla,
                     stock_talla,
                     medidas
-                FROM TALLA_PRODUCTO
+                FROM talla_producto
                 WHERE id_producto = ? AND stock_talla > 0
                 ORDER BY 
                     CASE talla
@@ -302,7 +301,7 @@ class Producto extends BaseModel {
                 SELECT 
                     id_talla,
                     stock_talla
-                FROM TALLA_PRODUCTO
+                FROM talla_producto
                 WHERE id_producto = ? AND talla = ?
             `;
 
@@ -330,7 +329,7 @@ class Producto extends BaseModel {
         try {
             const operator = operation === 'subtract' ? '-' : '+';
             const query = `
-                UPDATE TALLA_PRODUCTO
+                UPDATE talla_producto
                 SET stock_talla = stock_talla ${operator} ?
                 WHERE id_talla = ? AND stock_talla >= ?
             `;
@@ -361,10 +360,10 @@ class Producto extends BaseModel {
                     p.precio,
                     p.descuento_porcentaje,
                     COALESCE(
-                        (SELECT url_imagen FROM IMAGEN_PRODUCTO 
+                        (SELECT url_imagen FROM imagen_producto 
                           WHERE id_producto = p.id_producto AND es_principal = 1 
                           LIMIT 1),
-                        (SELECT url_imagen FROM IMAGEN_PRODUCTO 
+                        (SELECT url_imagen FROM imagen_producto 
                           WHERE id_producto = p.id_producto 
                           ORDER BY orden_imagen ASC 
                           LIMIT 1)
@@ -401,20 +400,20 @@ class Producto extends BaseModel {
                     p.descuento_porcentaje,
                     c.nombre_categoria,
                     /* CORRECCIÓN: Calculamos el stock total sumando las tallas */
-                    (SELECT COALESCE(SUM(stock_talla), 0) FROM TALLA_PRODUCTO WHERE id_producto = p.id_producto) as stock_total,
+                    (SELECT COALESCE(SUM(stock_talla), 0) FROM talla_producto WHERE id_producto = p.id_producto) as stock_total,
                     COALESCE(
-                        (SELECT url_imagen FROM IMAGEN_PRODUCTO 
+                        (SELECT url_imagen FROM imagen_producto 
                           WHERE id_producto = p.id_producto AND es_principal = 1 
                           LIMIT 1),
-                        (SELECT url_imagen FROM IMAGEN_PRODUCTO 
+                        (SELECT url_imagen FROM imagen_producto 
                           WHERE id_producto = p.id_producto 
                           ORDER BY orden_imagen ASC 
                           LIMIT 1)
                     ) as imagen_principal,
-                    (SELECT AVG(r.calificacion) FROM RESENA r 
+                    (SELECT AVG(r.calificacion) FROM resena r 
                       WHERE r.id_producto = p.id_producto) as calificacion_promedio
-                FROM PRODUCTO p
-                INNER JOIN CATEGORIA c ON p.id_categoria = c.id_categoria
+                FROM producto p
+                INNER JOIN categoria c ON p.id_categoria = c.id_categoria
                 WHERE p.estado_producto = 'Activo'
                 AND (p.destacado = 1)
                 ORDER BY p.destacado DESC, p.fecha_creacion DESC
@@ -442,16 +441,16 @@ class Producto extends BaseModel {
                     p.descuento_porcentaje,
                     c.nombre_categoria,
                     COALESCE(
-                        (SELECT url_imagen FROM IMAGEN_PRODUCTO 
+                        (SELECT url_imagen FROM imagen_producto 
                           WHERE id_producto = p.id_producto AND es_principal = 1 
                           LIMIT 1),
-                        (SELECT url_imagen FROM IMAGEN_PRODUCTO 
+                        (SELECT url_imagen FROM imagen_producto 
                           WHERE id_producto = p.id_producto 
                           ORDER BY orden_imagen ASC 
                           LIMIT 1)
                     ) as imagen_principal
-                FROM PRODUCTO p
-                INNER JOIN CATEGORIA c ON p.id_categoria = c.id_categoria
+                FROM producto p
+                INNER JOIN categoria c ON p.id_categoria = c.id_categoria
                 WHERE p.estado_producto = 'Activo'
                 AND (
                     p.nombre_producto LIKE ? OR
@@ -500,7 +499,7 @@ class Producto extends BaseModel {
                     AVG(precio) as precio_promedio,
                     MIN(precio) as precio_minimo,
                     MAX(precio) as precio_maximo
-                FROM PRODUCTO
+                FROM producto
             `;
 
             const [rows] = await this.db.execute(query);
@@ -517,7 +516,7 @@ class Producto extends BaseModel {
         try {
             let query = `
                 SELECT COUNT(*) as total
-                FROM PRODUCTO p
+                FROM producto p
                 WHERE p.estado_producto = 'Activo'
             `;
 
@@ -568,8 +567,8 @@ class Producto extends BaseModel {
                     r.fecha_resena,
                     r.id_cliente,
                     CONCAT(COALESCE(c.nombre, 'Usuario'), ' ', COALESCE(c.apellido, 'Anónimo')) as nombre_cliente
-                FROM RESENA r
-                LEFT JOIN CLIENTE c ON r.id_cliente = c.id_cliente
+                FROM resena r
+                LEFT JOIN cliente c ON r.id_cliente = c.id_cliente
                 WHERE r.id_producto = ?
                 ORDER BY r.fecha_resena DESC
             `;
@@ -586,7 +585,7 @@ class Producto extends BaseModel {
           const numIdProducto = parseInt(id_producto);
           const numLimit = parseInt(limit) || 4;
           const [productoCurrent] = await this.db.execute(
-            'SELECT id_categoria FROM PRODUCTO WHERE id_producto = ?',
+            'SELECT id_categoria FROM producto WHERE id_producto = ?',
             [numIdProducto]
           );
 
@@ -605,14 +604,14 @@ class Producto extends BaseModel {
               c.nombre_categoria,
               c.slug as categoria_slug,
               (SELECT url_imagen 
-              FROM IMAGEN_PRODUCTO 
+              FROM imagen_producto 
               WHERE id_producto = p.id_producto 
               AND es_principal = 1
               LIMIT 1) as imagen_principal,
               COALESCE(SUM(tp.stock_talla), 0) as stock_total
-            FROM PRODUCTO p
-            LEFT JOIN CATEGORIA c ON p.id_categoria = c.id_categoria
-            LEFT JOIN TALLA_PRODUCTO tp ON p.id_producto = tp.id_producto
+            FROM producto p
+            LEFT JOIN categoria c ON p.id_categoria = c.id_categoria
+            LEFT JOIN talla_producto tp ON p.id_producto = tp.id_producto
             WHERE p.id_categoria = ${id_categoria}
               AND p.id_producto != ${numIdProducto}
               AND p.estado_producto = 'Activo'

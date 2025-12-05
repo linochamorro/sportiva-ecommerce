@@ -46,10 +46,10 @@ class Carrito extends BaseModel {
                     COUNT(dc.id_detalle_carrito) as total_items,
                     COALESCE(SUM(dc.cantidad), 0) as total_productos,
                     COALESCE(SUM(p.precio * dc.cantidad), 0) as subtotal
-                FROM CARRITO c
-                LEFT JOIN DETALLE_CARRITO dc ON c.id_carrito = dc.id_carrito
-                LEFT JOIN TALLA_PRODUCTO tp ON dc.id_talla = tp.id_talla
-                LEFT JOIN PRODUCTO p ON tp.id_producto = p.id_producto
+                FROM carrito c
+                LEFT JOIN detalle_carrito dc ON c.id_carrito = dc.id_carrito
+                LEFT JOIN talla_producto tp ON dc.id_talla = tp.id_talla
+                LEFT JOIN producto p ON tp.id_producto = p.id_producto
                 WHERE c.id_cliente = ? AND c.estado_carrito = 'Activo'
                 GROUP BY c.id_carrito
             `;
@@ -85,12 +85,12 @@ class Carrito extends BaseModel {
                     (p.precio * dc.cantidad) as subtotal,
                     tp.talla,
                     tp.stock_talla as stock,
-                    (SELECT url_imagen FROM IMAGEN_PRODUCTO 
+                    (SELECT url_imagen FROM imagen_producto 
                       WHERE id_producto = p.id_producto AND es_principal = 1 
                       LIMIT 1) as imagen
-                FROM DETALLE_CARRITO dc
-                INNER JOIN TALLA_PRODUCTO tp ON dc.id_talla = tp.id_talla
-                INNER JOIN PRODUCTO p ON tp.id_producto = p.id_producto
+                FROM detalle_carrito dc
+                INNER JOIN talla_producto tp ON dc.id_talla = tp.id_talla
+                INNER JOIN producto p ON tp.id_producto = p.id_producto
                 WHERE dc.id_carrito = ?
                 ORDER BY dc.fecha_agregado DESC
             `;
@@ -121,7 +121,7 @@ class Carrito extends BaseModel {
             }
 
             const query = `
-                INSERT INTO DETALLE_CARRITO 
+                INSERT INTO detalle_carrito 
                 (id_carrito, id_talla, cantidad)
                 VALUES (?, ?, ?)
             `;
@@ -146,7 +146,7 @@ class Carrito extends BaseModel {
         try {
             const query = `
                 SELECT *
-                FROM DETALLE_CARRITO
+                FROM detalle_carrito
                 WHERE id_carrito = ? 
                 AND id_talla = ?
             `;
@@ -161,7 +161,7 @@ class Carrito extends BaseModel {
     async updateItemQuantity(id_detalle_carrito, nuevaCantidad) {
         try {
             const query = `
-                UPDATE DETALLE_CARRITO
+                UPDATE detalle_carrito
                 SET cantidad = ?
                 WHERE id_detalle_carrito = ?
             `;
@@ -183,7 +183,7 @@ class Carrito extends BaseModel {
     async removeItem(id_detalle_carrito) {
         try {
             const query = `
-                DELETE FROM DETALLE_CARRITO
+                DELETE FROM detalle_carrito
                 WHERE id_detalle_carrito = ?
             `;
 
@@ -201,7 +201,7 @@ class Carrito extends BaseModel {
     async clearCarrito(id_carrito) {
         try {
             const query = `
-                DELETE FROM DETALLE_CARRITO
+                DELETE FROM detalle_carrito
                 WHERE id_carrito = ?
             `;
 
@@ -231,9 +231,9 @@ class Carrito extends BaseModel {
                     tp.stock_talla as stock_disponible,
                     tp.talla,
                     p.nombre_producto
-                FROM DETALLE_CARRITO dc
-                INNER JOIN TALLA_PRODUCTO tp ON dc.id_talla = tp.id_talla
-                INNER JOIN PRODUCTO p ON tp.id_producto = p.id_producto
+                FROM detalle_carrito dc
+                INNER JOIN talla_producto tp ON dc.id_talla = tp.id_talla
+                INNER JOIN producto p ON tp.id_producto = p.id_producto
                 WHERE dc.id_carrito = ?
             `;
 
@@ -264,9 +264,9 @@ class Carrito extends BaseModel {
                     COALESCE(SUM(p.precio * dc.cantidad), 0) as subtotal,
                     COUNT(*) as total_items,
                     COALESCE(SUM(dc.cantidad), 0) as total_productos
-                FROM DETALLE_CARRITO dc
-                INNER JOIN TALLA_PRODUCTO tp ON dc.id_talla = tp.id_talla
-                INNER JOIN PRODUCTO p ON tp.id_producto = p.id_producto
+                FROM detalle_carrito dc
+                INNER JOIN talla_producto tp ON dc.id_talla = tp.id_talla
+                INNER JOIN producto p ON tp.id_producto = p.id_producto
                 WHERE dc.id_carrito = ?
             `;
 
@@ -294,7 +294,7 @@ class Carrito extends BaseModel {
         try {
             const query = `
                 SELECT id_carrito
-                FROM CARRITO
+                FROM carrito
                 WHERE id_carrito = ? AND id_cliente = ?
             `;
 
@@ -308,7 +308,7 @@ class Carrito extends BaseModel {
     async convertToPedido(id_carrito) {
         try {
             const query = `
-                UPDATE CARRITO
+                UPDATE carrito
                 SET estado_carrito = 'Convertido'
                 WHERE id_carrito = ?
             `;
@@ -353,7 +353,7 @@ class Carrito extends BaseModel {
     async cleanAbandonedCarritos() {
         try {
             const query = `
-                DELETE FROM CARRITO
+                DELETE FROM carrito
                 WHERE estado_carrito = 'Activo'
                 AND fecha_creacion < DATE_SUB(NOW(), INTERVAL 30 DAY)
             `;
