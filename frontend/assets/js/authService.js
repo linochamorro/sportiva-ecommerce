@@ -86,7 +86,6 @@ async function loginTrabajador(email, password) {
                 localStorage.setItem(API_CONFIG.REFRESH_TOKEN_KEY, response.refreshToken);
             }
 
-            // Buscar datos del trabajador en diferentes posibles estructuras
             let trabajadorData = null;
             
             if (response.trabajador) {
@@ -94,7 +93,6 @@ async function loginTrabajador(email, password) {
             } else if (response.data && response.data.trabajador) {
                 trabajadorData = response.data.trabajador;
             } else if (response.usuario) {
-                // El backend devuelve "usuario" en lugar de "trabajador"
                 trabajadorData = response.usuario;
             } else if (response.data && response.data.usuario) {
                 trabajadorData = response.data.usuario;
