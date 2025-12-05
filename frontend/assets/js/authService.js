@@ -210,7 +210,7 @@ async function logout() {
 
         // Redirigir a Home
         setTimeout(() => {
-            window.location.href = '/frontend/index.html';
+            window.location.href = '/index.html';
         }, 1000);
 
     } catch (error) {
@@ -219,7 +219,7 @@ async function logout() {
         removeToken();
         localStorage.removeItem(API_CONFIG.USER_KEY);
         // Redirigir a home
-        window.location.href = '/frontend/index.html';
+        window.location.href = '/index.html';
     }
 }
 
@@ -496,7 +496,7 @@ function requireAdmin() {
     if (!isAdmin()) {
         if (typeof mostrarToast === 'function') mostrarToast('No tienes permisos de administrador', 'error');
         setTimeout(() => {
-            window.location.href = '/frontend/index.html';
+            window.location.href = '/index.html';
         }, 1500);
         return false;
     }
@@ -514,7 +514,7 @@ function requireTrabajador() {
     if (!isTrabajador()) {
         if (typeof mostrarToast === 'function') mostrarToast('Acceso solo para personal de Sportiva', 'error');
         setTimeout(() => {
-            window.location.href = '/frontend/index.html';
+            window.location.href = '/index.html';
         }, 1500);
         return false;
     }
@@ -534,7 +534,7 @@ function redirectIfAuthenticated() {
             localStorage.removeItem('sportiva_redirect_after_login');
             window.location.href = redirectUrl;
         } else {
-            window.location.href = '/frontend/index.html';
+            window.location.href = '/index.html';
         }
         return true;
     }

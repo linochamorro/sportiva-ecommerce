@@ -798,7 +798,7 @@ async function agregarAlCarritoClick() {
                 if (typeof mostrarToast === 'function') mostrarToast('Inicia sesión para agregar productos', 'warning');
                 
                 setTimeout(() => {
-                    window.location.href = '/frontend/login.html?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
+                    window.location.href = '/login.html?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
                 }, 1500);
                 
                 if (btnAgregar) {
