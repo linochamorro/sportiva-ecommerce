@@ -368,7 +368,7 @@ class Producto extends BaseModel {
                           ORDER BY orden_imagen ASC 
                           LIMIT 1)
                     ) as imagen_principal
-                FROM PRODUCTO p
+                FROM producto p
                 WHERE p.id_categoria = ? 
                 AND p.id_producto != ? 
                 AND p.estado_producto = 'Activo'
