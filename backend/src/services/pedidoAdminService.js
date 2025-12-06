@@ -38,11 +38,11 @@ class PedidoAdminService {
                     CONCAT(c.nombre, ' ', c.apellido) as cliente_nombre,
                     c.email as cliente_email,
                     c.telefono as cliente_telefono,
-                    COUNT(dp.id_detalle_pedido) as cantidad_items  -- <--- NUEVO CAMPO
-                FROM PEDIDO p
-                INNER JOIN CLIENTE c ON p.id_cliente = c.id_cliente
-                LEFT JOIN PAGO pg ON p.id_pedido = pg.id_pedido
-                LEFT JOIN DETALLE_PEDIDO dp ON p.id_pedido = dp.id_pedido -- <--- NUEVO JOIN
+                    COUNT(dp.id_detalle_pedido) as cantidad_items
+                FROM pedido p
+                INNER JOIN cliente c ON p.id_cliente = c.id_cliente
+                LEFT JOIN pago pg ON p.id_pedido = pg.id_pedido
+                LEFT JOIN detalle_pedido dp ON p.id_pedido = dp.id_pedido
                 WHERE 1=1
             `;
 
@@ -91,9 +91,9 @@ class PedidoAdminService {
 
             let countQuery = `
                 SELECT COUNT(DISTINCT p.id_pedido) as total
-                FROM PEDIDO p
-                INNER JOIN CLIENTE c ON p.id_cliente = c.id_cliente
-                LEFT JOIN PAGO pg ON p.id_pedido = pg.id_pedido
+                FROM pedido p
+                INNER JOIN cliente c ON p.id_cliente = c.id_cliente
+                LEFT JOIN pago pg ON p.id_pedido = pg.id_pedido
                 WHERE 1=1
             `;
 

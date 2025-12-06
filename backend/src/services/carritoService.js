@@ -53,7 +53,7 @@ class CarritoService {
             console.log('✓ Transacción iniciada');
 
             // 3. Verificar que el producto existe y está activo
-            const productoQuery = `SELECT * FROM PRODUCTO WHERE id_producto = ? AND estado_producto = 'Activo' FOR UPDATE`;
+            const productoQuery = `SELECT * FROM producto WHERE id_producto = ? AND estado_producto = 'Activo' FOR UPDATE`;
             const [productoRows] = await connection.execute(productoQuery, [itemData.id_producto]);
 
             if (productoRows.length === 0) {
@@ -74,7 +74,7 @@ class CarritoService {
             let stock_disponible;
 
             if (producto.tiene_tallas && itemData.id_talla) {
-                const tallaQuery = `SELECT * FROM TALLA_PRODUCTO WHERE id_talla = ? AND id_producto = ? FOR UPDATE`;
+                const tallaQuery = `SELECT * FROM talla_producto WHERE id_talla = ? AND id_producto = ? FOR UPDATE`;
                 const [tallaRows] = await connection.execute(tallaQuery, [itemData.id_talla, itemData.id_producto]);
 
                 if (tallaRows.length === 0) {
@@ -92,7 +92,7 @@ class CarritoService {
                 console.log(`✓ Talla encontrada: ${tallaRows[0].talla}, Stock: ${stock_disponible}`);
 
             } else {
-                const tallaUnicaQuery = `SELECT * FROM TALLA_PRODUCTO WHERE id_producto = ? AND talla = 'UNICA' FOR UPDATE`;
+                const tallaUnicaQuery = `SELECT * FROM talla_producto WHERE id_producto = ? AND talla = 'UNICA' FOR UPDATE`;
                 const [tallaUnicaRows] = await connection.execute(tallaUnicaQuery, [itemData.id_producto]);
 
                 if (tallaUnicaRows.length === 0) {
@@ -124,12 +124,12 @@ class CarritoService {
             console.log('✓ Stock suficiente');
 
             // 6. Obtener o crear carrito
-            const carritoQuery = `SELECT id_carrito FROM CARRITO WHERE id_cliente = ? AND estado_carrito = 'Activo'`;
+            const carritoQuery = `SELECT id_carrito FROM carrito WHERE id_cliente = ? AND estado_carrito = 'Activo'`;
             let [carritoRows] = await connection.execute(carritoQuery, [id_cliente]);
 
             let id_carrito;
             if (carritoRows.length === 0) {
-                const createCarritoQuery = `INSERT INTO CARRITO (id_cliente, estado_carrito) VALUES (?, 'Activo')`;
+                const createCarritoQuery = `INSERT INTO carrito (id_cliente, estado_carrito) VALUES (?, 'Activo')`;
                 const [createResult] = await connection.execute(createCarritoQuery, [id_cliente]);
                 id_carrito = createResult.insertId;
                 console.log(`✓ Carrito creado: ${id_carrito}`);
@@ -139,7 +139,7 @@ class CarritoService {
             }
 
             // 7. Verificar si el item ya existe en el carrito
-            const existingItemQuery = `SELECT * FROM DETALLE_CARRITO WHERE id_carrito = ? AND id_talla = ? FOR UPDATE`;
+            const existingItemQuery = `SELECT * FROM detalle_carrito WHERE id_carrito = ? AND id_talla = ? FOR UPDATE`;
             const [existingItems] = await connection.execute(existingItemQuery, [id_carrito, id_talla_final]);
 
             if (existingItems.length > 0) {
@@ -155,12 +155,12 @@ class CarritoService {
                     };
                 }
 
-                const updateQuery = `UPDATE DETALLE_CARRITO SET cantidad = ? WHERE id_detalle_carrito = ?`;
+                const updateQuery = `UPDATE detalle_carrito SET cantidad = ? WHERE id_detalle_carrito = ?`;
                 await connection.execute(updateQuery, [nueva_cantidad, item_existente.id_detalle_carrito]);
                 console.log(`✓ Cantidad actualizada a ${nueva_cantidad}`);
 
             } else {
-                const insertQuery = `INSERT INTO DETALLE_CARRITO (id_carrito, id_talla, cantidad) VALUES (?, ?, ?)`;
+                const insertQuery = `INSERT INTO detalle_carrito (id_carrito, id_talla, cantidad) VALUES (?, ?, ?)`;
                 await connection.execute(insertQuery, [id_carrito, id_talla_final, itemData.cantidad]);
                 console.log(`✓ Nuevo item agregado`);
             }
@@ -248,7 +248,7 @@ class CarritoService {
 
     async updateItem(id_cliente, id_detalle, nuevaCantidad) {
         try {
-            const [rows] = await this.db.execute('SELECT * FROM DETALLE_CARRITO WHERE id_detalle_carrito = ?', [id_detalle]);
+            const [rows] = await this.db.execute('SELECT * FROM detalle_carrito WHERE id_detalle_carrito = ?', [id_detalle]);
             const item = rows[0];
 
             if (!item) {
@@ -260,7 +260,7 @@ class CarritoService {
             }
 
             // Verificar que el carrito pertenece al cliente
-            const carritoQuery = `SELECT * FROM CARRITO WHERE id_carrito = ? AND id_cliente = ?`;
+            const carritoQuery = `SELECT * FROM carrito WHERE id_carrito = ? AND id_cliente = ?`;
             const [carritoRows] = await this.db.execute(carritoQuery, [item.id_carrito, id_cliente]);
             
             if (carritoRows.length === 0) {
@@ -272,7 +272,7 @@ class CarritoService {
             }
 
             // Verificar stock
-            const tallaQuery = `SELECT stock_talla FROM TALLA_PRODUCTO WHERE id_talla = ?`;
+            const tallaQuery = `SELECT stock_talla FROM talla_producto WHERE id_talla = ?`;
             const [tallaRows] = await this.db.execute(tallaQuery, [item.id_talla]);
             
             if (tallaRows.length === 0 || tallaRows[0].stock_talla < nuevaCantidad) {
@@ -307,7 +307,7 @@ class CarritoService {
 
     async removeItem(id_cliente, id_detalle) {
         try {
-            const [rows] = await this.db.execute('SELECT * FROM DETALLE_CARRITO WHERE id_detalle_carrito = ?', [id_detalle]);
+            const [rows] = await this.db.execute('SELECT * FROM detalle_carrito WHERE id_detalle_carrito = ?', [id_detalle]);
             const item = rows[0];
 
             if (!item) {
@@ -318,7 +318,7 @@ class CarritoService {
                 };
             }
 
-            const carritoQuery = `SELECT * FROM CARRITO WHERE id_carrito = ? AND id_cliente = ?`;
+            const carritoQuery = `SELECT * FROM carrito WHERE id_carrito = ? AND id_cliente = ?`;
             const [carritoRows] = await this.db.execute(carritoQuery, [item.id_carrito, id_cliente]);
             
             if (carritoRows.length === 0) {
