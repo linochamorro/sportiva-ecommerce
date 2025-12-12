@@ -5,7 +5,7 @@ const BaseModel = require('./BaseModel');
 
 class Carrito extends BaseModel {
     constructor() {
-        super('CARRITO');
+        super('carrito');
     }
 
     // ============================================
